@@ -32,6 +32,24 @@
       body {
         overflow: hidden;
       }
+      /* Belt-and-suspenders against the "stale blank strip" class of bug
+         (see the --app-height comment below): if the measured app height
+         ever falls short of the true visible viewport on a given device,
+         the gap shows this color instead of the browser's default white,
+         so it blends into the app instead of standing out. Matches the
+         app's own light/dark theme background (src/theme/theme.ts). */
+      html,
+      body,
+      #root {
+        background-color: #ffffff;
+      }
+      @media (prefers-color-scheme: dark) {
+        html,
+        body,
+        #root {
+          background-color: #0b0b0d;
+        }
+      }
       /* Belt-and-suspenders against a single oversized element (e.g. a
          Text that renders wider than its container) making the whole page
          horizontally pannable on iOS Safari — body's own overflow:hidden

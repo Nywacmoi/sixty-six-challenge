@@ -32,6 +32,24 @@
       body {
         overflow: hidden;
       }
+      /* Belt-and-suspenders against the "stale blank strip" class of bug
+         (see the --app-height comment below): if the measured app height
+         ever falls short of the true visible viewport on a given device,
+         the gap shows this color instead of the browser's default white,
+         so it blends into the app instead of standing out. Matches the
+         app's own light/dark theme background (src/theme/theme.ts). */
+      html,
+      body,
+      #root {
+        background-color: #ffffff;
+      }
+      @media (prefers-color-scheme: dark) {
+        html,
+        body,
+        #root {
+          background-color: #0b0b0d;
+        }
+      }
       /* Belt-and-suspenders against a single oversized element (e.g. a
          Text that renders wider than its container) making the whole page
          horizontally pannable on iOS Safari — body's own overflow:hidden
@@ -62,6 +80,6 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script src="/sixty-six-challenge/_expo/static/js/web/index-fe5207047835adf94d087ca2abe64ede.js" defer></script>
+  <script src="/sixty-six-challenge/_expo/static/js/web/index-2d3cfe1cfd0626d72b3b56f93c0ea6e7.js" defer></script>
 </body>
 </html>

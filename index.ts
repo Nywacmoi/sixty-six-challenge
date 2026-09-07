@@ -54,12 +54,21 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   // (document.documentElement.clientHeight read 812 on the same device —
   // 62px short — and using it instead was a regression: it reintroduced
   // the exact gap this is meant to fix. Don't switch back to clientHeight.)
+  // `window.innerHeight` matched the true visible area on the iPhone 16 Pro
+  // this was originally debugged on, but a later report on another device
+  // showed a blank strip at the bottom again — i.e. innerHeight overshot the
+  // real visible height there. `visualViewport.height` tracks what's
+  // actually rendered on screen (accounting for on-screen toolbars/keyboard)
+  // more reliably across devices, so prefer it when available and only fall
+  // back to innerHeight where visualViewport doesn't exist.
   const setAppHeight = () => {
-    document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    const height = window.visualViewport?.height ?? window.innerHeight;
+    document.documentElement.style.setProperty('--app-height', `${height}px`);
   };
   setAppHeight();
   window.addEventListener('resize', setAppHeight);
   window.addEventListener('orientationchange', setAppHeight);
+  window.visualViewport?.addEventListener('resize', setAppHeight);
 
   // iOS Safari standalone (home-screen PWA) can keep serving an old cached
   // copy of the app well past a new deploy, forcing manual cache-clearing.

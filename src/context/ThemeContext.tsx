@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { Platform } from 'react-native';
 import { lightColors, darkColors, getTypography, ThemeColors, Typography } from '../theme/theme';
 import { storage } from '../storage/storage';
 
@@ -36,6 +37,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const colors = mode === 'dark' ? darkColors : lightColors;
   const typography = useMemo(() => getTypography(colors), [colors]);
+
+  // The static HTML shell (public/index.html) guesses the background from
+  // the OS color scheme so there's no white flash before React mounts, but
+  // the app's theme is a stored preference independent of the OS setting —
+  // this keeps html/body/#root in sync with the ACTUAL current theme so a
+  // gap below the app content (e.g. from an under-measured viewport height
+  // on some iOS Safari standalone sessions) blends in instead of showing
+  // the wrong color when the two disagree.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    document.documentElement.style.backgroundColor = colors.background;
+    document.body.style.backgroundColor = colors.background;
+    const root = document.getElementById('root');
+    if (root) root.style.backgroundColor = colors.background;
+  }, [colors.background]);
 
   const value: ThemeContextValue = { mode, colors, typography, toggleTheme, setMode };
 
