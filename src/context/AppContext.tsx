@@ -32,6 +32,7 @@ type AppContextValue = {
   removeHabit: (id: string) => Promise<void>;
   toggleCompletion: (habitId: string, dateKey?: string) => Promise<void>;
   setPhotoForToday: (habitId: string, uri: string) => Promise<void>;
+  setSessionForToday: (habitId: string, session: string) => Promise<void>;
   isCompleted: (habitId: string, dateKey?: string) => boolean;
   getStreak: (habitId: string) => number;
   getLongestStreak: (habitId: string) => number;
@@ -306,6 +307,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [completions]
   );
 
+  const setSessionForToday = useCallback(
+    async (habitId: string, session: string) => {
+      const dateKey = todayKey();
+      const existingIndex = completions.findIndex((c) => c.habitId === habitId && c.date === dateKey);
+      let next: HabitCompletion[];
+      if (existingIndex >= 0) {
+        next = completions.map((c, i) => (i === existingIndex ? { ...c, session } : c));
+      } else {
+        next = [...completions, { habitId, date: dateKey, completed: false, session }];
+      }
+      setCompletions(next);
+      await storage.setCompletions(next);
+    },
+    [completions]
+  );
+
   const canUseStreakFreeze = useCallback(
     (habitId: string) => {
       if (profile.streakFreezes <= 0) return false;
@@ -374,6 +391,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     removeHabit,
     toggleCompletion,
     setPhotoForToday,
+    setSessionForToday,
     isCompleted,
     getStreak,
     getLongestStreak,

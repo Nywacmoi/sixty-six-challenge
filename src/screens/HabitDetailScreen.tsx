@@ -10,6 +10,12 @@ import { addDays, todayKey, formatDayLabel } from '../utils/date';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { Toast } from '../components/Toast';
+import { WORKOUT_SPLITS } from '../data/workoutSplits';
+
+const SPORT_ICONS = ['🏋️', '💪', '🏃', '🚴', '⚡'];
+function isSportHabit(name: string, icon: string) {
+  return SPORT_ICONS.includes(icon) || /sport|muscu|gym|fitness|salle/i.test(name);
+}
 
 export default function HabitDetailScreen({ route, navigation }: any) {
   const { habitId } = route.params;
@@ -22,6 +28,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
     removeHabit,
     updateHabit,
     setPhotoForToday,
+    setSessionForToday,
     completions,
     canUseStreakFreeze,
     useStreakFreeze,
@@ -39,6 +46,9 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   );
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(habit?.name ?? '');
+  const [selectedSplit, setSelectedSplit] = useState<string | undefined>(
+    completions.find((c) => c.habitId === habitId && c.date === todayKey())?.session
+  );
 
   const startDate = profile.challengeStartDate ?? habit?.createdAt ?? todayKey();
 
@@ -87,6 +97,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
       showToast('🧊', 'Streak freeze utilisé, ta série est sauvée !');
     }
   };
+
+  const handleSelectSplit = async (splitId: string) => {
+    setSelectedSplit(splitId);
+    await setSessionForToday(habitId, splitId);
+  };
+
+  const activeSplit = WORKOUT_SPLITS.find((s) => s.id === selectedSplit);
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -154,6 +171,37 @@ export default function HabitDetailScreen({ route, navigation }: any) {
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
           </Pressable>
+        )}
+
+        {isSportHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Séance du jour</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+              {WORKOUT_SPLITS.map((split) => {
+                const active = selectedSplit === split.id;
+                return (
+                  <Pressable
+                    key={split.id}
+                    onPress={() => handleSelectSplit(split.id)}
+                    style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                  >
+                    <Text style={{ fontSize: 16 }}>{split.emoji}</Text>
+                    <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{split.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            {activeSplit && (
+              <View style={styles.splitCard}>
+                {activeSplit.exercises.map((ex) => (
+                  <View key={ex} style={styles.exerciseRow}>
+                    <Ionicons name="barbell-outline" size={16} color={colors.textSecondary} />
+                    <Text style={[typography.body, { flex: 1 }]}>{ex}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
         )}
 
         <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Parcours de {TOTAL_DAYS} jours</Text>
@@ -230,6 +278,25 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       marginTop: spacing.lg,
     },
     freezeEmoji: { fontSize: 26 },
+    splitChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: colors.surface,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: radius.pill,
+      paddingVertical: 8,
+      paddingHorizontal: spacing.md,
+    },
+    splitCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginTop: spacing.md,
+      gap: spacing.sm,
+    },
+    exerciseRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
     dayCell: {
       width: 22,

@@ -16,6 +16,7 @@ export type HabitCompletion = {
   completed: boolean;
   photoUri?: string;
   frozen?: boolean;
+  session?: string;
 };
 
 export type AchievementDef = {
