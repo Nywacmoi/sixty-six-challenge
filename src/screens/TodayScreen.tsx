@@ -12,7 +12,6 @@ import { AchievementToast } from '../components/AchievementToast';
 import { Toast } from '../components/Toast';
 import { CountdownTimer } from '../components/CountdownTimer';
 import { DayStats, ShareDayCta } from '../components/DayStats';
-import { DebugOverlay } from '../components/DebugOverlay';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 
@@ -28,7 +27,6 @@ export default function TodayScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <DebugOverlay />
       <View style={[styles.header, { paddingTop: topInset + spacing.sm }]}>
         <View>
           <Text style={typography.caption}>JOUR {Math.max(currentDay, activeHabits.length ? 1 : 0)} SUR {TOTAL_DAYS}</Text>

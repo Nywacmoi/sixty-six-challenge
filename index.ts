@@ -49,11 +49,15 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   // `100dvh` alone isn't reliably correct in iOS Safari standalone (home
   // screen) mode — it can settle on a height taller than the real visible
   // area, leaving a blank strip of unrendered page background above the
-  // home indicator. Measuring window.innerHeight in JS and exposing it as
-  // a CSS variable is the long-standing, more reliable fix; public/index.html
-  // uses it as the final override on top of the 100% / 100dvh fallbacks.
+  // home indicator. A debug pass on a real device confirmed it: innerHeight
+  // and visualViewport.height both read 874, but the actual visible area
+  // (document.documentElement.clientHeight) was 812 — a 62px gap. The root
+  // <html> element's clientHeight is capped by the true browser viewport no
+  // matter what CSS height it's given, so it's the one measurement that
+  // can't be thrown off by our own override. Use that as the source of
+  // truth instead of window.innerHeight / visualViewport.height.
   const setAppHeight = () => {
-    document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    document.documentElement.style.setProperty('--app-height', `${document.documentElement.clientHeight}px`);
   };
   setAppHeight();
   window.addEventListener('resize', setAppHeight);
