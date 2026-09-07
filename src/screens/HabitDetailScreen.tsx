@@ -18,7 +18,6 @@ import { MEAL_IDEAS } from '../data/mealIdeas';
 import { READING_GOALS } from '../data/readingGoals';
 import { JAWLINE_SESSIONS } from '../data/jawlineProgram';
 import { MeasurementTracker } from '../components/MeasurementTracker';
-import { JawlineDashboard } from '../components/JawlineDashboard';
 import { PrimaryButton } from '../components/PrimaryButton';
 
 function openSearch(query: string) {
@@ -71,7 +70,6 @@ export default function HabitDetailScreen({ route, navigation }: any) {
     clearToast,
     updateProfile,
     getLatestMetric,
-    currentDay,
   } = useApp();
   const { confirmAction, notify } = useConfirm();
   const { colors, typography } = useTheme();
@@ -98,14 +96,6 @@ export default function HabitDetailScreen({ route, navigation }: any) {
       return { date, done: isCompleted(habitId, date), isFuture: date > todayKey() };
     });
   }, [startDate, habitId, completions]);
-
-  const weekDays = useMemo(() => {
-    const today = todayKey();
-    return Array.from({ length: 7 }, (_, i) => {
-      const date = addDays(today, i - 6);
-      return { date, done: isCompleted(habitId, date), isToday: date === today };
-    });
-  }, [habitId, completions]);
 
   if (!habit) return null;
 
@@ -431,24 +421,16 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
         {isJawlineHabit(habit.name, habit.icon) && (
           <>
-            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Bilan jawline</Text>
-            <JawlineDashboard
-              currentDay={Math.max(currentDay, 1)}
-              totalDays={TOTAL_DAYS}
-              streak={getStreak(habitId)}
-              bestStreak={getLongestStreak(habitId)}
-              weekDays={weekDays}
-            />
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Suivi mensurations</Text>
             <MeasurementTracker
               title="Tour de mâchoire"
               subtitle="Mesure au niveau de l'angle mandibulaire"
               icon="scan-outline"
               metricKey="neck"
               unit="cm"
-              variant="dark"
             />
 
-            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Programme du jour</Text>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Programme jawline</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
               {JAWLINE_SESSIONS.map((session) => {
                 const active = selectedSession === session.id;
@@ -456,25 +438,25 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                   <Pressable
                     key={session.id}
                     onPress={() => handleSelectSession(session.id)}
-                    style={[styles.jawlineChip, active && styles.jawlineChipActive]}
+                    style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                   >
                     <Text style={{ fontSize: 16 }}>{session.emoji}</Text>
-                    <Text style={[styles.jawlineChipText, active && styles.jawlineChipTextActive]}>{session.label}</Text>
+                    <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{session.label}</Text>
                   </Pressable>
                 );
               })}
             </ScrollView>
             {activeJawline && (
-              <View style={styles.jawlineCard}>
+              <View style={styles.splitCard}>
                 {activeJawline.exercises.map((ex) => (
-                  <View key={ex.name} style={styles.jawlineExerciseRow}>
+                  <View key={ex.name} style={styles.exerciseRow}>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.jawlineExerciseName}>{ex.name}</Text>
-                      <Text style={styles.jawlineExerciseReps}>{ex.reps}</Text>
-                      <Text style={styles.jawlineExerciseTip}>{ex.tip}</Text>
+                      <Text style={typography.bodyBold}>{ex.name}</Text>
+                      <Text style={typography.caption}>{ex.reps}</Text>
+                      <Text style={[typography.small, { marginTop: 4 }]}>{ex.tip}</Text>
                     </View>
                     <Pressable onPress={() => openSearch(`${ex.name} exercice jawline`)} hitSlop={8} style={styles.videoBtn}>
-                      <Ionicons name="logo-youtube" size={22} color="#FF4D4D" />
+                      <Ionicons name="logo-youtube" size={22} color={colors.danger} />
                     </Pressable>
                   </View>
                 ))}
@@ -584,38 +566,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       padding: spacing.xs,
     },
     videoBtn: { padding: spacing.xs },
-    jawlineChip: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      backgroundColor: '#111114',
-      borderWidth: 1.5,
-      borderColor: '#2A2A2E',
-      borderRadius: radius.pill,
-      paddingVertical: 8,
-      paddingHorizontal: spacing.md,
-    },
-    jawlineChipActive: { backgroundColor: '#C9E2651F', borderColor: '#C9E265' },
-    jawlineChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: '#F5F5F0' },
-    jawlineChipTextActive: { color: '#C9E265' },
-    jawlineCard: {
-      backgroundColor: '#111114',
-      borderRadius: radius.md,
-      padding: spacing.sm,
-      marginTop: spacing.md,
-      gap: spacing.xs,
-    },
-    jawlineExerciseRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.sm,
-      backgroundColor: '#1F1F24',
-      borderRadius: radius.sm,
-      padding: spacing.sm,
-    },
-    jawlineExerciseName: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: '#F5F5F0' },
-    jawlineExerciseReps: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#9B9B9F' },
-    jawlineExerciseTip: { fontFamily: 'Poppins_400Regular', fontSize: 11, color: '#6B6B72', marginTop: 4 },
     goalsCard: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,
