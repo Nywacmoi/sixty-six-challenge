@@ -109,6 +109,9 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Compte</Text>
+        <AccountSettings />
+
         <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Réglages</Text>
 
         <View style={styles.settingRow}>
@@ -157,9 +160,6 @@ export default function ProfileScreen() {
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
         </Pressable>
-
-        <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Compte</Text>
-        <AccountSettings />
 
         <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Sauvegarde</Text>
         <BackupSettings />
