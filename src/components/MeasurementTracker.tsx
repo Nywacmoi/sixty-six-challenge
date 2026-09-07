@@ -45,6 +45,21 @@ function Sparkline({ history, color, textColor }: { history: MetricEntry[]; colo
   );
 }
 
+const DARK_PALETTE: ThemeColors = {
+  background: '#0B0B0D',
+  surface: '#111114',
+  surfaceElevated: '#1F1F24',
+  border: '#2A2A2E',
+  accent: '#C9E265',
+  accentDim: '#3A4014',
+  text: '#F5F5F0',
+  textSecondary: '#9B9B9F',
+  textTertiary: '#6B6B72',
+  success: '#3ECF5B',
+  danger: '#FF4D4D',
+  gold: '#FFC542',
+};
+
 export function MeasurementTracker({
   title,
   subtitle,
@@ -53,6 +68,7 @@ export function MeasurementTracker({
   unit,
   goal,
   extraInfo,
+  variant = 'light',
 }: {
   title: string;
   subtitle?: string;
@@ -61,8 +77,10 @@ export function MeasurementTracker({
   unit: string;
   goal?: number | null;
   extraInfo?: string;
+  variant?: 'light' | 'dark';
 }) {
-  const { colors, typography } = useTheme();
+  const { colors: themeColors, typography } = useTheme();
+  const colors = variant === 'dark' ? DARK_PALETTE : themeColors;
   const styles = createStyles(colors, typography);
   const { logMetric, getMetricHistory, getLatestMetric } = useApp();
   const [editing, setEditing] = useState(false);
@@ -94,8 +112,8 @@ export function MeasurementTracker({
             <Ionicons name={icon} size={15} color={colors.accent} />
           </View>
           <View>
-            <Text style={typography.bodyBold}>{title}</Text>
-            {subtitle && <Text style={typography.small}>{subtitle}</Text>}
+            <Text style={[typography.bodyBold, { color: colors.text }]}>{title}</Text>
+            {subtitle && <Text style={[typography.small, { color: colors.textTertiary }]}>{subtitle}</Text>}
           </View>
         </View>
         {!editing && (
@@ -118,16 +136,16 @@ export function MeasurementTracker({
             autoFocus
             onSubmitEditing={save}
           />
-          <Text style={typography.caption}>{unit}</Text>
+          <Text style={[typography.caption, { color: colors.textSecondary }]}>{unit}</Text>
           <Pressable onPress={save} style={styles.saveBtn}>
-            <Ionicons name="checkmark" size={18} color="#FFFFFF" />
+            <Ionicons name="checkmark" size={18} color={variant === 'dark' ? colors.background : '#FFFFFF'} />
           </Pressable>
         </View>
       ) : (
         <>
           <View style={styles.valueRow}>
-            <Text style={typography.display}>{latest !== undefined ? latest : '—'}</Text>
-            <Text style={[typography.caption, { marginLeft: 4 }]}>{unit}</Text>
+            <Text style={[typography.display, { color: colors.text }]}>{latest !== undefined ? latest : '—'}</Text>
+            <Text style={[typography.caption, { color: colors.textSecondary, marginLeft: 4 }]}>{unit}</Text>
             {delta !== undefined && delta !== 0 && (
               <View style={[styles.deltaPill, { backgroundColor: (delta < 0 ? colors.success : colors.accent) + '1F' }]}>
                 <Ionicons name={delta < 0 ? 'trending-down' : 'trending-up'} size={12} color={delta < 0 ? colors.success : colors.accent} />
@@ -139,9 +157,9 @@ export function MeasurementTracker({
             )}
           </View>
           {goal != null && (
-            <Text style={typography.caption}>Objectif : {goal}{unit}</Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>Objectif : {goal}{unit}</Text>
           )}
-          {extraInfo && <Text style={typography.caption}>{extraInfo}</Text>}
+          {extraInfo && <Text style={[typography.caption, { color: colors.textSecondary }]}>{extraInfo}</Text>}
           <View style={{ marginTop: spacing.sm }}>
             <Sparkline history={history} color={colors.accent} textColor={colors.textTertiary} />
           </View>
