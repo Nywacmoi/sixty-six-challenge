@@ -9,6 +9,7 @@ import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { ProgressBar } from '../components/ProgressBar';
 import { BackupSettings } from '../components/BackupSettings';
+import { AccountSettings } from '../components/AccountSettings';
 
 const REMINDER_TIMES = [
   { label: '7h', hour: 7, minute: 0 },
@@ -156,6 +157,9 @@ export default function ProfileScreen() {
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
         </Pressable>
+
+        <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Compte</Text>
+        <AccountSettings />
 
         <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Sauvegarde</Text>
         <BackupSettings />

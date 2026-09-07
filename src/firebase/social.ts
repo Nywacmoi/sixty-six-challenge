@@ -67,23 +67,24 @@ function normalizeUsername(username: string) {
   return username.trim().toLowerCase().replace(/\s+/g, '');
 }
 
-export function waitForAuthUser(): Promise<User> {
-  return new Promise((resolve, reject) => {
-    const unsub = onAuthStateChanged(
-      auth,
-      (user) => {
-        if (user) {
-          unsub();
-          resolve(user);
-        }
-      },
-      reject
-    );
-    signInAnonymously(auth).catch((err) => {
-      unsub();
-      reject(err);
-    });
+// Tracks the signed-in user for the lifetime of the app, not just at
+// startup — needed so logging in/out (switching between an anonymous
+// session and a real account) propagates everywhere. Only signs in
+// anonymously when there's truly no session yet; calling
+// signInAnonymously() unconditionally on every load would silently replace
+// an already-linked/permanent session with a fresh anonymous one before it
+// has a chance to resolve.
+export function subscribeToAuthUser(cb: (user: User | null) => void): () => void {
+  let signingInAnonymously = false;
+  const unsub = onAuthStateChanged(auth, (user) => {
+    if (!user && !signingInAnonymously) {
+      signingInAnonymously = true;
+      signInAnonymously(auth).catch(() => cb(null));
+      return;
+    }
+    cb(user);
   });
+  return unsub;
 }
 
 export async function claimUsername(uid: string, rawUsername: string, avatarColor: string) {

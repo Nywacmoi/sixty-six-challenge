@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
 import {
-  waitForAuthUser,
+  subscribeToAuthUser,
   claimUsername,
   syncMyStats,
   getProfile,
@@ -15,6 +15,15 @@ import {
   PublicProfile,
   SocialGroup,
 } from '../firebase/social';
+import {
+  signUpWithEmail,
+  logInWithEmail,
+  logOut as logOutAccount,
+  resetPassword as resetPasswordAccount,
+  subscribeToAccount,
+  trialDaysLeft,
+  Account,
+} from '../firebase/account';
 import { useApp } from './AppContext';
 import { storage } from '../storage/storage';
 
@@ -38,6 +47,14 @@ type SocialContextValue = {
   notificationsEnabled: boolean;
   notificationsSupported: boolean;
   setNotificationsEnabled: (enabled: boolean) => Promise<boolean>;
+  hasAccount: boolean;
+  accountEmail: string | null;
+  account: Account | null;
+  accountTrialDaysLeft: number;
+  signUp: (email: string, password: string) => Promise<void>;
+  logIn: (email: string, password: string) => Promise<void>;
+  logOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 };
 
 const SocialContext = createContext<SocialContextValue | null>(null);
@@ -52,26 +69,47 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   const [refreshing, setRefreshing] = useState(false);
   const [groupReads, setGroupReads] = useState<Record<string, number>>({});
   const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
+  const [hasAccount, setHasAccount] = useState(false);
+  const [account, setAccount] = useState<Account | null>(null);
   const activeChatGroupIdRef = useRef<string | null>(null);
   const knownLastMessageRef = useRef<Record<string, number> | null>(null);
   const notificationsSupported = Platform.OS === 'web' && typeof window !== 'undefined' && 'Notification' in window;
 
+  // Persistent — not one-shot — so logging in/out (switching identity)
+  // propagates: a fresh uid re-triggers the effects below that load the
+  // username, groups and account status for whoever is signed in now.
   useEffect(() => {
-    (async () => {
+    const unsub = subscribeToAuthUser(async (user) => {
+      if (!user) {
+        setReady(true);
+        return;
+      }
+      setUid(user.uid);
+      setHasAccount(!user.isAnonymous);
       try {
-        const user = await waitForAuthUser();
-        setUid(user.uid);
         const existing = await getProfile(user.uid);
-        if (existing) setUsernameState(existing.username);
+        setUsernameState(existing?.username ?? null);
       } catch {
         // offline or blocked — social features just stay unavailable
       } finally {
         setReady(true);
       }
-    })();
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
     storage.getGroupReads().then(setGroupReads);
     storage.getGroupNotificationsEnabled().then(setNotificationsEnabledState);
   }, []);
+
+  useEffect(() => {
+    if (!uid || !hasAccount) {
+      setAccount(null);
+      return;
+    }
+    return subscribeToAccount(uid, setAccount);
+  }, [uid, hasAccount]);
 
   const refresh = useCallback(async () => {
     if (!uid) return;
@@ -243,6 +281,29 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     [uid]
   );
 
+  const signUp = useCallback(async (email: string, password: string) => {
+    const created = await signUpWithEmail(email, password);
+    setHasAccount(true);
+    setAccount(created);
+  }, []);
+
+  const logIn = useCallback(async (email: string, password: string) => {
+    // The uid/username/account state below all update on their own once
+    // this resolves — the persistent auth listener above picks up the
+    // (different) uid Firebase switches to and re-fetches everything.
+    await logInWithEmail(email, password);
+  }, []);
+
+  const logOut = useCallback(async () => {
+    await logOutAccount();
+  }, []);
+
+  const resetPassword = useCallback(async (email: string) => {
+    await resetPasswordAccount(email);
+  }, []);
+
+  const accountTrialDaysLeft = trialDaysLeft(account);
+
   const value: SocialContextValue = {
     ready,
     uid,
@@ -263,6 +324,14 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     notificationsEnabled,
     notificationsSupported,
     setNotificationsEnabled,
+    hasAccount,
+    accountEmail: account?.email ?? null,
+    account,
+    accountTrialDaysLeft,
+    signUp,
+    logIn,
+    logOut,
+    resetPassword,
   };
 
   return <SocialContext.Provider value={value}>{children}</SocialContext.Provider>;

@@ -22,6 +22,10 @@ service cloud.firestore {
       }
     }
 
+    match /accounts/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
     match /groups/{groupId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
@@ -46,5 +50,6 @@ service cloud.firestore {
 - Chacun ne peut écrire que son propre profil et sa propre liste d'amis (`following`).
 - Un groupe ne peut être créé que par son propriétaire, et seulement modifié par quelqu'un qui reste (ou devient) membre — empêche de vider un groupe à distance.
 - Seuls les membres d'un groupe peuvent lire ou écrire dans sa discussion (`messages`), et uniquement en leur propre nom (`senderId` doit être toi) — personne ne peut lire ou écrire dans le chat d'un groupe auquel il n'appartient pas. Les messages ne peuvent pas être modifiés ni supprimés après coup.
+- `accounts/{uid}` (email, essai gratuit, statut d'abonnement) n'est lisible et modifiable que par son propriétaire — contrairement à `users/{uid}` qui est public, ces informations sont privées.
 
 **Si tu as déjà publié les règles précédentes**, il faut recoller ce bloc complet dans Firebase Console → Firestore Database → Règles → Publier, pour que la discussion de groupe fonctionne (sinon Firestore refusera silencieusement toute lecture/écriture dans `messages`).
