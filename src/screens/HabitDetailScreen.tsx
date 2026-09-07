@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Pressable, Image, Switch } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, Pressable, Image, Switch, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -10,7 +10,13 @@ import { addDays, todayKey, formatDayLabel } from '../utils/date';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { Toast } from '../components/Toast';
+import { ExerciseAnimation } from '../components/ExerciseAnimation';
 import { WORKOUT_SPLITS } from '../data/workoutSplits';
+
+function openExerciseVideo(name: string) {
+  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${name} technique musculation`)}`;
+  Linking.openURL(url);
+}
 
 const SPORT_ICONS = ['🏋️', '💪', '🏃', '🚴', '⚡'];
 function isSportHabit(name: string, icon: string) {
@@ -194,9 +200,15 @@ export default function HabitDetailScreen({ route, navigation }: any) {
             {activeSplit && (
               <View style={styles.splitCard}>
                 {activeSplit.exercises.map((ex) => (
-                  <View key={ex} style={styles.exerciseRow}>
-                    <Ionicons name="barbell-outline" size={16} color={colors.textSecondary} />
-                    <Text style={[typography.body, { flex: 1 }]}>{ex}</Text>
+                  <View key={ex.name} style={styles.exerciseRow}>
+                    <ExerciseAnimation pattern={ex.pattern} size={44} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={typography.bodyBold}>{ex.name}</Text>
+                      <Text style={typography.caption}>{ex.reps}</Text>
+                    </View>
+                    <Pressable onPress={() => openExerciseVideo(ex.name)} hitSlop={8} style={styles.videoBtn}>
+                      <Ionicons name="logo-youtube" size={22} color={colors.danger} />
+                    </Pressable>
                   </View>
                 ))}
               </View>
@@ -292,11 +304,19 @@ function createStyles(colors: ThemeColors, typography: Typography) {
     splitCard: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,
-      padding: spacing.md,
+      padding: spacing.sm,
       marginTop: spacing.md,
-      gap: spacing.sm,
+      gap: spacing.xs,
     },
-    exerciseRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    exerciseRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: colors.surfaceElevated,
+      borderRadius: radius.sm,
+      padding: spacing.xs,
+    },
+    videoBtn: { padding: spacing.xs },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
     dayCell: {
       width: 22,

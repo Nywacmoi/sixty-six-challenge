@@ -1,8 +1,12 @@
+import { MovementPattern } from '../components/ExerciseAnimation';
+
+export type Exercise = { name: string; reps: string; pattern: MovementPattern };
+
 export type WorkoutSplit = {
   id: string;
   label: string;
   emoji: string;
-  exercises: string[];
+  exercises: Exercise[];
 };
 
 export const WORKOUT_SPLITS: WorkoutSplit[] = [
@@ -11,11 +15,11 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     label: 'Pectoraux / Épaules / Triceps',
     emoji: '💪',
     exercises: [
-      'Développé couché — 4x8-10',
-      'Développé militaire — 3x10',
-      'Écarté haltères — 3x12',
-      'Dips ou pompes lestées — 3x max',
-      'Extension triceps à la poulie — 3x12',
+      { name: 'Développé couché', reps: '4x8-10', pattern: 'push' },
+      { name: 'Développé militaire', reps: '3x10', pattern: 'push' },
+      { name: 'Écarté haltères', reps: '3x12', pattern: 'raise' },
+      { name: 'Dips ou pompes lestées', reps: '3x max', pattern: 'push' },
+      { name: 'Extension triceps à la poulie', reps: '3x12', pattern: 'push' },
     ],
   },
   {
@@ -23,11 +27,11 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     label: 'Dos / Biceps',
     emoji: '🏋️',
     exercises: [
-      'Tractions ou tirage vertical — 4x8',
-      'Rowing barre — 4x10',
-      'Tirage horizontal — 3x12',
-      'Curl biceps haltères — 3x12',
-      'Face pull — 3x15',
+      { name: 'Tractions ou tirage vertical', reps: '4x8', pattern: 'pull' },
+      { name: 'Rowing barre', reps: '4x10', pattern: 'pull' },
+      { name: 'Tirage horizontal', reps: '3x12', pattern: 'pull' },
+      { name: 'Curl biceps haltères', reps: '3x12', pattern: 'curl' },
+      { name: 'Face pull', reps: '3x15', pattern: 'pull' },
     ],
   },
   {
@@ -35,11 +39,11 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     label: 'Jambes',
     emoji: '🦵',
     exercises: [
-      'Squat — 4x8-10',
-      'Presse à cuisses — 3x12',
-      'Fentes marchées — 3x12 par jambe',
-      'Leg curl — 3x12',
-      'Mollets debout — 4x15',
+      { name: 'Squat', reps: '4x8-10', pattern: 'squat' },
+      { name: 'Presse à cuisses', reps: '3x12', pattern: 'squat' },
+      { name: 'Fentes marchées', reps: '3x12 par jambe', pattern: 'squat' },
+      { name: 'Leg curl', reps: '3x12', pattern: 'curl' },
+      { name: 'Mollets debout', reps: '4x15', pattern: 'raise' },
     ],
   },
   {
@@ -47,10 +51,10 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     label: 'Épaules',
     emoji: '🎯',
     exercises: [
-      'Développé militaire — 4x8',
-      'Élévations latérales — 4x12',
-      'Élévations arrière — 3x15',
-      'Shrugs haltères — 3x12',
+      { name: 'Développé militaire', reps: '4x8', pattern: 'push' },
+      { name: 'Élévations latérales', reps: '4x12', pattern: 'raise' },
+      { name: 'Élévations arrière', reps: '3x15', pattern: 'raise' },
+      { name: 'Shrugs haltères', reps: '3x12', pattern: 'raise' },
     ],
   },
   {
@@ -58,10 +62,10 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     label: 'Abdos / Gainage',
     emoji: '🔥',
     exercises: [
-      'Planche — 3x45s',
-      'Crunchs — 3x20',
-      'Relevé de jambes — 3x15',
-      'Gainage latéral — 3x30s par côté',
+      { name: 'Planche', reps: '3x45s', pattern: 'hold' },
+      { name: 'Crunchs', reps: '3x20', pattern: 'crunch' },
+      { name: 'Relevé de jambes', reps: '3x15', pattern: 'crunch' },
+      { name: 'Gainage latéral', reps: '3x30s par côté', pattern: 'hold' },
     ],
   },
   {
@@ -69,9 +73,9 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     label: 'Cardio',
     emoji: '🏃',
     exercises: [
-      '20-30 min course à intensité modérée',
-      'ou 15 min HIIT (30s effort / 30s repos)',
-      'ou vélo / rameur 25 min',
+      { name: 'Course à intensité modérée', reps: '20-30 min', pattern: 'run' },
+      { name: 'HIIT (30s effort / 30s repos)', reps: '15 min', pattern: 'run' },
+      { name: 'Vélo ou rameur', reps: '25 min', pattern: 'run' },
     ],
   },
   {
@@ -79,10 +83,10 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     label: 'Full Body',
     emoji: '⚡',
     exercises: [
-      'Squat — 3x10',
-      'Développé couché ou pompes — 3x10',
-      'Rowing — 3x10',
-      'Gainage — 3x30s',
+      { name: 'Squat', reps: '3x10', pattern: 'squat' },
+      { name: 'Développé couché ou pompes', reps: '3x10', pattern: 'push' },
+      { name: 'Rowing', reps: '3x10', pattern: 'pull' },
+      { name: 'Gainage', reps: '3x30s', pattern: 'hold' },
     ],
   },
 ];
