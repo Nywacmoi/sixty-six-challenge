@@ -17,12 +17,12 @@ import HabitDetailScreen from '../screens/HabitDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const TodayStack = createNativeStackNavigator();
+const RootStack = createNativeStackNavigator();
 
 function TodayStackNavigator() {
   return (
     <TodayStack.Navigator screenOptions={{ headerShown: false }}>
       <TodayStack.Screen name="TodayHome" component={TodayScreen} />
-      <TodayStack.Screen name="AddHabit" component={AddHabitScreen} options={{ presentation: 'modal' }} />
       <TodayStack.Screen name="HabitDetail" component={HabitDetailScreen} />
     </TodayStack.Navigator>
   );
@@ -37,6 +37,18 @@ function MainTabs() {
       <Tab.Screen name="Achievements" component={AchievementsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
+  );
+}
+
+// AddHabit vit au niveau racine (au-dessus des onglets) pour que la modale
+// recouvre tout l'écran, y compris la barre d'onglets du bas — sinon celle-ci
+// reste affichée sous la modale et grignote de la hauteur disponible.
+function AppStack() {
+  return (
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      <RootStack.Screen name="MainTabs" component={MainTabs} />
+      <RootStack.Screen name="AddHabit" component={AddHabitScreen} options={{ presentation: 'modal' }} />
+    </RootStack.Navigator>
   );
 }
 
@@ -61,7 +73,7 @@ export default function RootNavigator() {
 
   return (
     <NavigationContainer theme={navTheme}>
-      {profile.onboardingCompleted ? <MainTabs /> : <OnboardingNavigator />}
+      {profile.onboardingCompleted ? <AppStack /> : <OnboardingNavigator />}
     </NavigationContainer>
   );
 }
