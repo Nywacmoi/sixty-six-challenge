@@ -3,7 +3,7 @@ import { Animated, View, Text, StyleSheet, PanResponder, Pressable } from 'react
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
-import { radius, spacing, ThemeColors } from '../theme/theme';
+import { fonts, radius, spacing, ThemeColors } from '../theme/theme';
 
 const DELETE_WIDTH = 88;
 
@@ -102,7 +102,7 @@ function createStyles(colors: ThemeColors) {
     deleteText: {
       color: '#FFFFFF',
       fontSize: 12,
-      fontFamily: 'Poppins_600SemiBold',
+      fontFamily: fonts.semiBold,
     },
   });
 }

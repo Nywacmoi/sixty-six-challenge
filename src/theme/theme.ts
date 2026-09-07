@@ -43,16 +43,15 @@ export const darkColors: ThemeColors = {
   gold: '#FFC542',
 };
 
+// The monospace "dashboard readout" font from the Aujourd'hui banner,
+// applied to the whole app's typography for a consistent look.
 export const fonts = {
-  display: 'Anton_400Regular',
-  regular: 'Poppins_400Regular',
-  medium: 'Poppins_500Medium',
-  semiBold: 'Poppins_600SemiBold',
-  bold: 'Poppins_700Bold',
-  extraBold: 'Poppins_800ExtraBold',
-  // Monospace accent for stat "readouts" (day counter, timers, streak
-  // numbers) — a nod to the dashboard reference without changing the
-  // app's overall Anton/Poppins identity.
+  display: 'SpaceMono_700Bold',
+  regular: 'SpaceMono_400Regular',
+  medium: 'SpaceMono_400Regular',
+  semiBold: 'SpaceMono_700Bold',
+  bold: 'SpaceMono_700Bold',
+  extraBold: 'SpaceMono_700Bold',
   mono: 'SpaceMono_400Regular',
   monoBold: 'SpaceMono_700Bold',
 };

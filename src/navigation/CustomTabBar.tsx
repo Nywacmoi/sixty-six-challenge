@@ -59,7 +59,7 @@ export function CustomTabBar({ state, navigation }: any) {
         return (
           <Pressable key={route.key} onPress={onPress} style={styles.tab} hitSlop={8}>
             <Ionicons name={iconName as any} size={22} color={color} />
-            <Text style={[styles.label, { color }]} numberOfLines={1}>
+            <Text style={[styles.label, { color }]} numberOfLines={2}>
               {LABELS[route.name]}
             </Text>
           </Pressable>
@@ -95,7 +95,8 @@ function createStyles(colors: ThemeColors) {
     },
     label: {
       fontFamily: fonts.semiBold,
-      fontSize: 10.5,
+      fontSize: 9,
+      lineHeight: 11,
       textAlign: 'center',
     },
   });

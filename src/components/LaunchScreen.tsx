@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Image, Animated, Easing, StyleSheet, Platform } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { spacing, ThemeColors } from '../theme/theme';
+import { fonts, spacing, ThemeColors } from '../theme/theme';
 import { playLaunchChime } from '../utils/sound';
 
 export function LaunchScreen({ duration = 2500 }: { duration?: number }) {
@@ -69,7 +69,7 @@ function createStyles(colors: ThemeColors) {
     logoWrap: { width: 160, height: 160, alignItems: 'center', justifyContent: 'center' },
     ring: { position: 'absolute', width: 160, height: 160, borderRadius: 80, borderWidth: 2 },
     logo: { width: 140, height: 140 },
-    tagline: { marginTop: spacing.lg, fontFamily: 'Poppins_600SemiBold', fontSize: 13, letterSpacing: 0.3 },
+    tagline: { marginTop: spacing.lg, fontFamily: fonts.semiBold, fontSize: 13, letterSpacing: 0.3 },
     barTrack: {
       marginTop: spacing.xl,
       width: 120,

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Animated, StyleSheet, Easing } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { fonts } from '../theme/theme';
 
 const PHASES = [
   { label: 'Inspire', duration: 4000 },
@@ -65,5 +66,5 @@ export function BreathingAnimation({ size = 96 }: { size?: number }) {
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', justifyContent: 'center' },
   circle: { position: 'absolute', borderWidth: 2 },
-  label: { fontFamily: 'Poppins_700Bold', fontSize: 13 },
+  label: { fontFamily: fonts.monoBold, fontSize: 13 },
 });

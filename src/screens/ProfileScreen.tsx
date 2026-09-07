@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
-import { radius, spacing, TOTAL_DAYS, ThemeColors, Typography } from '../theme/theme';
+import { fonts, radius, spacing, TOTAL_DAYS, ThemeColors, Typography } from '../theme/theme';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { ProgressBar } from '../components/ProgressBar';
@@ -60,7 +60,7 @@ export default function ProfileScreen() {
 
         <View style={styles.profileCard}>
           <View style={[styles.avatar, { backgroundColor: profile.avatarColor + '33' }]}>
-            <Text style={{ color: profile.avatarColor, fontSize: 28, fontFamily: 'Anton_400Regular' }}>{profile.name[0]?.toUpperCase()}</Text>
+            <Text style={{ color: profile.avatarColor, fontSize: 28, fontFamily: fonts.display }}>{profile.name[0]?.toUpperCase()}</Text>
           </View>
           {editingName ? (
             <TextInput

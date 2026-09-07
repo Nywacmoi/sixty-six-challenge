@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useSocial } from '../context/SocialContext';
 import { useConfirm } from '../context/ConfirmContext';
-import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
+import { fonts, radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { SocialGroup, getProfile, PublicProfile } from '../firebase/social';
@@ -15,7 +15,7 @@ const GROUP_EMOJIS = ['🔥', '💪', '🧘', '📚', '🏃', '🎯'];
 function Avatar({ name, color, size = 40 }: { name: string; color: string; size?: number }) {
   return (
     <View style={[styles_.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: color + '33' }]}>
-      <Text style={{ color, fontFamily: 'Anton_400Regular', fontSize: size * 0.45 }}>{name[0]?.toUpperCase()}</Text>
+      <Text style={{ color, fontFamily: fonts.display, fontSize: size * 0.45 }}>{name[0]?.toUpperCase()}</Text>
     </View>
   );
 }
