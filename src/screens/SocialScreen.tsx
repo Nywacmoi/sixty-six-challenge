@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, TextInput, ActivityIndicator, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
@@ -138,15 +138,19 @@ function GroupCard({
   group,
   colors,
   typography,
+  navigation,
 }: {
   group: SocialGroup;
   colors: ThemeColors;
   typography: Typography;
+  navigation: any;
 }) {
   const styles = createStyles(colors, typography);
+  const { hasUnread } = useSocial();
   const [expanded, setExpanded] = useState(false);
   const [members, setMembers] = useState<PublicProfile[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const unread = hasUnread(group.id);
 
   const toggle = async () => {
     setExpanded((v) => !v);
@@ -156,6 +160,10 @@ function GroupCard({
       setMembers(profiles.filter((p): p is PublicProfile => p !== null).sort((a, b) => b.currentStreak - a.currentStreak));
       setLoading(false);
     }
+  };
+
+  const openChat = () => {
+    navigation.navigate('GroupChat', { groupId: group.id, groupName: group.name, groupEmoji: group.emoji });
   };
 
   return (
@@ -170,6 +178,15 @@ function GroupCard({
         </View>
         <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textTertiary} />
       </View>
+
+      <Pressable style={styles.chatBtn} onPress={openChat}>
+        {unread && <View style={styles.chatDot} />}
+        <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.accent} />
+        <Text style={[typography.caption, { color: colors.accent, flex: 1 }]} numberOfLines={1}>
+          {group.lastMessageText ? group.lastMessageText : 'Ouvrir la discussion'}
+        </Text>
+      </Pressable>
+
       {expanded && (
         <View style={styles.membersRow}>
           {loading && <ActivityIndicator color={colors.accent} />}
@@ -188,9 +205,10 @@ function GroupCard({
   );
 }
 
-function GroupsTab({ colors, typography }: { colors: ThemeColors; typography: Typography }) {
+function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; typography: Typography; navigation: any }) {
   const styles = createStyles(colors, typography);
-  const { groups, makeGroup, joinGroup, refreshing, refresh } = useSocial();
+  const { groups, makeGroup, joinGroup, refreshing, refresh, notificationsEnabled, notificationsSupported, setNotificationsEnabled } =
+    useSocial();
   const { notify } = useConfirm();
   const [nameDraft, setNameDraft] = useState('');
   const [emoji, setEmoji] = useState(GROUP_EMOJIS[0]);
@@ -272,17 +290,36 @@ function GroupsTab({ colors, typography }: { colors: ThemeColors; typography: Ty
               </Pressable>
             </View>
           </View>
+          {notificationsSupported && (
+            <View style={styles.createCard}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={typography.bodyBold}>Notifications de groupe</Text>
+                  <Text style={[typography.caption, { marginTop: 2 }]}>
+                    Une alerte s'affiche quand quelqu'un écrit, tant que l'appli reste ouverte (un onglet en fond suffit — pas besoin de la regarder).
+                  </Text>
+                </View>
+                <Switch
+                  value={notificationsEnabled}
+                  onValueChange={(v) => {
+                    setNotificationsEnabled(v);
+                  }}
+                  trackColor={{ true: colors.accent }}
+                />
+              </View>
+            </View>
+          )}
         </View>
       }
       ListEmptyComponent={
         <Text style={[typography.caption, { textAlign: 'center' }]}>Crée un groupe ou rejoins-en un avec un code.</Text>
       }
-      renderItem={({ item }) => <GroupCard group={item} colors={colors} typography={typography} />}
+      renderItem={({ item }) => <GroupCard group={item} colors={colors} typography={typography} navigation={navigation} />}
     />
   );
 }
 
-export default function SocialScreen() {
+export default function SocialScreen({ navigation }: any) {
   const [tab, setTab] = useState<'feed' | 'squads'>('feed');
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
@@ -316,7 +353,7 @@ export default function SocialScreen() {
       ) : tab === 'feed' ? (
         <FriendsTab colors={colors} typography={typography} />
       ) : (
-        <GroupsTab colors={colors} typography={typography} />
+        <GroupsTab colors={colors} typography={typography} navigation={navigation} />
       )}
     </SafeAreaView>
   );
@@ -387,5 +424,16 @@ function createStyles(colors: ThemeColors, typography: Typography) {
     },
     membersRow: { marginTop: spacing.md, gap: spacing.sm },
     memberRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    chatBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: colors.surfaceElevated,
+      borderRadius: radius.sm,
+      paddingVertical: 8,
+      paddingHorizontal: spacing.sm,
+      marginTop: spacing.sm,
+    },
+    chatDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.danger },
   });
 }

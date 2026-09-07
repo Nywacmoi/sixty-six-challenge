@@ -16,9 +16,11 @@ import AddHabitScreen from '../screens/AddHabitScreen';
 import HabitDetailScreen from '../screens/HabitDetailScreen';
 import ProgramScreen from '../screens/ProgramScreen';
 import AssistantScreen from '../screens/AssistantScreen';
+import GroupChatScreen from '../screens/GroupChatScreen';
 
 const Tab = createBottomTabNavigator();
 const TodayStack = createNativeStackNavigator();
+const SocialStack = createNativeStackNavigator();
 const RootStack = createNativeStackNavigator();
 
 function TodayStackNavigator() {
@@ -30,12 +32,21 @@ function TodayStackNavigator() {
   );
 }
 
+function SocialStackNavigator() {
+  return (
+    <SocialStack.Navigator screenOptions={{ headerShown: false }}>
+      <SocialStack.Screen name="SocialHome" component={SocialScreen} />
+      <SocialStack.Screen name="GroupChat" component={GroupChatScreen} />
+    </SocialStack.Navigator>
+  );
+}
+
 function MainTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <CustomTabBar {...props} />}>
       <Tab.Screen name="Today" component={TodayStackNavigator} />
       <Tab.Screen name="Progress" component={ProgressScreen} />
-      <Tab.Screen name="Social" component={SocialScreen} />
+      <Tab.Screen name="Social" component={SocialStackNavigator} />
       <Tab.Screen name="Achievements" component={AchievementsScreen} />
       <Tab.Screen name="Assistant" component={AssistantScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />

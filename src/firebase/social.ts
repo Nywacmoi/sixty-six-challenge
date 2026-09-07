@@ -3,12 +3,17 @@ import {
   getDoc,
   setDoc,
   deleteDoc,
+  addDoc,
   collection,
   getDocs,
   query,
   where,
+  orderBy,
+  limit,
+  onSnapshot,
   serverTimestamp,
   arrayUnion,
+  Timestamp,
 } from 'firebase/firestore';
 import { signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
 import { auth, db } from './config';
@@ -31,7 +36,32 @@ export type SocialGroup = {
   code: string;
   ownerId: string;
   memberIds: string[];
+  lastMessageAt: number | null;
+  lastMessageText: string | null;
+  lastMessageSenderId: string | null;
 };
+
+export type GroupMessage = {
+  id: string;
+  text: string;
+  senderId: string;
+  senderUsername: string;
+  createdAt: number | null;
+};
+
+function toGroup(id: string, data: any): SocialGroup {
+  return {
+    id,
+    name: data.name,
+    emoji: data.emoji,
+    code: data.code,
+    ownerId: data.ownerId,
+    memberIds: data.memberIds,
+    lastMessageAt: data.lastMessageAt instanceof Timestamp ? data.lastMessageAt.toMillis() : null,
+    lastMessageText: data.lastMessageText ?? null,
+    lastMessageSenderId: data.lastMessageSenderId ?? null,
+  };
+}
 
 function normalizeUsername(username: string) {
   return username.trim().toLowerCase().replace(/\s+/g, '');
@@ -125,9 +155,28 @@ function generateGroupCode() {
 export async function createGroup(uid: string, name: string, emoji: string): Promise<SocialGroup> {
   const code = generateGroupCode();
   const ref = doc(collection(db, 'groups'));
-  const group: SocialGroup = { id: ref.id, name: name.trim(), emoji, code, ownerId: uid, memberIds: [uid] };
-  await setDoc(ref, { name: group.name, emoji, code, ownerId: uid, memberIds: [uid], createdAt: serverTimestamp() });
-  return group;
+  await setDoc(ref, {
+    name: name.trim(),
+    emoji,
+    code,
+    ownerId: uid,
+    memberIds: [uid],
+    createdAt: serverTimestamp(),
+    lastMessageAt: null,
+    lastMessageText: null,
+    lastMessageSenderId: null,
+  });
+  return {
+    id: ref.id,
+    name: name.trim(),
+    emoji,
+    code,
+    ownerId: uid,
+    memberIds: [uid],
+    lastMessageAt: null,
+    lastMessageText: null,
+    lastMessageSenderId: null,
+  };
 }
 
 export async function joinGroupByCode(uid: string, code: string): Promise<SocialGroup | null> {
@@ -137,14 +186,53 @@ export async function joinGroupByCode(uid: string, code: string): Promise<Social
   const groupDoc = snap.docs[0];
   await setDoc(doc(db, 'groups', groupDoc.id), { memberIds: arrayUnion(uid) }, { merge: true });
   const data = groupDoc.data();
-  return { id: groupDoc.id, name: data.name, emoji: data.emoji, code: data.code, ownerId: data.ownerId, memberIds: [...data.memberIds, uid] };
+  return toGroup(groupDoc.id, { ...data, memberIds: [...data.memberIds, uid] });
 }
 
 export async function listMyGroups(uid: string): Promise<SocialGroup[]> {
   const q = query(collection(db, 'groups'), where('memberIds', 'array-contains', uid));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => {
-    const data = d.data();
-    return { id: d.id, name: data.name, emoji: data.emoji, code: data.code, ownerId: data.ownerId, memberIds: data.memberIds };
+  return snap.docs.map((d) => toGroup(d.id, d.data()));
+}
+
+export function subscribeToMyGroups(uid: string, cb: (groups: SocialGroup[]) => void) {
+  const q = query(collection(db, 'groups'), where('memberIds', 'array-contains', uid));
+  return onSnapshot(q, (snap) => {
+    cb(snap.docs.map((d) => toGroup(d.id, d.data())));
+  });
+}
+
+export async function sendGroupMessage(groupId: string, senderId: string, senderUsername: string, text: string) {
+  const trimmed = text.trim();
+  if (!trimmed) return;
+  await addDoc(collection(db, 'groups', groupId, 'messages'), {
+    text: trimmed,
+    senderId,
+    senderUsername,
+    createdAt: serverTimestamp(),
+  });
+  await setDoc(
+    doc(db, 'groups', groupId),
+    { lastMessageAt: serverTimestamp(), lastMessageText: trimmed, lastMessageSenderId: senderId },
+    { merge: true }
+  );
+}
+
+export function subscribeToGroupMessages(groupId: string, cb: (messages: GroupMessage[]) => void) {
+  const q = query(collection(db, 'groups', groupId, 'messages'), orderBy('createdAt', 'desc'), limit(100));
+  return onSnapshot(q, (snap) => {
+    const messages = snap.docs
+      .map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          text: data.text,
+          senderId: data.senderId,
+          senderUsername: data.senderUsername,
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : null,
+        };
+      })
+      .reverse();
+    cb(messages);
   });
 }

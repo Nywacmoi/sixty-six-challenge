@@ -3,8 +3,15 @@ import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { useSocial } from '../context/SocialContext';
 import { fonts, ThemeColors } from '../theme/theme';
 import { useKeyboardVisible } from '../hooks/useKeyboardVisible';
+
+// paddingTop(10) + icon(22) + gap(4) + label lineHeight(11) — the part of
+// the bar's height that isn't the safe-area bottom inset. Screens with a
+// fixed-at-bottom control (e.g. the chat input) need this to avoid sitting
+// underneath the bar, since on web it's position:fixed and out of flow.
+export const TAB_BAR_BASE_HEIGHT = 47;
 
 const ICONS: Record<string, string> = {
   Today: 'today',
@@ -39,6 +46,7 @@ export function CustomTabBar({ state, navigation }: any) {
   const styles = createStyles(colors);
   const bottomPadding = Math.max(insets.bottom, 14);
   const keyboardVisible = useKeyboardVisible();
+  const { hasAnyUnread } = useSocial();
 
   if (keyboardVisible) return null;
 
@@ -58,7 +66,10 @@ export function CustomTabBar({ state, navigation }: any) {
 
         return (
           <Pressable key={route.key} onPress={onPress} style={styles.tab} hitSlop={8}>
-            <Ionicons name={iconName as any} size={22} color={color} />
+            <View>
+              <Ionicons name={iconName as any} size={22} color={color} />
+              {route.name === 'Social' && hasAnyUnread && <View style={styles.badge} />}
+            </View>
             <Text style={[styles.label, { color }]} numberOfLines={2}>
               {LABELS[route.name]}
             </Text>
@@ -98,6 +109,15 @@ function createStyles(colors: ThemeColors) {
       fontSize: 9,
       lineHeight: 11,
       textAlign: 'center',
+    },
+    badge: {
+      position: 'absolute',
+      top: -2,
+      right: -4,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.danger,
     },
   });
 }

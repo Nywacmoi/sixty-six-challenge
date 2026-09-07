@@ -8,6 +8,8 @@ const KEYS = {
   unlockedAchievements: '66c:achievements',
   themeMode: '66c:themeMode',
   metrics: '66c:metrics',
+  groupReads: '66c:groupReads',
+  groupNotificationsEnabled: '66c:groupNotifs',
 };
 
 async function readJson<T>(key: string, fallback: T): Promise<T> {
@@ -63,6 +65,15 @@ export const storage = {
 
   getMetrics: () => readJson<MetricEntry[]>(KEYS.metrics, []),
   setMetrics: (v: MetricEntry[]) => writeJson(KEYS.metrics, v),
+
+  // Per-device "have I seen this group's latest message" markers — not
+  // synced across devices on purpose, it's just a local read receipt for
+  // the unread badge, not something worth round-tripping through Firestore.
+  getGroupReads: () => readJson<Record<string, number>>(KEYS.groupReads, {}),
+  setGroupReads: (v: Record<string, number>) => writeJson(KEYS.groupReads, v),
+
+  getGroupNotificationsEnabled: () => readJson<boolean>(KEYS.groupNotificationsEnabled, false),
+  setGroupNotificationsEnabled: (v: boolean) => writeJson(KEYS.groupNotificationsEnabled, v),
 
   exportAll: async (): Promise<string> => {
     const [habits, completions, profile, unlockedAchievements, metrics, themeMode] = await Promise.all([

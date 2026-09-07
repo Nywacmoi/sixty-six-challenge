@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { Platform } from 'react-native';
 import {
   waitForAuthUser,
   claimUsername,
@@ -10,11 +11,12 @@ import {
   listFollowingIds,
   createGroup,
   joinGroupByCode,
-  listMyGroups,
+  subscribeToMyGroups,
   PublicProfile,
   SocialGroup,
 } from '../firebase/social';
 import { useApp } from './AppContext';
+import { storage } from '../storage/storage';
 
 type SocialContextValue = {
   ready: boolean;
@@ -29,6 +31,13 @@ type SocialContextValue = {
   removeFriend: (uid: string) => Promise<void>;
   makeGroup: (name: string, emoji: string) => Promise<SocialGroup>;
   joinGroup: (code: string) => Promise<SocialGroup | null>;
+  hasUnread: (groupId: string) => boolean;
+  hasAnyUnread: boolean;
+  markGroupRead: (groupId: string) => void;
+  setActiveChatGroupId: (groupId: string | null) => void;
+  notificationsEnabled: boolean;
+  notificationsSupported: boolean;
+  setNotificationsEnabled: (enabled: boolean) => Promise<boolean>;
 };
 
 const SocialContext = createContext<SocialContextValue | null>(null);
@@ -41,6 +50,11 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   const [following, setFollowing] = useState<PublicProfile[]>([]);
   const [groups, setGroups] = useState<SocialGroup[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [groupReads, setGroupReads] = useState<Record<string, number>>({});
+  const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
+  const activeChatGroupIdRef = useRef<string | null>(null);
+  const knownLastMessageRef = useRef<Record<string, number> | null>(null);
+  const notificationsSupported = Platform.OS === 'web' && typeof window !== 'undefined' && 'Notification' in window;
 
   useEffect(() => {
     (async () => {
@@ -55,16 +69,17 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
         setReady(true);
       }
     })();
+    storage.getGroupReads().then(setGroupReads);
+    storage.getGroupNotificationsEnabled().then(setNotificationsEnabledState);
   }, []);
 
   const refresh = useCallback(async () => {
     if (!uid) return;
     setRefreshing(true);
     try {
-      const [followingIds, myGroups] = await Promise.all([listFollowingIds(uid), listMyGroups(uid)]);
+      const followingIds = await listFollowingIds(uid);
       const profiles = await Promise.all(followingIds.map((id) => getProfile(id)));
       setFollowing(profiles.filter((p): p is PublicProfile => p !== null));
-      setGroups(myGroups);
     } finally {
       setRefreshing(false);
     }
@@ -73,6 +88,97 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (uid && username) refresh();
   }, [uid, username]);
+
+  // Realtime: keeps `groups` (including lastMessageAt/lastMessageText) live
+  // so unread badges and the chat preview update without a manual refresh.
+  useEffect(() => {
+    if (!uid || !username) return;
+    const unsub = subscribeToMyGroups(uid, (myGroups) => {
+      setGroups(myGroups);
+
+      const known = knownLastMessageRef.current;
+      const nextKnown: Record<string, number> = {};
+      myGroups.forEach((g) => {
+        nextKnown[g.id] = g.lastMessageAt ?? 0;
+      });
+
+      if (known) {
+        myGroups.forEach((g) => {
+          const prevAt = known[g.id] ?? 0;
+          const isNewMessage = (g.lastMessageAt ?? 0) > prevAt;
+          const fromSomeoneElse = g.lastMessageSenderId && g.lastMessageSenderId !== uid;
+          const viewingThisChat = activeChatGroupIdRef.current === g.id;
+          if (isNewMessage && fromSomeoneElse && !viewingThisChat) {
+            notifyNewMessage(g);
+          }
+        });
+      }
+      knownLastMessageRef.current = nextKnown;
+    });
+    return unsub;
+  }, [uid, username]);
+
+  function notifyNewMessage(group: SocialGroup) {
+    if (!notificationsEnabled || !notificationsSupported) return;
+    try {
+      if (Notification.permission !== 'granted') return;
+      const preview = group.lastMessageText ?? '';
+      new Notification(`${group.emoji} ${group.name}`, {
+        body: preview.length > 120 ? `${preview.slice(0, 117)}...` : preview,
+        tag: `group-${group.id}`,
+      });
+    } catch {
+      // Notification constructor can throw in some contexts (e.g. no SW on
+      // some browsers) — a missed notification isn't worth surfacing an error.
+    }
+  }
+
+  const hasUnread = useCallback(
+    (groupId: string) => {
+      const group = groups.find((g) => g.id === groupId);
+      if (!group || !group.lastMessageAt) return false;
+      if (group.lastMessageSenderId === uid) return false;
+      const readAt = groupReads[groupId] ?? 0;
+      return group.lastMessageAt > readAt;
+    },
+    [groups, groupReads, uid]
+  );
+
+  const hasAnyUnread = groups.some((g) => hasUnread(g.id));
+
+  const markGroupRead = useCallback(
+    (groupId: string) => {
+      const at = Date.now();
+      setGroupReads((prev) => {
+        const next = { ...prev, [groupId]: at };
+        storage.setGroupReads(next);
+        return next;
+      });
+    },
+    []
+  );
+
+  const setActiveChatGroupId = useCallback((groupId: string | null) => {
+    activeChatGroupIdRef.current = groupId;
+  }, []);
+
+  const setNotificationsEnabled = useCallback(async (enabled: boolean) => {
+    if (!enabled) {
+      setNotificationsEnabledState(false);
+      await storage.setGroupNotificationsEnabled(false);
+      return false;
+    }
+    if (!notificationsSupported) return false;
+    try {
+      const permission = await Notification.requestPermission();
+      const granted = permission === 'granted';
+      setNotificationsEnabledState(granted);
+      await storage.setGroupNotificationsEnabled(granted);
+      return granted;
+    } catch {
+      return false;
+    }
+  }, [notificationsSupported]);
 
   const activeHabits = habits.filter((h) => !h.archived);
   const bestCurrentStreak = activeHabits.reduce((max, h) => Math.max(max, getStreak(h.id)), 0);
@@ -122,21 +228,19 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   const makeGroup = useCallback(
     async (name: string, emoji: string) => {
       if (!uid) throw new Error('Pas encore connecté.');
-      const group = await createGroup(uid, name, emoji);
-      await refresh();
-      return group;
+      // No manual refresh needed — the realtime groups subscription above
+      // picks this up as soon as Firestore confirms the write.
+      return createGroup(uid, name, emoji);
     },
-    [uid, refresh]
+    [uid]
   );
 
   const joinGroup = useCallback(
     async (code: string) => {
       if (!uid) throw new Error('Pas encore connecté.');
-      const group = await joinGroupByCode(uid, code);
-      await refresh();
-      return group;
+      return joinGroupByCode(uid, code);
     },
-    [uid, refresh]
+    [uid]
   );
 
   const value: SocialContextValue = {
@@ -152,6 +256,13 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     removeFriend,
     makeGroup,
     joinGroup,
+    hasUnread,
+    hasAnyUnread,
+    markGroupRead,
+    setActiveChatGroupId,
+    notificationsEnabled,
+    notificationsSupported,
+    setNotificationsEnabled,
   };
 
   return <SocialContext.Provider value={value}>{children}</SocialContext.Provider>;
