@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Text, StyleSheet, Pressable } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
+import { useTopInset } from '../hooks/useTopInset';
 
 export function Toast({
   icon,
@@ -16,6 +17,7 @@ export function Toast({
 }) {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
+  const topInset = useTopInset();
   const translateY = useRef(new Animated.Value(-100)).current;
   const accent = accentColor ?? colors.success;
 
@@ -28,7 +30,7 @@ export function Toast({
   }, []);
 
   return (
-    <Animated.View style={[styles.toast, { transform: [{ translateY }] }]}>
+    <Animated.View style={[styles.toast, { top: topInset + spacing.sm, transform: [{ translateY }] }]}>
       <Pressable style={[styles.inner, { borderColor: accent + '55' }]} onPress={onDismiss}>
         <Text style={styles.icon}>{icon}</Text>
         <Text style={typography.bodyBold} numberOfLines={2}>
@@ -43,7 +45,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     toast: {
       position: 'absolute',
-      top: 0,
       left: spacing.lg,
       right: spacing.lg,
       zIndex: 50,

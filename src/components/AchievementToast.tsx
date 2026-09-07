@@ -3,6 +3,7 @@ import { Animated, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
+import { useTopInset } from '../hooks/useTopInset';
 
 export function AchievementToast({
   achievement,
@@ -13,6 +14,7 @@ export function AchievementToast({
 }) {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
+  const topInset = useTopInset();
   const translateY = useRef(new Animated.Value(-100)).current;
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export function AchievementToast({
   }, []);
 
   return (
-    <Animated.View style={[styles.toast, { transform: [{ translateY }] }]}>
+    <Animated.View style={[styles.toast, { top: topInset + spacing.sm, transform: [{ translateY }] }]}>
       <Pressable style={styles.inner} onPress={onDismiss}>
         <Ionicons name={achievement.icon as any} size={22} color={colors.gold} />
         <Text style={typography.bodyBold} numberOfLines={1}>
@@ -39,7 +41,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     toast: {
       position: 'absolute',
-      top: 0,
       left: spacing.lg,
       right: spacing.lg,
     },

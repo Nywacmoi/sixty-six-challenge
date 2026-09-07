@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
@@ -74,7 +74,15 @@ function createStyles(colors: ThemeColors) {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border,
       paddingTop: 10,
-    },
+      // On web, pin the bar straight to the true bottom of the viewport
+      // instead of relying on the flex column above it to add up to
+      // exactly the right height — that chain has proven unreliable in
+      // iOS Safari standalone, leaving a gap whose size shifts with how
+      // much content the screen above happens to have.
+      ...(Platform.OS === 'web'
+        ? ({ position: 'fixed', bottom: 0, left: 0, right: 0 } as any)
+        : null),
+    } as any,
     tab: {
       flex: 1,
       alignItems: 'center',
