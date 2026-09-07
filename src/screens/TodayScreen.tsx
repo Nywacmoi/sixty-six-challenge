@@ -11,16 +11,19 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { AchievementToast } from '../components/AchievementToast';
 import { Toast } from '../components/Toast';
 import { CountdownTimer } from '../components/CountdownTimer';
+import { DayStats, ShareDayCta } from '../components/DayStats';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 
 export default function TodayScreen({ navigation }: any) {
-  const { habits, currentDay, todayProgress, isCompleted, getStreak, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast } = useApp();
+  const { habits, currentDay, todayProgress, isCompleted, getStreak, getLongestStreak, profile, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast } = useApp();
   const { confirmAction } = useConfirm();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const activeHabits = habits.filter((h) => !h.archived);
   const topInset = useTopInset();
+  const bestStreak = activeHabits.reduce((max, h) => Math.max(max, getLongestStreak(h.id)), 0);
+  const currentStreak = activeHabits.reduce((max, h) => Math.max(max, getStreak(h.id)), 0);
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -47,8 +50,12 @@ export default function TodayScreen({ navigation }: any) {
       </View>
 
       {activeHabits.length > 0 && (
-        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.md }}>
+        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.md, gap: spacing.md }}>
           <CountdownTimer done={todayProgress >= 1} />
+          <DayStats bestStreak={bestStreak} currentStreak={currentStreak} streakFreezes={profile.streakFreezes} />
+          {todayProgress >= 1 && (
+            <ShareDayCta day={currentDay} onPress={() => navigation.navigate('Social')} />
+          )}
         </View>
       )}
 
