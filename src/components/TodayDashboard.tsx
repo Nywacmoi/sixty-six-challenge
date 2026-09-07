@@ -74,11 +74,13 @@ export function TodayDashboard({
 
       {done ? (
         <View style={styles.timeRow}>
-          <Ionicons name="checkmark-circle" size={30} color={colors.success} />
-          <Text style={[styles.time, { color: colors.success }]}>Terminé</Text>
+          <Ionicons name="checkmark-circle" size={28} color={colors.success} />
+          <Text style={[styles.doneLabel, { color: colors.success }]} numberOfLines={1}>
+            Terminé
+          </Text>
         </View>
       ) : (
-        <Text style={[styles.time, urgent && { color: colors.danger }]}>
+        <Text style={[styles.time, urgent && { color: colors.danger }]} numberOfLines={1} adjustsFontSizeToFit>
           {pad(remaining.hours)}:{pad(remaining.minutes)}:{pad(remaining.seconds)}
         </Text>
       )}
@@ -109,6 +111,8 @@ function createStyles(colors: ThemeColors) {
       padding: spacing.lg,
       marginHorizontal: spacing.lg,
       marginTop: spacing.md,
+      overflow: 'hidden',
+      maxWidth: '100%',
     },
     topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
     dateLabel: {
@@ -117,18 +121,25 @@ function createStyles(colors: ThemeColors) {
       color: colors.textSecondary,
       textTransform: 'capitalize',
       marginTop: 6,
+      flexShrink: 1,
     },
-    statsRow: { flexDirection: 'row', gap: spacing.lg },
+    statsRow: { flexDirection: 'row', gap: spacing.md, flexShrink: 0 },
     statBlock: { alignItems: 'flex-end' },
     statLabel: { fontFamily: fonts.mono, fontSize: 10, color: colors.textTertiary, letterSpacing: 0.5 },
-    statValue: { fontFamily: fonts.monoBold, fontSize: 26, color: colors.text },
+    statValue: { fontFamily: fonts.monoBold, fontSize: 24, color: colors.text },
     timeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
     time: {
       fontFamily: fonts.monoBold,
-      fontSize: 48,
+      fontSize: 40,
       color: colors.text,
       marginTop: spacing.sm,
       fontVariant: ['tabular-nums'],
+      maxWidth: '100%',
+    },
+    doneLabel: {
+      fontFamily: fonts.monoBold,
+      fontSize: 28,
+      flexShrink: 1,
     },
     progressPill: {
       backgroundColor: colors.surfaceElevated,
