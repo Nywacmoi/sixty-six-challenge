@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
-import { Habit, HabitCompletion, Profile } from '../types';
+import { Habit, HabitCompletion, Profile, MetricEntry } from '../types';
 import { storage } from '../storage/storage';
 import { todayKey, daysBetween, addDays } from '../utils/date';
 import { ACHIEVEMENTS } from '../data/achievements';
@@ -33,6 +33,10 @@ type AppContextValue = {
   toggleCompletion: (habitId: string, dateKey?: string) => Promise<void>;
   setPhotoForToday: (habitId: string, uri: string) => Promise<void>;
   setSessionForToday: (habitId: string, session: string) => Promise<void>;
+  metrics: MetricEntry[];
+  logMetric: (key: string, value: number) => Promise<void>;
+  getMetricHistory: (key: string) => MetricEntry[];
+  getLatestMetric: (key: string) => number | undefined;
   isCompleted: (habitId: string, dateKey?: string) => boolean;
   getStreak: (habitId: string) => number;
   getLongestStreak: (habitId: string) => number;
@@ -56,23 +60,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     onboardingCompleted: false,
     goal: null,
     streakFreezes: 1,
+    heightCm: null,
+    goalWeightKg: null,
   });
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
   const [newlyUnlocked, setNewlyUnlocked] = useState<NewlyUnlocked>(null);
   const [toast, setToast] = useState<ToastState>(null);
+  const [metrics, setMetrics] = useState<MetricEntry[]>([]);
 
   useEffect(() => {
     (async () => {
-      const [h, c, p, a] = await Promise.all([
+      const [h, c, p, a, m] = await Promise.all([
         storage.getHabits(),
         storage.getCompletions(),
         storage.getProfile(),
         storage.getUnlockedAchievements(),
+        storage.getMetrics(),
       ]);
       setHabits(h);
       setCompletions(c);
       setProfile(p);
       setUnlockedAchievements(a);
+      setMetrics(m);
       setLoading(false);
     })();
   }, []);
@@ -323,6 +332,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [completions]
   );
 
+  const logMetric = useCallback(
+    async (key: string, value: number) => {
+      const dateKey = todayKey();
+      const existingIndex = metrics.findIndex((m) => m.key === key && m.date === dateKey);
+      let next: MetricEntry[];
+      if (existingIndex >= 0) {
+        next = metrics.map((m, i) => (i === existingIndex ? { ...m, value } : m));
+      } else {
+        next = [...metrics, { key, date: dateKey, value }];
+      }
+      next.sort((a, b) => (a.date < b.date ? -1 : 1));
+      setMetrics(next);
+      await storage.setMetrics(next);
+    },
+    [metrics]
+  );
+
+  const getMetricHistory = useCallback((key: string) => metrics.filter((m) => m.key === key), [metrics]);
+
+  const getLatestMetric = useCallback(
+    (key: string) => {
+      const entries = metrics.filter((m) => m.key === key);
+      return entries.length > 0 ? entries[entries.length - 1].value : undefined;
+    },
+    [metrics]
+  );
+
   const canUseStreakFreeze = useCallback(
     (habitId: string) => {
       if (profile.streakFreezes <= 0) return false;
@@ -392,6 +428,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toggleCompletion,
     setPhotoForToday,
     setSessionForToday,
+    metrics,
+    logMetric,
+    getMetricHistory,
+    getLatestMetric,
     isCompleted,
     getStreak,
     getLongestStreak,

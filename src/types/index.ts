@@ -38,6 +38,14 @@ export type Profile = {
   onboardingCompleted: boolean;
   goal: string | null;
   streakFreezes: number;
+  heightCm: number | null;
+  goalWeightKg: number | null;
+};
+
+export type MetricEntry = {
+  key: string;
+  date: string;
+  value: number;
 };
 
 export type FeedPost = {

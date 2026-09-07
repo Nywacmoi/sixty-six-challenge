@@ -17,6 +17,8 @@ import { MEDITATION_SESSIONS } from '../data/meditationSessions';
 import { MEAL_IDEAS } from '../data/mealIdeas';
 import { READING_GOALS } from '../data/readingGoals';
 import { JAWLINE_SESSIONS } from '../data/jawlineProgram';
+import { MeasurementTracker } from '../components/MeasurementTracker';
+import { PrimaryButton } from '../components/PrimaryButton';
 
 function openSearch(query: string) {
   const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
@@ -66,6 +68,8 @@ export default function HabitDetailScreen({ route, navigation }: any) {
     showToast,
     toast,
     clearToast,
+    updateProfile,
+    getLatestMetric,
   } = useApp();
   const { confirmAction, notify } = useConfirm();
   const { colors, typography } = useTheme();
@@ -80,6 +84,9 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   const [selectedSession, setSelectedSession] = useState<string | undefined>(
     completions.find((c) => c.habitId === habitId && c.date === todayKey())?.session
   );
+  const [editingGoals, setEditingGoals] = useState(false);
+  const [heightDraft, setHeightDraft] = useState(profile.heightCm ? String(profile.heightCm) : '');
+  const [goalWeightDraft, setGoalWeightDraft] = useState(profile.goalWeightKg ? String(profile.goalWeightKg) : '');
 
   const startDate = profile.challengeStartDate ?? habit?.createdAt ?? todayKey();
 
@@ -139,6 +146,26 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   const activeMeal = MEAL_IDEAS.find((s) => s.id === selectedSession);
   const activeReading = READING_GOALS.find((s) => s.id === selectedSession);
   const activeJawline = JAWLINE_SESSIONS.find((s) => s.id === selectedSession);
+
+  const saveGoals = async () => {
+    let height = parseFloat(heightDraft.replace(',', '.'));
+    // People naturally type a height like "1,78" or "1.78" (meters) even
+    // though the field asks for cm — normalize instead of silently storing
+    // a value that would produce a nonsensical BMI.
+    if (!Number.isNaN(height) && height > 0 && height < 3) height *= 100;
+    const goalWeight = parseFloat(goalWeightDraft.replace(',', '.'));
+    await updateProfile({
+      heightCm: !Number.isNaN(height) && height > 0 ? Math.round(height) : null,
+      goalWeightKg: !Number.isNaN(goalWeight) && goalWeight > 0 ? goalWeight : null,
+    });
+    setEditingGoals(false);
+  };
+
+  const latestWeight = getLatestMetric('weight');
+  const bmi =
+    latestWeight && profile.heightCm
+      ? latestWeight / ((profile.heightCm / 100) * (profile.heightCm / 100))
+      : undefined;
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -210,6 +237,51 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
         {isSportHabit(habit.name, habit.icon) && (
           <>
+            <View style={{ marginTop: spacing.xl, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={typography.h2}>Suivi corporel</Text>
+              <Pressable onPress={() => setEditingGoals((v) => !v)} hitSlop={8}>
+                <Ionicons name="settings-outline" size={18} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+
+            {editingGoals && (
+              <View style={styles.goalsCard}>
+                <View style={styles.goalsRow}>
+                  <Text style={[typography.caption, { width: 90 }]}>TAILLE (CM)</Text>
+                  <TextInput
+                    value={heightDraft}
+                    onChangeText={setHeightDraft}
+                    keyboardType="decimal-pad"
+                    placeholder="175"
+                    placeholderTextColor={colors.textTertiary}
+                    style={styles.goalsInput}
+                  />
+                </View>
+                <View style={styles.goalsRow}>
+                  <Text style={[typography.caption, { width: 90 }]}>OBJECTIF (KG)</Text>
+                  <TextInput
+                    value={goalWeightDraft}
+                    onChangeText={setGoalWeightDraft}
+                    keyboardType="decimal-pad"
+                    placeholder="70"
+                    placeholderTextColor={colors.textTertiary}
+                    style={styles.goalsInput}
+                  />
+                </View>
+                <PrimaryButton label="Enregistrer" onPress={saveGoals} style={{ marginTop: spacing.sm }} />
+              </View>
+            )}
+
+            <MeasurementTracker
+              title="Poids"
+              subtitle="Progression vers ton objectif"
+              icon="body-outline"
+              metricKey="weight"
+              unit="kg"
+              goal={profile.goalWeightKg}
+              extraInfo={bmi ? `IMC : ${bmi.toFixed(1)}` : profile.heightCm ? undefined : 'Renseigne ta taille pour voir ton IMC'}
+            />
+
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Séance du jour</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
               {WORKOUT_SPLITS.map((split) => {
@@ -349,6 +421,15 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
         {isJawlineHabit(habit.name, habit.icon) && (
           <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Bilan jawline</Text>
+            <MeasurementTracker
+              title="Tour de mâchoire"
+              subtitle="Mesure au niveau de l'angle mandibulaire"
+              icon="scan-outline"
+              metricKey="neck"
+              unit="cm"
+            />
+
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Programme jawline</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
               {JAWLINE_SESSIONS.map((session) => {
@@ -485,6 +566,23 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       padding: spacing.xs,
     },
     videoBtn: { padding: spacing.xs },
+    goalsCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginTop: spacing.sm,
+      gap: spacing.sm,
+    },
+    goalsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    goalsInput: {
+      flex: 1,
+      backgroundColor: colors.surfaceElevated,
+      borderRadius: radius.sm,
+      paddingVertical: 8,
+      paddingHorizontal: spacing.sm,
+      color: colors.text,
+      fontSize: 15,
+    },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
     dayCell: {
       width: 22,

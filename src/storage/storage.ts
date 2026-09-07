@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Habit, HabitCompletion, Profile } from '../types';
+import { Habit, HabitCompletion, Profile, MetricEntry } from '../types';
 
 const KEYS = {
   habits: '66c:habits',
@@ -7,6 +7,7 @@ const KEYS = {
   profile: '66c:profile',
   unlockedAchievements: '66c:achievements',
   themeMode: '66c:themeMode',
+  metrics: '66c:metrics',
 };
 
 async function readJson<T>(key: string, fallback: T): Promise<T> {
@@ -33,6 +34,8 @@ const PROFILE_DEFAULTS: Profile = {
   onboardingCompleted: false,
   goal: null,
   streakFreezes: 1,
+  heightCm: null,
+  goalWeightKg: null,
 };
 
 export const storage = {
@@ -53,4 +56,7 @@ export const storage = {
 
   getThemeMode: () => readJson<'light' | 'dark'>(KEYS.themeMode, 'light'),
   setThemeMode: (v: 'light' | 'dark') => writeJson(KEYS.themeMode, v),
+
+  getMetrics: () => readJson<MetricEntry[]>(KEYS.metrics, []),
+  setMetrics: (v: MetricEntry[]) => writeJson(KEYS.metrics, v),
 };
