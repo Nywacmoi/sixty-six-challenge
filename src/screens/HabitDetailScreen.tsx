@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Pressable, Image, Switch, Linking } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, Pressable, Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -490,14 +490,6 @@ export default function HabitDetailScreen({ route, navigation }: any) {
             </View>
           )}
         </Pressable>
-
-        <View style={styles.reminderRow}>
-          <View>
-            <Text style={typography.bodyBold}>Rappel quotidien</Text>
-            <Text style={typography.caption}>Sois notifié pour faire ton check-in</Text>
-          </View>
-          <Switch value={habit.reminderEnabled} disabled trackColor={{ true: colors.accent }} />
-        </View>
       </ScrollView>
       {toast && <Toast icon={toast.icon} message={toast.message} accentColor={colors.accent} onDismiss={clearToast} />}
     </SafeAreaView>
@@ -601,14 +593,5 @@ function createStyles(colors: ThemeColors, typography: Typography) {
     },
     photo: { width: '100%', height: '100%' },
     photoPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
-    reminderRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginTop: spacing.xl,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
-    },
   });
 }

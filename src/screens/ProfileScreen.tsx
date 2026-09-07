@@ -2,18 +2,26 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Switch, TextInput, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import * as Notifications from 'expo-notifications';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, TOTAL_DAYS, ThemeColors, Typography } from '../theme/theme';
-import { scheduleDailyReminder, cancelDailyReminder } from '../utils/reminders';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { ProgressBar } from '../components/ProgressBar';
+import { BackupSettings } from '../components/BackupSettings';
+
+const REMINDER_TIMES = [
+  { label: '7h', hour: 7, minute: 0 },
+  { label: '8h', hour: 8, minute: 0 },
+  { label: '12h', hour: 12, minute: 0 },
+  { label: '18h', hour: 18, minute: 0 },
+  { label: '20h', hour: 20, minute: 0 },
+  { label: '21h', hour: 21, minute: 0 },
+];
 
 export default function ProfileScreen() {
   const { profile, updateProfile, currentDay, getTotalCompletions, habits, levelInfo } = useApp();
-  const { confirmAction, notify } = useConfirm();
+  const { confirmAction } = useConfirm();
   const { colors, typography, mode, toggleTheme } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
@@ -26,17 +34,11 @@ export default function ProfileScreen() {
   };
 
   const toggleReminders = async (value: boolean) => {
-    if (value) {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') {
-        notify('Notifications désactivées', 'Active les notifications dans les réglages système pour recevoir des rappels.');
-        return;
-      }
-      await scheduleDailyReminder(profile.reminderHour, profile.reminderMinute);
-    } else {
-      await cancelDailyReminder();
-    }
     await updateProfile({ reminderEnabled: value });
+  };
+
+  const setReminderTime = async (hour: number, minute: number) => {
+    await updateProfile({ reminderHour: hour, reminderMinute: minute });
   };
 
   const resetChallenge = () => {
@@ -116,12 +118,35 @@ export default function ProfileScreen() {
           <Switch value={mode === 'dark'} onValueChange={toggleTheme} trackColor={{ true: colors.accent }} />
         </View>
 
-        <View style={styles.settingRow}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <Ionicons name="notifications-outline" size={20} color={colors.text} />
-            <Text style={typography.body}>Rappels quotidiens</Text>
+        <View style={[styles.settingRow, { flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm }]}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              <Ionicons name="notifications-outline" size={20} color={colors.text} />
+              <Text style={typography.body}>Rappels quotidiens</Text>
+            </View>
+            <Switch value={profile.reminderEnabled} onValueChange={toggleReminders} trackColor={{ true: colors.accent }} />
           </View>
-          <Switch value={profile.reminderEnabled} onValueChange={toggleReminders} trackColor={{ true: colors.accent }} />
+          {profile.reminderEnabled && (
+            <>
+              <Text style={typography.caption}>
+                Un rappel s'affiche dans l'appli si tes habitudes du jour ne sont pas encore cochées après :
+              </Text>
+              <View style={styles.timeRow}>
+                {REMINDER_TIMES.map((t) => {
+                  const active = profile.reminderHour === t.hour && profile.reminderMinute === t.minute;
+                  return (
+                    <Pressable
+                      key={t.label}
+                      onPress={() => setReminderTime(t.hour, t.minute)}
+                      style={[styles.timeChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                    >
+                      <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{t.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </>
+          )}
         </View>
 
         <Pressable style={styles.settingRow} onPress={resetChallenge}>
@@ -131,6 +156,9 @@ export default function ProfileScreen() {
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
         </Pressable>
+
+        <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Sauvegarde</Text>
+        <BackupSettings />
       </ScrollView>
     </SafeAreaView>
   );
@@ -174,6 +202,15 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       borderRadius: radius.md,
       padding: spacing.md,
       marginBottom: spacing.sm,
+    },
+    timeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+    timeChip: {
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: radius.pill,
+      paddingVertical: 6,
+      paddingHorizontal: spacing.md,
+      backgroundColor: colors.surfaceElevated,
     },
   });
 }

@@ -4,9 +4,6 @@ export type Habit = {
   icon: string;
   color: string;
   createdAt: string;
-  reminderEnabled: boolean;
-  reminderHour: number;
-  reminderMinute: number;
   archived: boolean;
 };
 
@@ -40,6 +37,7 @@ export type Profile = {
   streakFreezes: number;
   heightCm: number | null;
   goalWeightKg: number | null;
+  lastReminderShownDate: string | null;
 };
 
 export type MetricEntry = {

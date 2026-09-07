@@ -36,6 +36,7 @@ const PROFILE_DEFAULTS: Profile = {
   streakFreezes: 1,
   heightCm: null,
   goalWeightKg: null,
+  lastReminderShownDate: null,
 };
 
 export const storage = {
@@ -59,4 +60,31 @@ export const storage = {
 
   getMetrics: () => readJson<MetricEntry[]>(KEYS.metrics, []),
   setMetrics: (v: MetricEntry[]) => writeJson(KEYS.metrics, v),
+
+  exportAll: async (): Promise<string> => {
+    const [habits, completions, profile, unlockedAchievements, metrics, themeMode] = await Promise.all([
+      readJson<Habit[]>(KEYS.habits, []),
+      readJson<HabitCompletion[]>(KEYS.completions, []),
+      readJson<Partial<Profile>>(KEYS.profile, {}),
+      readJson<string[]>(KEYS.unlockedAchievements, []),
+      readJson<MetricEntry[]>(KEYS.metrics, []),
+      readJson<'light' | 'dark'>(KEYS.themeMode, 'light'),
+    ]);
+    return JSON.stringify(
+      { version: 1, exportedAt: new Date().toISOString(), habits, completions, profile, unlockedAchievements, metrics, themeMode },
+      null,
+      2
+    );
+  },
+
+  importAll: async (json: string): Promise<void> => {
+    const data = JSON.parse(json);
+    if (!data || typeof data !== 'object') throw new Error('Fichier de sauvegarde invalide');
+    if (Array.isArray(data.habits)) await writeJson(KEYS.habits, data.habits);
+    if (Array.isArray(data.completions)) await writeJson(KEYS.completions, data.completions);
+    if (data.profile && typeof data.profile === 'object') await writeJson(KEYS.profile, data.profile);
+    if (Array.isArray(data.unlockedAchievements)) await writeJson(KEYS.unlockedAchievements, data.unlockedAchievements);
+    if (Array.isArray(data.metrics)) await writeJson(KEYS.metrics, data.metrics);
+    if (data.themeMode === 'light' || data.themeMode === 'dark') await writeJson(KEYS.themeMode, data.themeMode);
+  },
 };

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { Platform } from 'react-native';
 import { Habit, HabitCompletion, Profile, MetricEntry } from '../types';
 import { storage } from '../storage/storage';
 import { todayKey, daysBetween, addDays } from '../utils/date';
@@ -42,6 +43,8 @@ type AppContextValue = {
   getLongestStreak: (habitId: string) => number;
   getTotalCompletions: () => number;
   updateProfile: (patch: Partial<Profile>) => Promise<void>;
+  exportData: () => Promise<string>;
+  importData: (json: string) => Promise<void>;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -62,6 +65,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     streakFreezes: 1,
     heightCm: null,
     goalWeightKg: null,
+    lastReminderShownDate: null,
   });
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
   const [newlyUnlocked, setNewlyUnlocked] = useState<NewlyUnlocked>(null);
@@ -222,9 +226,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         icon,
         color,
         createdAt: todayKey(),
-        reminderEnabled: false,
-        reminderHour: 8,
-        reminderMinute: 0,
         archived: false,
       };
       const next = [...habits, newHabit];
@@ -248,9 +249,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         icon: item.icon,
         color: item.color,
         createdAt: todayKey(),
-        reminderEnabled: false,
-        reminderHour: 8,
-        reminderMinute: 0,
         archived: false,
       }));
       const next = [...habits, ...created];
@@ -400,9 +398,58 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [profile]
   );
 
+  const exportData = useCallback(() => storage.exportAll(), []);
+
+  const importData = useCallback(async (json: string) => {
+    await storage.importAll(json);
+    const [h, c, p, a, m] = await Promise.all([
+      storage.getHabits(),
+      storage.getCompletions(),
+      storage.getProfile(),
+      storage.getUnlockedAchievements(),
+      storage.getMetrics(),
+    ]);
+    setHabits(h);
+    setCompletions(c);
+    setProfile(p);
+    setUnlockedAchievements(a);
+    setMetrics(m);
+  }, []);
+
   const clearNewlyUnlocked = useCallback(() => setNewlyUnlocked(null), []);
   const showToast = useCallback((icon: string, message: string) => setToast({ icon, message }), []);
   const clearToast = useCallback(() => setToast(null), []);
+
+  // Real OS-level scheduled push notifications aren't achievable from a
+  // static web app with no backend (expo-notifications doesn't support
+  // scheduled triggers on web). Instead of a reminder toggle that silently
+  // does nothing, this nudges honestly whenever the app is actually open
+  // (on load, and whenever the tab/PWA regains focus) past the chosen time,
+  // once per day.
+  useEffect(() => {
+    if (loading || !profile.reminderEnabled) return;
+    const activeHabits = habits.filter((h) => !h.archived);
+    if (activeHabits.length === 0 || todayProgress >= 1) return;
+    if (profile.lastReminderShownDate === todayKey()) return;
+
+    const check = () => {
+      const now = new Date();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const reminderMinutes = profile.reminderHour * 60 + profile.reminderMinute;
+      if (nowMinutes < reminderMinutes) return;
+      showToast('⏰', "N'oublie pas de cocher tes habitudes aujourd'hui !");
+      updateProfile({ lastReminderShownDate: todayKey() });
+    };
+
+    check();
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const onVisible = () => {
+        if (document.visibilityState === 'visible') check();
+      };
+      document.addEventListener('visibilitychange', onVisible);
+      return () => document.removeEventListener('visibilitychange', onVisible);
+    }
+  }, [loading, profile.reminderEnabled, profile.reminderHour, profile.reminderMinute, profile.lastReminderShownDate, habits, todayProgress]);
 
   const value: AppContextValue = {
     loading,
@@ -437,6 +484,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     getLongestStreak,
     getTotalCompletions,
     updateProfile,
+    exportData,
+    importData,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
