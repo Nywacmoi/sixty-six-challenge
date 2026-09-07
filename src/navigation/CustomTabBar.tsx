@@ -11,6 +11,7 @@ const ICONS: Record<string, string> = {
   Progress: 'stats-chart',
   Social: 'people',
   Achievements: 'trophy',
+  Assistant: 'sparkles',
   Profile: 'person',
 };
 
@@ -19,6 +20,7 @@ const ICONS_OUTLINE: Record<string, string> = {
   Progress: 'stats-chart-outline',
   Social: 'people-outline',
   Achievements: 'trophy-outline',
+  Assistant: 'sparkles-outline',
   Profile: 'person-outline',
 };
 
@@ -27,6 +29,7 @@ const LABELS: Record<string, string> = {
   Progress: 'Progression',
   Social: 'Social',
   Achievements: 'Succès',
+  Assistant: 'Aide',
   Profile: 'Profil',
 };
 

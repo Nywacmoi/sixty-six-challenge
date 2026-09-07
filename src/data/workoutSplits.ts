@@ -151,3 +151,83 @@ export const WEEKLY_SCHEDULES: WeeklySchedule[] = [
     ],
   },
 ];
+
+export type SportGoal = 'muscle' | 'weightloss' | 'endurance' | 'general';
+export type SportLevel = 'beginner' | 'intermediate' | 'advanced';
+
+export const SPORT_GOALS: { id: SportGoal; label: string; emoji: string }[] = [
+  { id: 'muscle', label: 'Prise de muscle', emoji: '💪' },
+  { id: 'weightloss', label: 'Perte de poids', emoji: '🔥' },
+  { id: 'endurance', label: 'Endurance', emoji: '🏃' },
+  { id: 'general', label: 'Forme générale', emoji: '⚡' },
+];
+
+export const SPORT_LEVELS: { id: SportLevel; label: string }[] = [
+  { id: 'beginner', label: 'Débutant' },
+  { id: 'intermediate', label: 'Intermédiaire' },
+  { id: 'advanced', label: 'Avancé' },
+];
+
+const DAY_NAMES = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+// Builds a real weekly schedule from a person's actual answers (goal,
+// level, days available) instead of one fixed generic plan — the splits
+// themselves are the same building blocks as the preset schedules, just
+// picked and ordered to match what was asked for.
+export function buildPersonalSchedule(goal: SportGoal, level: SportLevel, daysPerWeek: number): WeeklySchedule {
+  const cycles: Record<SportGoal, Record<number, (string | null)[]>> = {
+    muscle: {
+      2: ['fullbody', 'fullbody'],
+      3: ['fullbody', 'fullbody', 'fullbody'],
+      4: ['push', 'pull', 'legs', 'shoulders'],
+      5: ['push', 'pull', 'legs', 'push', 'pull'],
+      6: ['push', 'pull', 'legs', 'push', 'pull', 'legs'],
+    },
+    weightloss: {
+      2: ['fullbody', 'cardio'],
+      3: ['fullbody', 'cardio', 'fullbody'],
+      4: ['fullbody', 'cardio', 'fullbody', 'cardio'],
+      5: ['fullbody', 'cardio', 'fullbody', 'cardio', 'abs'],
+      6: ['fullbody', 'cardio', 'fullbody', 'cardio', 'abs', 'cardio'],
+    },
+    endurance: {
+      2: ['cardio', 'cardio'],
+      3: ['cardio', 'fullbody', 'cardio'],
+      4: ['cardio', 'cardio', 'fullbody', 'cardio'],
+      5: ['cardio', 'fullbody', 'cardio', 'cardio', 'abs'],
+      6: ['cardio', 'fullbody', 'cardio', 'cardio', 'abs', 'cardio'],
+    },
+    general: {
+      2: ['fullbody', 'fullbody'],
+      3: ['fullbody', 'fullbody', 'fullbody'],
+      4: ['push', 'pull', 'legs', 'fullbody'],
+      5: ['push', 'pull', 'legs', 'cardio', 'abs'],
+      6: ['push', 'pull', 'legs', 'shoulders', 'cardio', 'abs'],
+    },
+  };
+
+  const clampedDays = Math.min(6, Math.max(2, daysPerWeek));
+  const cycle = cycles[goal][clampedDays];
+
+  // Spread the active days evenly across the week (e.g. 3/week -> Mon/Wed/Fri)
+  const spacing = 7 / clampedDays;
+  const activeDayIndexes = new Set(Array.from({ length: clampedDays }, (_, i) => Math.round(i * spacing)));
+
+  let cycleIndex = 0;
+  const days = DAY_NAMES.map((day, i) => {
+    if (!activeDayIndexes.has(i)) return { day, splitId: null };
+    const splitId = cycle[cycleIndex % cycle.length];
+    cycleIndex += 1;
+    return { day, splitId };
+  });
+
+  const goalLabel = SPORT_GOALS.find((g) => g.id === goal)?.label ?? '';
+  const levelLabel = SPORT_LEVELS.find((l) => l.id === level)?.label ?? '';
+
+  return {
+    id: 'personal',
+    label: 'Mon programme',
+    level: `${goalLabel} · ${levelLabel} · ${clampedDays}j/semaine`,
+    days,
+  };
+}

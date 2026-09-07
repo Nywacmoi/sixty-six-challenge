@@ -38,6 +38,9 @@ export type Profile = {
   heightCm: number | null;
   goalWeightKg: number | null;
   lastReminderShownDate: string | null;
+  sportGoal: string | null;
+  sportLevel: string | null;
+  sportDaysPerWeek: number | null;
 };
 
 export type MetricEntry = {

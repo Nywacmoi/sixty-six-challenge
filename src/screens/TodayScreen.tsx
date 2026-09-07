@@ -6,12 +6,11 @@ import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { spacing, TOTAL_DAYS, radius, ThemeColors, Typography } from '../theme/theme';
 import { HabitRow } from '../components/HabitRow';
-import { ProgressBar } from '../components/ProgressBar';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { AchievementToast } from '../components/AchievementToast';
 import { Toast } from '../components/Toast';
-import { CountdownTimer } from '../components/CountdownTimer';
-import { DayStats, ShareDayCta } from '../components/DayStats';
+import { TodayDashboard } from '../components/TodayDashboard';
+import { ShareDayCta } from '../components/ShareDayCta';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 
@@ -37,26 +36,22 @@ export default function TodayScreen({ navigation }: any) {
         </Pressable>
       </View>
 
-      <View style={styles.progressCard}>
-        <View style={{ flex: 1 }}>
-          <Text style={typography.h2}>{Math.round(todayProgress * 100)}% complété</Text>
-          <Text style={typography.caption}>
-            {activeHabits.filter((h) => isCompleted(h.id)).length} habitude{activeHabits.length > 1 ? 's' : ''} sur {activeHabits.length} faite{activeHabits.filter((h) => isCompleted(h.id)).length > 1 ? 's' : ''}
-          </Text>
-        </View>
-      </View>
-      <View style={{ paddingHorizontal: spacing.lg }}>
-        <ProgressBar progress={todayProgress} />
-      </View>
-
       {activeHabits.length > 0 && (
-        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.md, gap: spacing.md }}>
-          <CountdownTimer done={todayProgress >= 1} />
-          <DayStats bestStreak={bestStreak} currentStreak={currentStreak} streakFreezes={profile.streakFreezes} />
+        <>
+          <TodayDashboard
+            doneCount={activeHabits.filter((h) => isCompleted(h.id)).length}
+            totalCount={activeHabits.length}
+            bestStreak={bestStreak}
+            currentStreak={currentStreak}
+            streakFreezes={profile.streakFreezes}
+            done={todayProgress >= 1}
+          />
           {todayProgress >= 1 && (
-            <ShareDayCta day={currentDay} onPress={() => navigation.navigate('Social')} />
+            <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.md }}>
+              <ShareDayCta day={currentDay} onPress={() => navigation.navigate('Social')} />
+            </View>
           )}
-        </View>
+        </>
       )}
 
       {activeHabits.length === 0 ? (
@@ -119,12 +114,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       backgroundColor: colors.accent,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    progressCard: {
-      flexDirection: 'row',
-      paddingHorizontal: spacing.lg,
-      marginTop: spacing.lg,
-      marginBottom: spacing.sm,
     },
     empty: {
       flex: 1,

@@ -12,42 +12,18 @@ import { useTopInset } from '../hooks/useTopInset';
 import { Toast } from '../components/Toast';
 import { ExerciseAnimation } from '../components/ExerciseAnimation';
 import { BreathingAnimation } from '../components/BreathingAnimation';
-import { WORKOUT_SPLITS, WEEKLY_SCHEDULES } from '../data/workoutSplits';
+import { WORKOUT_SPLITS, WEEKLY_SCHEDULES, buildPersonalSchedule, SPORT_GOALS, SPORT_LEVELS, SportGoal, SportLevel } from '../data/workoutSplits';
 import { MEDITATION_SESSIONS } from '../data/meditationSessions';
 import { MEAL_IDEAS } from '../data/mealIdeas';
 import { READING_GOALS } from '../data/readingGoals';
 import { JAWLINE_SESSIONS } from '../data/jawlineProgram';
 import { MeasurementTracker } from '../components/MeasurementTracker';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { isSportHabit, isMeditationHabit, isNutritionHabit, isReadingHabit, isJawlineHabit } from '../utils/habitCategories';
 
 function openSearch(query: string) {
   const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
   Linking.openURL(url);
-}
-
-const SPORT_ICONS = ['🏋️', '💪', '🏃', '🚴', '⚡'];
-function isSportHabit(name: string, icon: string) {
-  return SPORT_ICONS.includes(icon) || /sport|muscu|gym|fitness|salle/i.test(name);
-}
-
-const MEDITATION_ICONS = ['🙏', '🧘'];
-function isMeditationHabit(name: string, icon: string) {
-  return MEDITATION_ICONS.includes(icon) || /médit|relax|respiration|calme|mental/i.test(name);
-}
-
-const NUTRITION_ICONS = ['🥗', '🍎', '🥦'];
-function isNutritionHabit(name: string, icon: string) {
-  return NUTRITION_ICONS.includes(icon) || /aliment|nutrition|manger|repas|sucre|cuisine/i.test(name);
-}
-
-const READING_ICONS = ['📖'];
-function isReadingHabit(name: string, icon: string) {
-  return READING_ICONS.includes(icon) || /lecture|lire|livre/i.test(name);
-}
-
-const JAWLINE_ICONS = ['👅'];
-function isJawlineHabit(name: string, icon: string) {
-  return JAWLINE_ICONS.includes(icon) || /jawline|mewing|mâchoire|machoire|menton/i.test(name);
 }
 
 export default function HabitDetailScreen({ route, navigation }: any) {
@@ -85,7 +61,11 @@ export default function HabitDetailScreen({ route, navigation }: any) {
     completions.find((c) => c.habitId === habitId && c.date === todayKey())?.session
   );
   const [editingGoals, setEditingGoals] = useState(false);
-  const [selectedSchedule, setSelectedSchedule] = useState(WEEKLY_SCHEDULES[1].id);
+  const [selectedSchedule, setSelectedSchedule] = useState('personal');
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizGoal, setQuizGoal] = useState<SportGoal>(SPORT_GOALS[0].id);
+  const [quizLevel, setQuizLevel] = useState<SportLevel>(SPORT_LEVELS[0].id);
+  const [quizDays, setQuizDays] = useState(3);
   const [heightDraft, setHeightDraft] = useState(profile.heightCm ? String(profile.heightCm) : '');
   const [goalWeightDraft, setGoalWeightDraft] = useState(profile.goalWeightKg ? String(profile.goalWeightKg) : '');
 
@@ -160,6 +140,16 @@ export default function HabitDetailScreen({ route, navigation }: any) {
       goalWeightKg: !Number.isNaN(goalWeight) && goalWeight > 0 ? goalWeight : null,
     });
     setEditingGoals(false);
+  };
+
+  const hasPersonalProgram = !!(profile.sportGoal && profile.sportLevel && profile.sportDaysPerWeek);
+  const personalSchedule = hasPersonalProgram
+    ? buildPersonalSchedule(profile.sportGoal as SportGoal, profile.sportLevel as SportLevel, profile.sportDaysPerWeek!)
+    : null;
+
+  const generatePersonalProgram = async () => {
+    await updateProfile({ sportGoal: quizGoal, sportLevel: quizLevel, sportDaysPerWeek: quizDays });
+    setShowQuiz(false);
   };
 
   const latestWeight = getLatestMetric('weight');
@@ -285,6 +275,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Planning hebdomadaire</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+              <Pressable
+                onPress={() => setSelectedSchedule('personal')}
+                style={[styles.splitChip, selectedSchedule === 'personal' && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+              >
+                <Text style={{ fontSize: 16 }}>🎯</Text>
+                <Text style={[typography.bodyBold, selectedSchedule === 'personal' && { color: colors.accent }]}>Mon programme</Text>
+              </Pressable>
               {WEEKLY_SCHEDULES.map((schedule) => {
                 const active = selectedSchedule === schedule.id;
                 return (
@@ -298,12 +295,65 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                 );
               })}
             </ScrollView>
-            {(() => {
-              const schedule = WEEKLY_SCHEDULES.find((s) => s.id === selectedSchedule)!;
-              return (
+
+            {selectedSchedule === 'personal' ? (
+              showQuiz || !hasPersonalProgram ? (
+                <View style={styles.quizCard}>
+                  <Text style={[typography.caption, { marginBottom: spacing.xs }]}>TON OBJECTIF</Text>
+                  <View style={styles.quizChipsRow}>
+                    {SPORT_GOALS.map((g) => (
+                      <Pressable
+                        key={g.id}
+                        onPress={() => setQuizGoal(g.id)}
+                        style={[styles.quizChip, quizGoal === g.id && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                      >
+                        <Text>{g.emoji} {g.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+
+                  <Text style={[typography.caption, { marginTop: spacing.md, marginBottom: spacing.xs }]}>TON NIVEAU</Text>
+                  <View style={styles.quizChipsRow}>
+                    {SPORT_LEVELS.map((l) => (
+                      <Pressable
+                        key={l.id}
+                        onPress={() => setQuizLevel(l.id)}
+                        style={[styles.quizChip, quizLevel === l.id && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                      >
+                        <Text>{l.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+
+                  <Text style={[typography.caption, { marginTop: spacing.md, marginBottom: spacing.xs }]}>JOURS DISPONIBLES PAR SEMAINE</Text>
+                  <View style={styles.stepperRow}>
+                    <Pressable onPress={() => setQuizDays((d) => Math.max(2, d - 1))} style={styles.stepperBtn}>
+                      <Ionicons name="remove" size={18} color={colors.text} />
+                    </Pressable>
+                    <Text style={typography.h1}>{quizDays}</Text>
+                    <Pressable onPress={() => setQuizDays((d) => Math.min(6, d + 1))} style={styles.stepperBtn}>
+                      <Ionicons name="add" size={18} color={colors.text} />
+                    </Pressable>
+                  </View>
+
+                  <PrimaryButton label="Générer mon programme" onPress={generatePersonalProgram} style={{ marginTop: spacing.lg }} />
+                </View>
+              ) : (
                 <View style={styles.scheduleCard}>
-                  <Text style={[typography.caption, { marginBottom: spacing.xs }]}>{schedule.level.toUpperCase()}</Text>
-                  {schedule.days.map((d) => {
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs }}>
+                    <Text style={typography.caption}>{personalSchedule!.level.toUpperCase()}</Text>
+                    <Pressable
+                      onPress={() => {
+                        setQuizGoal((profile.sportGoal as SportGoal) ?? SPORT_GOALS[0].id);
+                        setQuizLevel((profile.sportLevel as SportLevel) ?? SPORT_LEVELS[0].id);
+                        setQuizDays(profile.sportDaysPerWeek ?? 3);
+                        setShowQuiz(true);
+                      }}
+                    >
+                      <Text style={[typography.small, { color: colors.accent }]}>Modifier</Text>
+                    </Pressable>
+                  </View>
+                  {personalSchedule!.days.map((d) => {
                     const split = WORKOUT_SPLITS.find((s) => s.id === d.splitId);
                     return (
                       <Pressable
@@ -324,8 +374,37 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     );
                   })}
                 </View>
-              );
-            })()}
+              )
+            ) : (
+              (() => {
+                const schedule = WEEKLY_SCHEDULES.find((s) => s.id === selectedSchedule)!;
+                return (
+                  <View style={styles.scheduleCard}>
+                    <Text style={[typography.caption, { marginBottom: spacing.xs }]}>{schedule.level.toUpperCase()}</Text>
+                    {schedule.days.map((d) => {
+                      const split = WORKOUT_SPLITS.find((s) => s.id === d.splitId);
+                      return (
+                        <Pressable
+                          key={d.day}
+                          style={styles.scheduleRow}
+                          disabled={!split}
+                          onPress={() => split && handleSelectSession(split.id)}
+                        >
+                          <Text style={[typography.body, { width: 80 }]}>{d.day}</Text>
+                          {split ? (
+                            <Text style={typography.bodyBold}>
+                              {split.emoji} {split.label}
+                            </Text>
+                          ) : (
+                            <Text style={typography.caption}>Repos</Text>
+                          )}
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                );
+              })()
+            )}
 
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Séance du jour</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
@@ -634,6 +713,30 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       paddingHorizontal: spacing.xs,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
+    },
+    quizCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginTop: spacing.md,
+    },
+    quizChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+    quizChip: {
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: radius.pill,
+      paddingVertical: 8,
+      paddingHorizontal: spacing.md,
+      backgroundColor: colors.surfaceElevated,
+    },
+    stepperRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.lg, marginTop: spacing.sm },
+    stepperBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: radius.pill,
+      backgroundColor: colors.surfaceElevated,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
     dayCell: {

@@ -15,6 +15,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import AddHabitScreen from '../screens/AddHabitScreen';
 import HabitDetailScreen from '../screens/HabitDetailScreen';
 import ProgramScreen from '../screens/ProgramScreen';
+import AssistantScreen from '../screens/AssistantScreen';
 
 const Tab = createBottomTabNavigator();
 const TodayStack = createNativeStackNavigator();
@@ -36,6 +37,7 @@ function MainTabs() {
       <Tab.Screen name="Progress" component={ProgressScreen} />
       <Tab.Screen name="Social" component={SocialScreen} />
       <Tab.Screen name="Achievements" component={AchievementsScreen} />
+      <Tab.Screen name="Assistant" component={AssistantScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );

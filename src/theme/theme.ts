@@ -50,6 +50,11 @@ export const fonts = {
   semiBold: 'Poppins_600SemiBold',
   bold: 'Poppins_700Bold',
   extraBold: 'Poppins_800ExtraBold',
+  // Monospace accent for stat "readouts" (day counter, timers, streak
+  // numbers) — a nod to the dashboard reference without changing the
+  // app's overall Anton/Poppins identity.
+  mono: 'SpaceMono_400Regular',
+  monoBold: 'SpaceMono_700Bold',
 };
 
 export function getTypography(colors: ThemeColors) {

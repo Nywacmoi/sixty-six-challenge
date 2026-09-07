@@ -37,6 +37,9 @@ const PROFILE_DEFAULTS: Profile = {
   heightCm: null,
   goalWeightKg: null,
   lastReminderShownDate: null,
+  sportGoal: null,
+  sportLevel: null,
+  sportDaysPerWeek: null,
 };
 
 export const storage = {
