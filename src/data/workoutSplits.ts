@@ -1,6 +1,6 @@
 import { MovementPattern } from '../components/ExerciseAnimation';
 
-export type Exercise = { name: string; reps: string; pattern: MovementPattern };
+export type Exercise = { name: string; reps: string; pattern: MovementPattern; alt?: string };
 
 export type WorkoutSplit = {
   id: string;
@@ -9,17 +9,25 @@ export type WorkoutSplit = {
   exercises: Exercise[];
 };
 
+export type WeeklySchedule = {
+  id: string;
+  label: string;
+  level: string;
+  days: { day: string; splitId: string | null }[];
+};
+
 export const WORKOUT_SPLITS: WorkoutSplit[] = [
   {
     id: 'push',
     label: 'Pectoraux / Épaules / Triceps',
     emoji: '💪',
     exercises: [
-      { name: 'Développé couché', reps: '4x8-10', pattern: 'push' },
-      { name: 'Développé militaire', reps: '3x10', pattern: 'push' },
+      { name: 'Développé couché', reps: '4x8-10', pattern: 'push', alt: 'Trop dur ? Développé incliné haltères, charge plus légère' },
+      { name: 'Développé militaire', reps: '3x10', pattern: 'push', alt: 'Trop dur ? Développé assis avec dossier' },
       { name: 'Écarté haltères', reps: '3x12', pattern: 'raise' },
-      { name: 'Dips ou pompes lestées', reps: '3x max', pattern: 'push' },
+      { name: 'Dips ou pompes lestées', reps: '3x max', pattern: 'push', alt: 'Trop dur ? Pompes classiques ou sur genoux' },
       { name: 'Extension triceps à la poulie', reps: '3x12', pattern: 'push' },
+      { name: 'Pompes diamant', reps: '3x max', pattern: 'push', alt: 'Trop dur ? Pompes diamant sur genoux' },
     ],
   },
   {
@@ -27,11 +35,12 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     label: 'Dos / Biceps',
     emoji: '🏋️',
     exercises: [
-      { name: 'Tractions ou tirage vertical', reps: '4x8', pattern: 'pull' },
+      { name: 'Tractions ou tirage vertical', reps: '4x8', pattern: 'pull', alt: 'Trop dur ? Tractions assistées (élastique) ou tirage vertical machine' },
       { name: 'Rowing barre', reps: '4x10', pattern: 'pull' },
       { name: 'Tirage horizontal', reps: '3x12', pattern: 'pull' },
       { name: 'Curl biceps haltères', reps: '3x12', pattern: 'curl' },
       { name: 'Face pull', reps: '3x15', pattern: 'pull' },
+      { name: 'Curl marteau', reps: '3x12', pattern: 'curl' },
     ],
   },
   {
@@ -39,9 +48,10 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     label: 'Jambes',
     emoji: '🦵',
     exercises: [
-      { name: 'Squat', reps: '4x8-10', pattern: 'squat' },
+      { name: 'Squat', reps: '4x8-10', pattern: 'squat', alt: 'Trop dur ? Squat au poids du corps ou goblet squat' },
       { name: 'Presse à cuisses', reps: '3x12', pattern: 'squat' },
       { name: 'Fentes marchées', reps: '3x12 par jambe', pattern: 'squat' },
+      { name: 'Soulevé de terre roumain', reps: '3x10', pattern: 'squat', alt: 'Trop dur ? Avec haltères légers, dos bien droit' },
       { name: 'Leg curl', reps: '3x12', pattern: 'curl' },
       { name: 'Mollets debout', reps: '4x15', pattern: 'raise' },
     ],
@@ -55,6 +65,7 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
       { name: 'Élévations latérales', reps: '4x12', pattern: 'raise' },
       { name: 'Élévations arrière', reps: '3x15', pattern: 'raise' },
       { name: 'Shrugs haltères', reps: '3x12', pattern: 'raise' },
+      { name: 'Oiseau (rear delt fly)', reps: '3x15', pattern: 'raise' },
     ],
   },
   {
@@ -62,10 +73,11 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     label: 'Abdos / Gainage',
     emoji: '🔥',
     exercises: [
-      { name: 'Planche', reps: '3x45s', pattern: 'hold' },
+      { name: 'Planche', reps: '3x45s', pattern: 'hold', alt: 'Trop dur ? Planche sur les genoux' },
       { name: 'Crunchs', reps: '3x20', pattern: 'crunch' },
-      { name: 'Relevé de jambes', reps: '3x15', pattern: 'crunch' },
+      { name: 'Relevé de jambes', reps: '3x15', pattern: 'crunch', alt: 'Trop dur ? Genoux repliés au lieu de jambes tendues' },
       { name: 'Gainage latéral', reps: '3x30s par côté', pattern: 'hold' },
+      { name: 'Russian twist', reps: '3x20', pattern: 'crunch' },
     ],
   },
   {
@@ -74,8 +86,9 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     emoji: '🏃',
     exercises: [
       { name: 'Course à intensité modérée', reps: '20-30 min', pattern: 'run' },
-      { name: 'HIIT (30s effort / 30s repos)', reps: '15 min', pattern: 'run' },
+      { name: 'HIIT (30s effort / 30s repos)', reps: '15 min', pattern: 'run', alt: 'Trop dur ? 20s effort / 40s repos' },
       { name: 'Vélo ou rameur', reps: '25 min', pattern: 'run' },
+      { name: 'Corde à sauter', reps: '3x3 min', pattern: 'run' },
     ],
   },
   {
@@ -86,7 +99,55 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
       { name: 'Squat', reps: '3x10', pattern: 'squat' },
       { name: 'Développé couché ou pompes', reps: '3x10', pattern: 'push' },
       { name: 'Rowing', reps: '3x10', pattern: 'pull' },
+      { name: 'Soulevé de terre', reps: '3x8', pattern: 'squat', alt: 'Trop dur ? Soulevé de terre jambes tendues, charge légère' },
       { name: 'Gainage', reps: '3x30s', pattern: 'hold' },
+    ],
+  },
+];
+
+// A structured weekly split, not just a flat exercise list — pick a level
+// and it tells you which split to train each day of the week.
+export const WEEKLY_SCHEDULES: WeeklySchedule[] = [
+  {
+    id: 'beginner',
+    label: 'Débutant',
+    level: '3 séances / semaine',
+    days: [
+      { day: 'Lundi', splitId: 'fullbody' },
+      { day: 'Mardi', splitId: null },
+      { day: 'Mercredi', splitId: 'fullbody' },
+      { day: 'Jeudi', splitId: null },
+      { day: 'Vendredi', splitId: 'fullbody' },
+      { day: 'Samedi', splitId: 'cardio' },
+      { day: 'Dimanche', splitId: null },
+    ],
+  },
+  {
+    id: 'intermediate',
+    label: 'Intermédiaire',
+    level: '4 séances / semaine',
+    days: [
+      { day: 'Lundi', splitId: 'push' },
+      { day: 'Mardi', splitId: 'pull' },
+      { day: 'Mercredi', splitId: null },
+      { day: 'Jeudi', splitId: 'legs' },
+      { day: 'Vendredi', splitId: 'shoulders' },
+      { day: 'Samedi', splitId: 'abs' },
+      { day: 'Dimanche', splitId: null },
+    ],
+  },
+  {
+    id: 'advanced',
+    label: 'Avancé',
+    level: '5-6 séances / semaine',
+    days: [
+      { day: 'Lundi', splitId: 'push' },
+      { day: 'Mardi', splitId: 'pull' },
+      { day: 'Mercredi', splitId: 'legs' },
+      { day: 'Jeudi', splitId: 'shoulders' },
+      { day: 'Vendredi', splitId: 'pull' },
+      { day: 'Samedi', splitId: 'legs' },
+      { day: 'Dimanche', splitId: 'abs' },
     ],
   },
 ];

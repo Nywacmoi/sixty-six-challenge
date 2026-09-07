@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
@@ -15,6 +14,9 @@ import { AppProvider } from './src/context/AppContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { ConfirmProvider } from './src/context/ConfirmContext';
 import RootNavigator from './src/navigation/RootNavigator';
+import { LaunchScreen } from './src/components/LaunchScreen';
+
+const LAUNCH_DURATION = 2500;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -38,16 +40,12 @@ function AppShell() {
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setMinTimeElapsed(true), 2500);
+    const timer = setTimeout(() => setMinTimeElapsed(true), LAUNCH_DURATION);
     return () => clearTimeout(timer);
   }, []);
 
   if (!fontsLoaded || !minTimeElapsed) {
-    return (
-      <View style={[styles.loading, { backgroundColor: colors.background }]}>
-        <Image source={require('./assets/logo.png')} style={styles.loadingLogo} resizeMode="contain" />
-      </View>
-    );
+    return <LaunchScreen duration={LAUNCH_DURATION} />;
   }
 
   return (
@@ -57,18 +55,6 @@ function AppShell() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  loading: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingLogo: {
-    width: 160,
-    height: 160,
-  },
-});
 
 export default function App() {
   return (

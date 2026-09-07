@@ -12,7 +12,7 @@ import { useTopInset } from '../hooks/useTopInset';
 import { Toast } from '../components/Toast';
 import { ExerciseAnimation } from '../components/ExerciseAnimation';
 import { BreathingAnimation } from '../components/BreathingAnimation';
-import { WORKOUT_SPLITS } from '../data/workoutSplits';
+import { WORKOUT_SPLITS, WEEKLY_SCHEDULES } from '../data/workoutSplits';
 import { MEDITATION_SESSIONS } from '../data/meditationSessions';
 import { MEAL_IDEAS } from '../data/mealIdeas';
 import { READING_GOALS } from '../data/readingGoals';
@@ -85,6 +85,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
     completions.find((c) => c.habitId === habitId && c.date === todayKey())?.session
   );
   const [editingGoals, setEditingGoals] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState(WEEKLY_SCHEDULES[1].id);
   const [heightDraft, setHeightDraft] = useState(profile.heightCm ? String(profile.heightCm) : '');
   const [goalWeightDraft, setGoalWeightDraft] = useState(profile.goalWeightKg ? String(profile.goalWeightKg) : '');
 
@@ -282,6 +283,50 @@ export default function HabitDetailScreen({ route, navigation }: any) {
               extraInfo={bmi ? `IMC : ${bmi.toFixed(1)}` : profile.heightCm ? undefined : 'Renseigne ta taille pour voir ton IMC'}
             />
 
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Planning hebdomadaire</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+              {WEEKLY_SCHEDULES.map((schedule) => {
+                const active = selectedSchedule === schedule.id;
+                return (
+                  <Pressable
+                    key={schedule.id}
+                    onPress={() => setSelectedSchedule(schedule.id)}
+                    style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                  >
+                    <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{schedule.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            {(() => {
+              const schedule = WEEKLY_SCHEDULES.find((s) => s.id === selectedSchedule)!;
+              return (
+                <View style={styles.scheduleCard}>
+                  <Text style={[typography.caption, { marginBottom: spacing.xs }]}>{schedule.level.toUpperCase()}</Text>
+                  {schedule.days.map((d) => {
+                    const split = WORKOUT_SPLITS.find((s) => s.id === d.splitId);
+                    return (
+                      <Pressable
+                        key={d.day}
+                        style={styles.scheduleRow}
+                        disabled={!split}
+                        onPress={() => split && handleSelectSession(split.id)}
+                      >
+                        <Text style={[typography.body, { width: 80 }]}>{d.day}</Text>
+                        {split ? (
+                          <Text style={typography.bodyBold}>
+                            {split.emoji} {split.label}
+                          </Text>
+                        ) : (
+                          <Text style={typography.caption}>Repos</Text>
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              );
+            })()}
+
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Séance du jour</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
               {WORKOUT_SPLITS.map((split) => {
@@ -306,6 +351,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     <View style={{ flex: 1 }}>
                       <Text style={typography.bodyBold}>{ex.name}</Text>
                       <Text style={typography.caption}>{ex.reps}</Text>
+                      {ex.alt && <Text style={[typography.small, { marginTop: 4 }]}>{ex.alt}</Text>}
                     </View>
                     <Pressable onPress={() => openSearch(`${ex.name} technique musculation`)} hitSlop={8} style={styles.videoBtn}>
                       <Ionicons name="logo-youtube" size={22} color={colors.danger} />
@@ -574,6 +620,20 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       paddingHorizontal: spacing.sm,
       color: colors.text,
       fontSize: 15,
+    },
+    scheduleCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.sm,
+      marginTop: spacing.md,
+    },
+    scheduleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.xs,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
     },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
     dayCell: {
