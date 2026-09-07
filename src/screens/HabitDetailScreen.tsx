@@ -11,16 +11,35 @@ import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { Toast } from '../components/Toast';
 import { ExerciseAnimation } from '../components/ExerciseAnimation';
+import { BreathingAnimation } from '../components/BreathingAnimation';
 import { WORKOUT_SPLITS } from '../data/workoutSplits';
+import { MEDITATION_SESSIONS } from '../data/meditationSessions';
+import { MEAL_IDEAS } from '../data/mealIdeas';
+import { READING_GOALS } from '../data/readingGoals';
 
-function openExerciseVideo(name: string) {
-  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${name} technique musculation`)}`;
+function openSearch(query: string) {
+  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
   Linking.openURL(url);
 }
 
 const SPORT_ICONS = ['🏋️', '💪', '🏃', '🚴', '⚡'];
 function isSportHabit(name: string, icon: string) {
   return SPORT_ICONS.includes(icon) || /sport|muscu|gym|fitness|salle/i.test(name);
+}
+
+const MEDITATION_ICONS = ['🙏', '🧘'];
+function isMeditationHabit(name: string, icon: string) {
+  return MEDITATION_ICONS.includes(icon) || /médit|relax|respiration|calme|mental/i.test(name);
+}
+
+const NUTRITION_ICONS = ['🥗', '🍎', '🥦'];
+function isNutritionHabit(name: string, icon: string) {
+  return NUTRITION_ICONS.includes(icon) || /aliment|nutrition|manger|repas|sucre|cuisine/i.test(name);
+}
+
+const READING_ICONS = ['📖'];
+function isReadingHabit(name: string, icon: string) {
+  return READING_ICONS.includes(icon) || /lecture|lire|livre/i.test(name);
 }
 
 export default function HabitDetailScreen({ route, navigation }: any) {
@@ -52,7 +71,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   );
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(habit?.name ?? '');
-  const [selectedSplit, setSelectedSplit] = useState<string | undefined>(
+  const [selectedSession, setSelectedSession] = useState<string | undefined>(
     completions.find((c) => c.habitId === habitId && c.date === todayKey())?.session
   );
 
@@ -104,12 +123,15 @@ export default function HabitDetailScreen({ route, navigation }: any) {
     }
   };
 
-  const handleSelectSplit = async (splitId: string) => {
-    setSelectedSplit(splitId);
-    await setSessionForToday(habitId, splitId);
+  const handleSelectSession = async (sessionId: string) => {
+    setSelectedSession(sessionId);
+    await setSessionForToday(habitId, sessionId);
   };
 
-  const activeSplit = WORKOUT_SPLITS.find((s) => s.id === selectedSplit);
+  const activeSplit = WORKOUT_SPLITS.find((s) => s.id === selectedSession);
+  const activeMeditation = MEDITATION_SESSIONS.find((s) => s.id === selectedSession);
+  const activeMeal = MEAL_IDEAS.find((s) => s.id === selectedSession);
+  const activeReading = READING_GOALS.find((s) => s.id === selectedSession);
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -184,11 +206,11 @@ export default function HabitDetailScreen({ route, navigation }: any) {
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Séance du jour</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
               {WORKOUT_SPLITS.map((split) => {
-                const active = selectedSplit === split.id;
+                const active = selectedSession === split.id;
                 return (
                   <Pressable
                     key={split.id}
-                    onPress={() => handleSelectSplit(split.id)}
+                    onPress={() => handleSelectSession(split.id)}
                     style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                   >
                     <Text style={{ fontSize: 16 }}>{split.emoji}</Text>
@@ -206,11 +228,113 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                       <Text style={typography.bodyBold}>{ex.name}</Text>
                       <Text style={typography.caption}>{ex.reps}</Text>
                     </View>
-                    <Pressable onPress={() => openExerciseVideo(ex.name)} hitSlop={8} style={styles.videoBtn}>
+                    <Pressable onPress={() => openSearch(`${ex.name} technique musculation`)} hitSlop={8} style={styles.videoBtn}>
                       <Ionicons name="logo-youtube" size={22} color={colors.danger} />
                     </Pressable>
                   </View>
                 ))}
+              </View>
+            )}
+          </>
+        )}
+
+        {isMeditationHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Séance du jour</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+              {MEDITATION_SESSIONS.map((session) => {
+                const active = selectedSession === session.id;
+                return (
+                  <Pressable
+                    key={session.id}
+                    onPress={() => handleSelectSession(session.id)}
+                    style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                  >
+                    <Text style={{ fontSize: 16 }}>{session.emoji}</Text>
+                    <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{session.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            {activeMeditation && (
+              <View style={styles.splitCard}>
+                {activeMeditation.id === 'breathing' && (
+                  <View style={{ alignItems: 'center', paddingVertical: spacing.md }}>
+                    <BreathingAnimation />
+                  </View>
+                )}
+                <View style={{ paddingHorizontal: spacing.xs, paddingBottom: spacing.xs }}>
+                  <Text style={[typography.caption, { color: colors.accent }]}>{activeMeditation.duration.toUpperCase()}</Text>
+                </View>
+                {activeMeditation.steps.map((step, i) => (
+                  <View key={step} style={styles.exerciseRow}>
+                    <Text style={[typography.bodyBold, { color: colors.accent, width: 18 }]}>{i + 1}</Text>
+                    <Text style={[typography.body, { flex: 1 }]}>{step}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
+        )}
+
+        {isNutritionHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Idées repas du jour</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+              {MEAL_IDEAS.map((meal) => {
+                const active = selectedSession === meal.id;
+                return (
+                  <Pressable
+                    key={meal.id}
+                    onPress={() => handleSelectSession(meal.id)}
+                    style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                  >
+                    <Text style={{ fontSize: 16 }}>{meal.emoji}</Text>
+                    <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{meal.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            {activeMeal && (
+              <View style={styles.splitCard}>
+                {activeMeal.ideas.map((idea) => (
+                  <View key={idea} style={styles.exerciseRow}>
+                    <Ionicons name="restaurant-outline" size={16} color={colors.textSecondary} />
+                    <Text style={[typography.body, { flex: 1 }]}>{idea}</Text>
+                    <Pressable onPress={() => openSearch(`${idea} recette facile`)} hitSlop={8} style={styles.videoBtn}>
+                      <Ionicons name="logo-youtube" size={22} color={colors.danger} />
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
+        )}
+
+        {isReadingHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Objectif du jour</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+              {READING_GOALS.map((goal) => {
+                const active = selectedSession === goal.id;
+                return (
+                  <Pressable
+                    key={goal.id}
+                    onPress={() => handleSelectSession(goal.id)}
+                    style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                  >
+                    <Text style={{ fontSize: 16 }}>{goal.emoji}</Text>
+                    <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{goal.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            {activeReading && (
+              <View style={styles.splitCard}>
+                <View style={styles.exerciseRow}>
+                  <Ionicons name="bulb-outline" size={16} color={colors.textSecondary} />
+                  <Text style={[typography.body, { flex: 1 }]}>{activeReading.tip}</Text>
+                </View>
               </View>
             )}
           </>
