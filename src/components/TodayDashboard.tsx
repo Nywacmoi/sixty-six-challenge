@@ -62,11 +62,11 @@ export function TodayDashboard({
         </Text>
         <View style={styles.statsRow}>
           <View style={styles.statBlock}>
-            <Text style={styles.statLabel}>MEILLEURE</Text>
+            <Text style={styles.statLabel}>MEILLEURE SÉRIE</Text>
             <Text style={styles.statValue}>{bestStreak}</Text>
           </View>
           <View style={styles.statBlock}>
-            <Text style={styles.statLabel}>ACTUELLE</Text>
+            <Text style={styles.statLabel}>SÉRIE ACTUELLE</Text>
             <Text style={styles.statValue}>{currentStreak}</Text>
           </View>
         </View>
