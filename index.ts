@@ -58,6 +58,32 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   setAppHeight();
   window.addEventListener('resize', setAppHeight);
   window.addEventListener('orientationchange', setAppHeight);
+
+  // iOS Safari standalone (home-screen PWA) can keep serving an old cached
+  // copy of the app well past a new deploy, forcing manual cache-clearing.
+  // Each export gives the JS bundle a new content hash, so we can detect a
+  // stale copy by re-fetching this same page with the HTTP cache bypassed
+  // and comparing bundle filenames — if they differ, a newer version is
+  // live and we reload to pick it up. Runs on load and whenever the app is
+  // brought back to the foreground (the normal way this PWA gets reopened).
+  const checkForUpdate = async () => {
+    try {
+      const res = await fetch(window.location.pathname, { cache: 'no-store' });
+      if (!res.ok) return;
+      const html = await res.text();
+      const latest = html.match(/_expo\/static\/js\/web\/index-[a-f0-9]+\.js/)?.[0];
+      const current = document.querySelector('script[src*="_expo/static/js/web/"]')?.getAttribute('src');
+      if (latest && current && !current.includes(latest)) {
+        window.location.reload();
+      }
+    } catch {
+      // offline or blocked — just keep running the current version
+    }
+  };
+  checkForUpdate();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') checkForUpdate();
+  });
 }
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);

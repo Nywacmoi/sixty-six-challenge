@@ -4,6 +4,12 @@
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />
+    <!-- Belt-and-suspenders against iOS Safari standalone serving a stale
+         cached copy of this page after a new deploy (index.ts also runs a
+         JS-level check-and-reload against the bundle hash). -->
+    <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta httpEquiv="Pragma" content="no-cache" />
+    <meta httpEquiv="Expires" content="0" />
     <title>Défi 99</title>
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
@@ -42,6 +48,6 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script src="/sixty-six-challenge/_expo/static/js/web/index-2d5d49f12575198bcbadbf1526689103.js" defer></script>
+  <script src="/sixty-six-challenge/_expo/static/js/web/index-ce52f5995b8245733250267747fde9b2.js" defer></script>
 </body>
 </html>
