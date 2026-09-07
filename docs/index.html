@@ -14,9 +14,13 @@
         /* On iOS Safari standalone (home-screen PWA), 100% / 100vh can be
            taller or shorter than the real visible area (dynamic toolbars,
            home indicator), leaving a stale blank strip at the bottom.
-           100dvh tracks the actual visible viewport; browsers that don't
-           support it simply ignore this line and keep the 100% above. */
+           100dvh tracks the actual visible viewport in most cases, but is
+           still occasionally wrong in standalone mode on iOS, so index.ts
+           measures window.innerHeight in JS and sets --app-height, which
+           wins if it's present. Each line here is a fallback for when the
+           next one isn't supported/available yet. */
         height: 100dvh;
+        height: var(--app-height, 100dvh);
       }
       /* These styles disable body scrolling if you are using <ScrollView> */
       body {
@@ -38,6 +42,6 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script src="/sixty-six-challenge/_expo/static/js/web/index-9183ce338ebc1a047dfe060ca8e02fff.js" defer></script>
+  <script src="/sixty-six-challenge/_expo/static/js/web/index-2d5d49f12575198bcbadbf1526689103.js" defer></script>
 </body>
 </html>

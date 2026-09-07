@@ -45,6 +45,19 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   setMeta('apple-mobile-web-app-title', 'Défi 99');
   setMeta('mobile-web-app-capable', 'yes');
   setMeta('theme-color', '#FFFFFF');
+
+  // `100dvh` alone isn't reliably correct in iOS Safari standalone (home
+  // screen) mode — it can settle on a height taller than the real visible
+  // area, leaving a blank strip of unrendered page background above the
+  // home indicator. Measuring window.innerHeight in JS and exposing it as
+  // a CSS variable is the long-standing, more reliable fix; public/index.html
+  // uses it as the final override on top of the 100% / 100dvh fallbacks.
+  const setAppHeight = () => {
+    document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+  };
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
+  window.addEventListener('orientationchange', setAppHeight);
 }
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
