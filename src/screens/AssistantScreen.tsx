@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
+import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { ASSISTANT_ENTRIES, AssistantEntry } from '../data/assistantIndex';
 
 function normalize(s: string) {
@@ -20,6 +21,7 @@ export default function AssistantScreen({ navigation }: any) {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
+  const tabBarClearance = useTabBarClearance();
   const [query, setQuery] = useState('');
 
   const results = useMemo(() => {
@@ -58,7 +60,7 @@ export default function AssistantScreen({ navigation }: any) {
       <FlatList
         data={results}
         keyExtractor={(e) => e.id}
-        contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}
+        contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl + tabBarClearance }}
         ListEmptyComponent={
           <Text style={[typography.caption, { textAlign: 'center', marginTop: spacing.xl }]}>
             Rien ne correspond à "{query}". Essaie un autre mot.

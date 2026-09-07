@@ -7,6 +7,7 @@ import { useSocial } from '../context/SocialContext';
 import { useConfirm } from '../context/ConfirmContext';
 import { fonts, radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
+import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { SocialGroup, getProfile, PublicProfile } from '../firebase/social';
 
@@ -65,6 +66,7 @@ function UsernameSetup({ colors, typography }: { colors: ThemeColors; typography
 
 function FriendsTab({ colors, typography }: { colors: ThemeColors; typography: Typography }) {
   const styles = createStyles(colors, typography);
+  const tabBarClearance = useTabBarClearance();
   const { following, addFriend, removeFriend, refreshing, refresh } = useSocial();
   const { notify, confirmAction } = useConfirm();
   const [draft, setDraft] = useState('');
@@ -89,7 +91,7 @@ function FriendsTab({ colors, typography }: { colors: ThemeColors; typography: T
       keyExtractor={(f) => f.uid}
       onRefresh={refresh}
       refreshing={refreshing}
-      contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}
+      contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl + tabBarClearance }}
       ListHeaderComponent={
         <View style={styles.addRow}>
           <TextInput
@@ -207,6 +209,7 @@ function GroupCard({
 
 function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; typography: Typography; navigation: any }) {
   const styles = createStyles(colors, typography);
+  const tabBarClearance = useTabBarClearance();
   const { groups, makeGroup, joinGroup, refreshing, refresh, notificationsEnabled, notificationsSupported, setNotificationsEnabled } =
     useSocial();
   const { notify } = useConfirm();
@@ -249,7 +252,7 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
       keyExtractor={(g) => g.id}
       onRefresh={refresh}
       refreshing={refreshing}
-      contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}
+      contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl + tabBarClearance }}
       ListHeaderComponent={
         <View style={{ gap: spacing.sm, marginBottom: spacing.lg }}>
           <View style={styles.createCard}>

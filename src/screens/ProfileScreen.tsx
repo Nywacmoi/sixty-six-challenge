@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { fonts, radius, spacing, TOTAL_DAYS, ThemeColors, Typography } from '../theme/theme';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
+import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { ProgressBar } from '../components/ProgressBar';
 import { BackupSettings } from '../components/BackupSettings';
 import { AccountSettings } from '../components/AccountSettings';
@@ -26,6 +27,7 @@ export default function ProfileScreen() {
   const { colors, typography, mode, toggleTheme } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
+  const tabBarClearance = useTabBarClearance();
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(profile.name);
 
@@ -56,7 +58,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl + tabBarClearance }}>
         <Text style={typography.display}>Profil</Text>
 
         <View style={styles.profileCard}>

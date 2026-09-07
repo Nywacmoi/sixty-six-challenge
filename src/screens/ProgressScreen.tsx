@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { spacing, TOTAL_DAYS, radius, ThemeColors, Typography } from '../theme/theme';
 import { RingProgress } from '../components/RingProgress';
 import { useTopInset } from '../hooks/useTopInset';
+import { useTabBarClearance } from '../hooks/useTabBarClearance';
 
 export default function ProgressScreen() {
   const { habits, currentDay, getStreak, getLongestStreak, getTotalCompletions } = useApp();
@@ -15,10 +16,11 @@ export default function ProgressScreen() {
   const activeHabits = habits.filter((h) => !h.archived);
   const overallProgress = currentDay / TOTAL_DAYS;
   const topInset = useTopInset();
+  const tabBarClearance = useTabBarClearance();
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl + tabBarClearance }}>
         <Text style={typography.display}>Progression</Text>
 
         <View style={styles.ringSection}>

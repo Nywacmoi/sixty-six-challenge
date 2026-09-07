@@ -9,6 +9,7 @@ import { radius, spacing, TOTAL_DAYS, ThemeColors, Typography } from '../theme/t
 import { addDays, todayKey, formatDayLabel } from '../utils/date';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
+import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { Toast } from '../components/Toast';
 import { ExerciseAnimation } from '../components/ExerciseAnimation';
 import { BreathingAnimation } from '../components/BreathingAnimation';
@@ -51,6 +52,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
+  const tabBarClearance = useTabBarClearance();
   const habit = habits.find((h) => h.id === habitId);
   const [photoUri, setPhotoUri] = useState<string | undefined>(
     completions.find((c) => c.habitId === habitId && c.date === todayKey())?.photoUri
@@ -160,7 +162,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl + tabBarClearance }}>
         <View style={styles.headerRow}>
           <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
             <Ionicons name="chevron-back" size={26} color={colors.text} />

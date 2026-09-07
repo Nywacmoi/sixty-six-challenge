@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, FlatList, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useSocial } from '../context/SocialContext';
@@ -8,7 +8,7 @@ import { useConfirm } from '../context/ConfirmContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
 import { subscribeToGroupMessages, sendGroupMessage, GroupMessage } from '../firebase/social';
-import { TAB_BAR_BASE_HEIGHT } from '../navigation/CustomTabBar';
+import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { useKeyboardVisible } from '../hooks/useKeyboardVisible';
 
 function formatTime(ms: number | null) {
@@ -21,9 +21,9 @@ export default function GroupChatScreen({ route, navigation }: any) {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
-  const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardVisible();
-  const tabBarClearance = keyboardVisible ? 0 : TAB_BAR_BASE_HEIGHT + Math.max(insets.bottom, 14);
+  const baseTabBarClearance = useTabBarClearance();
+  const tabBarClearance = keyboardVisible ? 0 : baseTabBarClearance;
   const { uid, username, markGroupRead, setActiveChatGroupId } = useSocial();
   const { notify } = useConfirm();
   const [messages, setMessages] = useState<GroupMessage[]>([]);

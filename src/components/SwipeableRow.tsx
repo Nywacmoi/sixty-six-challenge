@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Animated, View, Text, StyleSheet, PanResponder, Pressable } from 'react-native';
+import { Animated, View, Text, StyleSheet, PanResponder, Pressable, Easing, LayoutChangeEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
@@ -14,6 +14,10 @@ export function SwipeableRow({ children, onDelete }: { children: React.ReactNode
   const offset = useRef(0);
   const openedHaptic = useRef(false);
   const [childrenLocked, setChildrenLocked] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [measuredHeight, setMeasuredHeight] = useState<number | null>(null);
+  const rowOpacity = useRef(new Animated.Value(1)).current;
+  const collapse = useRef(new Animated.Value(1)).current;
 
   const close = () => {
     offset.current = 0;
@@ -51,23 +55,57 @@ export function SwipeableRow({ children, onDelete }: { children: React.ReactNode
     })
   ).current;
 
+  const onLayout = (e: LayoutChangeEvent) => {
+    if (measuredHeight == null) setMeasuredHeight(e.nativeEvent.layout.height);
+  };
+
+  // A row that just vanishes when its data disappears from the list reads
+  // as a glitch — this slides it fully off-screen, fades it, then collapses
+  // the space it leaves behind, so the rows below settle smoothly into
+  // place instead of jumping.
   const handleDelete = () => {
-    close();
-    onDelete();
+    if (deleting) return;
+    setDeleting(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    Animated.timing(translateX, {
+      toValue: -420,
+      duration: 220,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+    Animated.timing(rowOpacity, { toValue: 0, duration: 160, useNativeDriver: true }).start();
+    Animated.timing(collapse, {
+      toValue: 0,
+      duration: 240,
+      delay: 120,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: false,
+    }).start(({ finished }) => {
+      if (finished) onDelete();
+    });
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.deleteBackground}>
-        <Pressable onPress={handleDelete} style={styles.deleteButton} hitSlop={8}>
-          <Ionicons name="trash" size={20} color="#FFFFFF" />
-          <Text style={styles.deleteText}>Supprimer</Text>
-        </Pressable>
+    <Animated.View
+      pointerEvents={deleting ? 'none' : 'auto'}
+      style={{
+        opacity: rowOpacity,
+        height: measuredHeight == null ? undefined : collapse.interpolate({ inputRange: [0, 1], outputRange: [0, measuredHeight] }),
+        marginBottom: measuredHeight == null ? undefined : collapse.interpolate({ inputRange: [0, 1], outputRange: [0, spacing.sm] }),
+      }}
+    >
+      <View onLayout={onLayout} style={styles.container}>
+        <View style={styles.deleteBackground}>
+          <Pressable onPress={handleDelete} style={styles.deleteButton} hitSlop={8}>
+            <Ionicons name="trash" size={20} color="#FFFFFF" />
+            <Text style={styles.deleteText}>Supprimer</Text>
+          </Pressable>
+        </View>
+        <Animated.View style={[styles.slider, { transform: [{ translateX }] }]} {...panResponder.panHandlers}>
+          <View pointerEvents={childrenLocked ? 'none' : 'auto'}>{children}</View>
+        </Animated.View>
       </View>
-      <Animated.View style={[styles.slider, { transform: [{ translateX }] }]} {...panResponder.panHandlers}>
-        <View pointerEvents={childrenLocked ? 'none' : 'auto'}>{children}</View>
-      </Animated.View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -76,7 +114,6 @@ function createStyles(colors: ThemeColors) {
     container: {
       position: 'relative',
       width: '100%',
-      marginBottom: spacing.sm,
       borderRadius: radius.md,
       overflow: 'hidden',
     },

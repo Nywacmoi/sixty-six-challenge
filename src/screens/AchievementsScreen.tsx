@@ -7,12 +7,14 @@ import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { ACHIEVEMENTS } from '../data/achievements';
 import { useTopInset } from '../hooks/useTopInset';
+import { useTabBarClearance } from '../hooks/useTabBarClearance';
 
 export default function AchievementsScreen() {
   const { unlockedAchievements } = useApp();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
+  const tabBarClearance = useTabBarClearance();
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -26,7 +28,7 @@ export default function AchievementsScreen() {
         data={ACHIEVEMENTS}
         keyExtractor={(a) => a.id}
         numColumns={2}
-        contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}
+        contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl + tabBarClearance }}
         columnWrapperStyle={{ gap: spacing.md }}
         renderItem={({ item }) => {
           const unlocked = unlockedAchievements.includes(item.id);

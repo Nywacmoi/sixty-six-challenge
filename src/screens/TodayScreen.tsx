@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
@@ -11,25 +11,28 @@ import { AchievementToast } from '../components/AchievementToast';
 import { Toast } from '../components/Toast';
 import { TodayDashboard } from '../components/TodayDashboard';
 import { ShareDayCta } from '../components/ShareDayCta';
-import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
+import { useTabBarClearance } from '../hooks/useTabBarClearance';
 
 export default function TodayScreen({ navigation }: any) {
   const { habits, currentDay, todayProgress, isCompleted, getStreak, getLongestStreak, profile, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast } = useApp();
-  const { confirmAction } = useConfirm();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const activeHabits = habits.filter((h) => !h.archived);
   const topInset = useTopInset();
+  const tabBarClearance = useTabBarClearance();
   const bestStreak = activeHabits.reduce((max, h) => Math.max(max, getLongestStreak(h.id)), 0);
   const currentStreak = activeHabits.reduce((max, h) => Math.max(max, getStreak(h.id)), 0);
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={[styles.header, { paddingTop: topInset + spacing.sm }]}>
-        <View>
-          <Text style={typography.caption}>JOUR {Math.max(currentDay, activeHabits.length ? 1 : 0)} SUR {TOTAL_DAYS}</Text>
-          <Text style={typography.display}>Aujourd'hui</Text>
+        <View style={styles.titleRow}>
+          <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          <View>
+            <Text style={typography.caption}>JOUR {Math.max(currentDay, activeHabits.length ? 1 : 0)} SUR {TOTAL_DAYS}</Text>
+            <Text style={typography.display}>Aujourd'hui</Text>
+          </View>
         </View>
         <Pressable style={styles.addBtn} onPress={() => navigation.navigate('AddHabit')}>
           <Ionicons name="add" size={26} color="#FFFFFF" />
@@ -70,7 +73,7 @@ export default function TodayScreen({ navigation }: any) {
         <FlatList
           data={activeHabits}
           keyExtractor={(h) => h.id}
-          contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}
+          contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl + tabBarClearance }}
           renderItem={({ item }) => (
             <HabitRow
               habit={item}
@@ -78,14 +81,7 @@ export default function TodayScreen({ navigation }: any) {
               streak={getStreak(item.id)}
               onToggle={() => toggleCompletion(item.id)}
               onPress={() => navigation.navigate('HabitDetail', { habitId: item.id })}
-              onDelete={() =>
-                confirmAction(
-                  "Supprimer l'habitude",
-                  `Supprimer "${item.name}" et tout son historique ?`,
-                  'Supprimer',
-                  () => removeHabit(item.id)
-                )
-              }
+              onDelete={() => removeHabit(item.id)}
             />
           )}
         />
@@ -107,6 +103,8 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.sm,
     },
+    titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    logo: { width: 32, height: 32, borderRadius: 8 },
     addBtn: {
       width: 44,
       height: 44,
