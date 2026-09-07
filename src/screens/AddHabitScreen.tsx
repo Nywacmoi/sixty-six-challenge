@@ -164,6 +164,16 @@ export default function AddHabitScreen({ navigation, route }: any) {
                     </View>
                   ))}
                 </View>
+                {template.program && (
+                  <Pressable
+                    onPress={() => navigation.navigate('Program', { templateId: template.id })}
+                    style={styles.programLink}
+                  >
+                    <Ionicons name="calendar-outline" size={15} color={colors.accent} />
+                    <Text style={[typography.bodyBold, { color: colors.accent }]}>Voir le programme</Text>
+                    <Ionicons name="chevron-forward" size={15} color={colors.accent} />
+                  </Pressable>
+                )}
                 <Pressable
                   onPress={() => handleAddTemplate(template.id)}
                   disabled={!!addedId}
@@ -253,6 +263,13 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       borderRadius: radius.pill,
     },
     chipEmoji: { fontSize: 14 },
+    programLink: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: spacing.md,
+      alignSelf: 'flex-start',
+    },
     addTemplateBtn: {
       marginTop: spacing.md,
       backgroundColor: colors.surfaceElevated,

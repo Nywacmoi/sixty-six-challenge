@@ -14,6 +14,7 @@ import AchievementsScreen from '../screens/AchievementsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import AddHabitScreen from '../screens/AddHabitScreen';
 import HabitDetailScreen from '../screens/HabitDetailScreen';
+import ProgramScreen from '../screens/ProgramScreen';
 
 const Tab = createBottomTabNavigator();
 const TodayStack = createNativeStackNavigator();
@@ -48,6 +49,7 @@ function AppStack() {
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="MainTabs" component={MainTabs} />
       <RootStack.Screen name="AddHabit" component={AddHabitScreen} options={{ presentation: 'modal' }} />
+      <RootStack.Screen name="Program" component={ProgramScreen} options={{ presentation: 'modal' }} />
     </RootStack.Navigator>
   );
 }
