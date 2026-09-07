@@ -13,6 +13,7 @@ import {
 import { AppProvider } from './src/context/AppContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { ConfirmProvider } from './src/context/ConfirmContext';
+import { SocialProvider } from './src/context/SocialContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { LaunchScreen } from './src/components/LaunchScreen';
 
@@ -62,7 +63,9 @@ export default function App() {
       <ThemeProvider>
         <ConfirmProvider>
           <AppProvider>
-            <AppShell />
+            <SocialProvider>
+              <AppShell />
+            </SocialProvider>
           </AppProvider>
         </ConfirmProvider>
       </ThemeProvider>

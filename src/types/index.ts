@@ -45,22 +45,3 @@ export type MetricEntry = {
   date: string;
   value: number;
 };
-
-export type FeedPost = {
-  id: string;
-  userName: string;
-  avatarColor: string;
-  habitName: string;
-  message: string;
-  timeAgo: string;
-  likes: number;
-  streak: number;
-};
-
-export type Squad = {
-  id: string;
-  name: string;
-  emoji: string;
-  memberCount: number;
-  members: { name: string; avatarColor: string; streak: number }[];
-};
