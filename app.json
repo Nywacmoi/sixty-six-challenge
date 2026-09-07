@@ -28,6 +28,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "experiments": {
+      "baseUrl": "/sixty-six-challenge"
+    },
     "plugins": [
       [
         "expo-image-picker",
