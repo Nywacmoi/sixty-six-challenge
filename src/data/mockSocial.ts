@@ -50,7 +50,7 @@ export const MOCK_SQUADS: Squad[] = [
     emoji: '🔥',
     memberCount: 6,
     members: [
-      { name: 'Toi', avatarColor: '#FF5A2E', streak: 0 },
+      { name: 'Toi', avatarColor: '#005FFE', streak: 0 },
       { name: 'Lina', avatarColor: '#FF5A2E', streak: 41 },
       { name: 'Marcus', avatarColor: '#3ECF5B', streak: 27 },
       { name: 'Amélie', avatarColor: '#4E9BFF', streak: 99 },
@@ -62,7 +62,7 @@ export const MOCK_SQUADS: Squad[] = [
     emoji: '🌅',
     memberCount: 4,
     members: [
-      { name: 'Toi', avatarColor: '#FF5A2E', streak: 0 },
+      { name: 'Toi', avatarColor: '#005FFE', streak: 0 },
       { name: 'Sofiane', avatarColor: '#FFC542', streak: 3 },
       { name: 'Nadia', avatarColor: '#B15AFF', streak: 19 },
     ],

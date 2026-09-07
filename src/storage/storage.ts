@@ -25,7 +25,7 @@ async function writeJson<T>(key: string, value: T): Promise<void> {
 
 const PROFILE_DEFAULTS: Profile = {
   name: 'Toi',
-  avatarColor: '#FF5A2E',
+  avatarColor: '#005FFE',
   challengeStartDate: null,
   reminderEnabled: false,
   reminderHour: 8,

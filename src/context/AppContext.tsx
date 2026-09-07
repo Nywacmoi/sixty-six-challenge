@@ -47,7 +47,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
   const [profile, setProfile] = useState<Profile>({
     name: 'Toi',
-    avatarColor: '#FF5A2E',
+    avatarColor: '#005FFE',
     challengeStartDate: null,
     reminderEnabled: false,
     reminderHour: 8,

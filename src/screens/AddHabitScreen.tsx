@@ -18,7 +18,7 @@ const EMOJIS = [
   '🚿', '💰', '📷', '🗓️', '🎯', '🌱', '🧩', '🥶', '☕', '🎮',
 ];
 
-const COLORS = ['#FF5A2E', '#3ECF5B', '#4E9BFF', '#FFC542', '#B15AFF', '#FF4D8D', '#2EC4B6'];
+const COLORS = ['#005FFE', '#3ECF5B', '#FF5A2E', '#FFC542', '#B15AFF', '#FF4D8D', '#2EC4B6'];
 
 export default function AddHabitScreen({ navigation, route }: any) {
   const { addHabit, addHabitsBulk, habits, showToast } = useApp();
