@@ -9,7 +9,6 @@ import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
 import { subscribeToGroupMessages, sendGroupMessage, GroupMessage } from '../firebase/social';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
-import { useKeyboardVisible } from '../hooks/useKeyboardVisible';
 
 function formatTime(ms: number | null) {
   if (!ms) return '';
@@ -21,9 +20,7 @@ export default function GroupChatScreen({ route, navigation }: any) {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
-  const keyboardVisible = useKeyboardVisible();
-  const baseTabBarClearance = useTabBarClearance();
-  const tabBarClearance = keyboardVisible ? 0 : baseTabBarClearance;
+  const tabBarClearance = useTabBarClearance();
   const { uid, username, markGroupRead, setActiveChatGroupId } = useSocial();
   const { notify } = useConfirm();
   const [messages, setMessages] = useState<GroupMessage[]>([]);
