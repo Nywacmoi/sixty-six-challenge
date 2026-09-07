@@ -29,9 +29,9 @@ export default function TodayScreen({ navigation }: any) {
       <View style={[styles.header, { paddingTop: topInset + spacing.sm }]}>
         <View style={styles.titleRow}>
           <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
-          <View>
+          <View style={{ flexShrink: 1 }}>
             <Text style={typography.caption}>JOUR {Math.max(currentDay, activeHabits.length ? 1 : 0)} SUR {TOTAL_DAYS}</Text>
-            <Text style={typography.display}>Aujourd'hui</Text>
+            <Text style={[typography.display, styles.title]} numberOfLines={1}>Aujourd'hui</Text>
           </View>
         </View>
         <Pressable style={styles.addBtn} onPress={() => navigation.navigate('AddHabit')}>
@@ -103,8 +103,9 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.sm,
     },
-    titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    logo: { width: 32, height: 32, borderRadius: 8 },
+    titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1, marginRight: spacing.sm },
+    logo: { height: 40, width: 40 * (1135 / 605), flexShrink: 0 },
+    title: { fontSize: 26 },
     addBtn: {
       width: 44,
       height: 44,
