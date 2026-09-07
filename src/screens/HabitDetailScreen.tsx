@@ -16,6 +16,7 @@ import { WORKOUT_SPLITS } from '../data/workoutSplits';
 import { MEDITATION_SESSIONS } from '../data/meditationSessions';
 import { MEAL_IDEAS } from '../data/mealIdeas';
 import { READING_GOALS } from '../data/readingGoals';
+import { JAWLINE_SESSIONS } from '../data/jawlineProgram';
 
 function openSearch(query: string) {
   const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
@@ -40,6 +41,11 @@ function isNutritionHabit(name: string, icon: string) {
 const READING_ICONS = ['📖'];
 function isReadingHabit(name: string, icon: string) {
   return READING_ICONS.includes(icon) || /lecture|lire|livre/i.test(name);
+}
+
+const JAWLINE_ICONS = ['👅'];
+function isJawlineHabit(name: string, icon: string) {
+  return JAWLINE_ICONS.includes(icon) || /jawline|mewing|mâchoire|machoire|menton/i.test(name);
 }
 
 export default function HabitDetailScreen({ route, navigation }: any) {
@@ -132,6 +138,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   const activeMeditation = MEDITATION_SESSIONS.find((s) => s.id === selectedSession);
   const activeMeal = MEAL_IDEAS.find((s) => s.id === selectedSession);
   const activeReading = READING_GOALS.find((s) => s.id === selectedSession);
+  const activeJawline = JAWLINE_SESSIONS.find((s) => s.id === selectedSession);
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -335,6 +342,43 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                   <Ionicons name="bulb-outline" size={16} color={colors.textSecondary} />
                   <Text style={[typography.body, { flex: 1 }]}>{activeReading.tip}</Text>
                 </View>
+              </View>
+            )}
+          </>
+        )}
+
+        {isJawlineHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Programme jawline</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+              {JAWLINE_SESSIONS.map((session) => {
+                const active = selectedSession === session.id;
+                return (
+                  <Pressable
+                    key={session.id}
+                    onPress={() => handleSelectSession(session.id)}
+                    style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                  >
+                    <Text style={{ fontSize: 16 }}>{session.emoji}</Text>
+                    <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{session.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            {activeJawline && (
+              <View style={styles.splitCard}>
+                {activeJawline.exercises.map((ex) => (
+                  <View key={ex.name} style={styles.exerciseRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={typography.bodyBold}>{ex.name}</Text>
+                      <Text style={typography.caption}>{ex.reps}</Text>
+                      <Text style={[typography.small, { marginTop: 4 }]}>{ex.tip}</Text>
+                    </View>
+                    <Pressable onPress={() => openSearch(`${ex.name} exercice jawline`)} hitSlop={8} style={styles.videoBtn}>
+                      <Ionicons name="logo-youtube" size={22} color={colors.danger} />
+                    </Pressable>
+                  </View>
+                ))}
               </View>
             )}
           </>

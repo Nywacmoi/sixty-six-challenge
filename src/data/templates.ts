@@ -270,4 +270,14 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
       { name: 'Coucher à heure fixe', icon: '🛌', color: '#2EC4B6' },
     ],
   },
+  {
+    id: 'jawline',
+    title: 'Jawline',
+    emoji: '👅',
+    description: 'Posture, mâchoire et fermeté du visage',
+    habits: [
+      { name: 'Mewing (posture linguale)', icon: '👅', color: '#4E9BFF' },
+      { name: 'Exercices mâchoire', icon: '👅', color: '#FF5A2E' },
+    ],
+  },
 ];
