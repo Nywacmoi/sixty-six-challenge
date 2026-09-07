@@ -1,146 +1,350 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
-import Svg, { Circle, Line } from 'react-native-svg';
+import Svg, { Circle, Line, Rect } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
 
 const AnimatedLine = Animated.createAnimatedComponent(Line);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
 export type MovementPattern = 'push' | 'pull' | 'squat' | 'curl' | 'raise' | 'hold' | 'run' | 'crunch';
 
 // Minimal schematic stick-figure loop per movement family — not a real
 // demonstration video (we don't have rights to film/host one), just a quick
-// visual cue of the movement direction. The YouTube button next to it links
-// to real technique videos for the exact exercise.
+// visual cue of the movement direction. The YouTube button next to each
+// exercise links to real technique videos for the exact move.
+
+type Pt = [number, number];
+type Limb = { joint: [Pt, Pt]; end: [Pt, Pt] };
+type Equipment = 'dumbbells' | 'dumbbell' | 'barShoulders' | 'bar' | 'none';
+
 type Pose = {
   headY: [number, number];
-  torsoY2: [number, number];
-  leftArm: [[number, number], [number, number]];
-  rightArm: [[number, number], [number, number]];
-  leftLeg?: [[number, number], [number, number]];
-  rightLeg?: [[number, number], [number, number]];
+  hipY: [number, number];
+  leftArm: Limb;
+  rightArm: Limb;
+  leftLeg: Limb;
+  rightLeg: Limb;
+  equipment: Equipment;
 };
 
-const POSES: Record<MovementPattern, Pose> = {
+const STANDING_LEGS = {
+  leftLeg: { joint: [[26, 48], [26, 48]] as [Pt, Pt], end: [[24, 58], [24, 58]] as [Pt, Pt] },
+  rightLeg: { joint: [[38, 48], [38, 48]] as [Pt, Pt], end: [[40, 58], [40, 58]] as [Pt, Pt] },
+};
+
+const POSES: Record<Exclude<MovementPattern, 'hold'>, Pose> = {
   push: {
-    headY: [14, 14],
-    torsoY2: [40, 40],
-    leftArm: [
-      [26, 30],
-      [18, 16],
-    ],
-    rightArm: [
-      [38, 30],
-      [46, 16],
-    ],
+    headY: [16, 16],
+    hipY: [40, 40],
+    leftArm: {
+      joint: [
+        [22, 30],
+        [20, 20],
+      ],
+      end: [
+        [18, 34],
+        [16, 10],
+      ],
+    },
+    rightArm: {
+      joint: [
+        [42, 30],
+        [44, 20],
+      ],
+      end: [
+        [46, 34],
+        [48, 10],
+      ],
+    },
+    ...STANDING_LEGS,
+    equipment: 'dumbbells',
   },
   pull: {
-    headY: [14, 14],
-    torsoY2: [40, 40],
-    leftArm: [
-      [18, 16],
-      [26, 30],
-    ],
-    rightArm: [
-      [46, 16],
-      [38, 30],
-    ],
-  },
-  curl: {
-    headY: [14, 14],
-    torsoY2: [40, 40],
-    leftArm: [
-      [24, 44],
-      [24, 22],
-    ],
-    rightArm: [
-      [40, 44],
-      [40, 22],
-    ],
-  },
-  raise: {
-    headY: [14, 14],
-    torsoY2: [40, 40],
-    leftArm: [
-      [26, 40],
-      [12, 22],
-    ],
-    rightArm: [
-      [38, 40],
-      [52, 22],
-    ],
-  },
-  hold: {
-    headY: [14, 15],
-    torsoY2: [40, 40],
-    leftArm: [
-      [22, 34],
-      [22, 34],
-    ],
-    rightArm: [
-      [42, 34],
-      [42, 34],
-    ],
-  },
-  crunch: {
-    headY: [30, 16],
-    torsoY2: [42, 40],
-    leftArm: [
-      [26, 34],
-      [26, 20],
-    ],
-    rightArm: [
-      [38, 34],
-      [38, 20],
-    ],
-    leftLeg: [
-      [20, 52],
-      [20, 52],
-    ],
-    rightLeg: [
-      [44, 52],
-      [44, 52],
-    ],
+    headY: [16, 16],
+    hipY: [40, 40],
+    leftArm: {
+      joint: [
+        [18, 20],
+        [22, 30],
+      ],
+      end: [
+        [14, 12],
+        [27, 33],
+      ],
+    },
+    rightArm: {
+      joint: [
+        [46, 20],
+        [42, 30],
+      ],
+      end: [
+        [50, 12],
+        [37, 33],
+      ],
+    },
+    ...STANDING_LEGS,
+    equipment: 'bar',
   },
   squat: {
-    headY: [14, 24],
-    torsoY2: [40, 48],
-    leftArm: [
-      [22, 30],
-      [22, 38],
-    ],
-    rightArm: [
-      [42, 30],
-      [42, 38],
-    ],
+    headY: [16, 27],
+    hipY: [40, 47],
+    leftArm: {
+      joint: [
+        [22, 32],
+        [20, 38],
+      ],
+      end: [
+        [24, 40],
+        [18, 46],
+      ],
+    },
+    rightArm: {
+      joint: [
+        [42, 32],
+        [44, 38],
+      ],
+      end: [
+        [40, 40],
+        [46, 46],
+      ],
+    },
+    leftLeg: {
+      joint: [
+        [26, 48],
+        [17, 45],
+      ],
+      end: [
+        [24, 58],
+        [22, 58],
+      ],
+    },
+    rightLeg: {
+      joint: [
+        [38, 48],
+        [47, 45],
+      ],
+      end: [
+        [40, 58],
+        [42, 58],
+      ],
+    },
+    equipment: 'barShoulders',
+  },
+  curl: {
+    headY: [16, 16],
+    hipY: [40, 40],
+    leftArm: {
+      joint: [
+        [24, 38],
+        [24, 38],
+      ],
+      end: [
+        [24, 48],
+        [27, 24],
+      ],
+    },
+    rightArm: {
+      joint: [
+        [40, 38],
+        [40, 38],
+      ],
+      end: [
+        [40, 48],
+        [37, 24],
+      ],
+    },
+    ...STANDING_LEGS,
+    equipment: 'dumbbells',
+  },
+  raise: {
+    headY: [16, 16],
+    hipY: [40, 40],
+    leftArm: {
+      joint: [
+        [25, 40],
+        [15, 27],
+      ],
+      end: [
+        [26, 44],
+        [9, 25],
+      ],
+    },
+    rightArm: {
+      joint: [
+        [39, 40],
+        [49, 27],
+      ],
+      end: [
+        [38, 44],
+        [55, 25],
+      ],
+    },
+    ...STANDING_LEGS,
+    equipment: 'dumbbells',
+  },
+  crunch: {
+    headY: [32, 18],
+    hipY: [46, 44],
+    leftArm: {
+      joint: [
+        [26, 36],
+        [26, 24],
+      ],
+      end: [
+        [22, 42],
+        [22, 18],
+      ],
+    },
+    rightArm: {
+      joint: [
+        [38, 36],
+        [38, 24],
+      ],
+      end: [
+        [42, 42],
+        [42, 18],
+      ],
+    },
+    leftLeg: {
+      joint: [
+        [22, 46],
+        [22, 46],
+      ],
+      end: [
+        [16, 40],
+        [16, 40],
+      ],
+    },
+    rightLeg: {
+      joint: [
+        [42, 46],
+        [42, 46],
+      ],
+      end: [
+        [48, 40],
+        [48, 40],
+      ],
+    },
+    equipment: 'none',
   },
   run: {
-    headY: [14, 12],
-    torsoY2: [40, 38],
-    leftArm: [
-      [20, 30],
-      [30, 20],
-    ],
-    rightArm: [
-      [44, 20],
-      [34, 30],
-    ],
-    leftLeg: [
-      [22, 56],
-      [34, 50],
-    ],
-    rightLeg: [
-      [42, 50],
-      [30, 56],
-    ],
+    headY: [14, 11],
+    hipY: [38, 36],
+    leftArm: {
+      joint: [
+        [24, 26],
+        [30, 20],
+      ],
+      end: [
+        [30, 18],
+        [22, 30],
+      ],
+    },
+    rightArm: {
+      joint: [
+        [40, 20],
+        [34, 26],
+      ],
+      end: [
+        [32, 30],
+        [42, 18],
+      ],
+    },
+    leftLeg: {
+      joint: [
+        [28, 48],
+        [36, 44],
+      ],
+      end: [
+        [22, 56],
+        [40, 50],
+      ],
+    },
+    rightLeg: {
+      joint: [
+        [36, 44],
+        [28, 48],
+      ],
+      end: [
+        [40, 50],
+        [22, 56],
+      ],
+    },
+    equipment: 'none',
   },
 };
+
+function lerpPt(progress: Animated.Value, [a, b]: [Pt, Pt], axis: 0 | 1) {
+  return progress.interpolate({ inputRange: [0, 1], outputRange: [a[axis], b[axis]] });
+}
+
+function LimbView({
+  progress,
+  anchorX,
+  anchorY,
+  limb,
+  color,
+}: {
+  progress: Animated.Value;
+  anchorX: number;
+  anchorY: Animated.AnimatedInterpolation<number>;
+  limb: Limb;
+  color: string;
+}) {
+  const jointX = lerpPt(progress, limb.joint, 0);
+  const jointY = lerpPt(progress, limb.joint, 1);
+  const endX = lerpPt(progress, limb.end, 0);
+  const endY = lerpPt(progress, limb.end, 1);
+  return (
+    <>
+      <AnimatedLine x1={anchorX} y1={anchorY} x2={jointX} y2={jointY} stroke={color} strokeWidth={3.4} strokeLinecap="round" />
+      <AnimatedLine x1={jointX} y1={jointY} x2={endX} y2={endY} stroke={color} strokeWidth={3.4} strokeLinecap="round" />
+      <AnimatedCircle cx={jointX} cy={jointY} r={2} fill={color} />
+      <AnimatedCircle cx={endX} cy={endY} r={2.4} fill={color} />
+    </>
+  );
+}
+
+function PlankFigure({ size, color, accent }: { size: number; color: string; accent: string }) {
+  const bob = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bob, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+        Animated.timing(bob, { toValue: 0, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
+  const shake = bob.interpolate({ inputRange: [0, 1], outputRange: [0, 0.6] });
+
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64">
+      <Line x1={6} y1={54} x2={58} y2={54} stroke={color + '55'} strokeWidth={2} strokeLinecap="round" />
+      <AnimatedCircle cx={14} cy={shake.interpolate({ inputRange: [0, 0.6], outputRange: [36, 35.4] })} r={6} fill={color} />
+      <AnimatedLine
+        x1={20}
+        y1={shake.interpolate({ inputRange: [0, 0.6], outputRange: [38, 37.4] })}
+        x2={50}
+        y2={38}
+        stroke={color}
+        strokeWidth={3.4}
+        strokeLinecap="round"
+      />
+      <Line x1={22} y1={40} x2={16} y2={54} stroke={accent} strokeWidth={3.4} strokeLinecap="round" />
+      <Line x1={50} y1={38} x2={56} y2={54} stroke={color} strokeWidth={3.4} strokeLinecap="round" />
+    </Svg>
+  );
+}
 
 export function ExerciseAnimation({ pattern, size = 56 }: { pattern: MovementPattern; size?: number }) {
   const { colors } = useTheme();
   const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    if (pattern === 'hold') return;
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(progress, { toValue: 1, duration: 650, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
@@ -151,66 +355,60 @@ export function ExerciseAnimation({ pattern, size = 56 }: { pattern: MovementPat
     return () => loop.stop();
   }, [pattern]);
 
+  if (pattern === 'hold') {
+    return <PlankFigure size={size} color={colors.textSecondary} accent={colors.accent} />;
+  }
+
   const pose = POSES[pattern];
-  const lerp = (range: [number, number]) => progress.interpolate({ inputRange: [0, 1], outputRange: range });
-  const legs = pose.leftLeg && pose.rightLeg;
+  const headY = progress.interpolate({ inputRange: [0, 1], outputRange: pose.headY });
+  const hipY = progress.interpolate({ inputRange: [0, 1], outputRange: pose.hipY });
+  const shoulderY = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [pose.headY[0] + 11, pose.headY[1] + 11],
+  });
 
   return (
     <Svg width={size} height={size} viewBox="0 0 64 64">
-      <AnimatedCircle cx={32} cy={lerp(pose.headY)} r={6} fill={colors.textSecondary} />
-      <AnimatedLine
-        x1={32}
-        y1={lerp([pose.headY[0] + 6, pose.headY[1] + 6])}
-        x2={32}
-        y2={lerp(pose.torsoY2)}
-        stroke={colors.textSecondary}
-        strokeWidth={3}
-        strokeLinecap="round"
-      />
-      <AnimatedLine
-        x1={32}
-        y1={lerp([pose.headY[0] + 12, pose.headY[1] + 12])}
-        x2={lerp([pose.leftArm[0][0], pose.leftArm[1][0]])}
-        y2={lerp([pose.leftArm[0][1], pose.leftArm[1][1]])}
-        stroke={colors.accent}
-        strokeWidth={3}
-        strokeLinecap="round"
-      />
-      <AnimatedLine
-        x1={32}
-        y1={lerp([pose.headY[0] + 12, pose.headY[1] + 12])}
-        x2={lerp([pose.rightArm[0][0], pose.rightArm[1][0]])}
-        y2={lerp([pose.rightArm[0][1], pose.rightArm[1][1]])}
-        stroke={colors.accent}
-        strokeWidth={3}
-        strokeLinecap="round"
-      />
-      {legs && (
-        <>
-          <AnimatedLine
-            x1={32}
-            y1={lerp(pose.torsoY2)}
-            x2={lerp([pose.leftLeg![0][0], pose.leftLeg![1][0]])}
-            y2={lerp([pose.leftLeg![0][1], pose.leftLeg![1][1]])}
-            stroke={colors.textSecondary}
-            strokeWidth={3}
-            strokeLinecap="round"
-          />
-          <AnimatedLine
-            x1={32}
-            y1={lerp(pose.torsoY2)}
-            x2={lerp([pose.rightLeg![0][0], pose.rightLeg![1][0]])}
-            y2={lerp([pose.rightLeg![0][1], pose.rightLeg![1][1]])}
-            stroke={colors.textSecondary}
-            strokeWidth={3}
-            strokeLinecap="round"
-          />
-        </>
+      <Line x1={4} y1={59} x2={60} y2={59} stroke={colors.textSecondary + '33'} strokeWidth={2} strokeLinecap="round" />
+
+      {pose.equipment === 'barShoulders' && (
+        <AnimatedLine
+          x1={16}
+          y1={progress.interpolate({ inputRange: [0, 1], outputRange: [pose.headY[0] + 9, pose.headY[1] + 9] })}
+          x2={48}
+          y2={progress.interpolate({ inputRange: [0, 1], outputRange: [pose.headY[0] + 9, pose.headY[1] + 9] })}
+          stroke={colors.accent}
+          strokeWidth={3}
+          strokeLinecap="round"
+        />
       )}
-      {!legs && (
+      {pose.equipment === 'bar' && (
+        <AnimatedLine
+          x1={lerpPt(progress, pose.leftArm.end, 0)}
+          y1={lerpPt(progress, pose.leftArm.end, 1)}
+          x2={lerpPt(progress, pose.rightArm.end, 0)}
+          y2={lerpPt(progress, pose.rightArm.end, 1)}
+          stroke={colors.accent}
+          strokeWidth={3}
+          strokeLinecap="round"
+        />
+      )}
+
+      <LimbView progress={progress} anchorX={32} anchorY={hipY} limb={pose.leftLeg} color={colors.textSecondary} />
+      <LimbView progress={progress} anchorX={32} anchorY={hipY} limb={pose.rightLeg} color={colors.textSecondary} />
+
+      <AnimatedLine x1={32} y1={shoulderY} x2={32} y2={hipY} stroke={colors.textSecondary} strokeWidth={3.6} strokeLinecap="round" />
+      <AnimatedCircle cx={32} cy={headY} r={6} fill={colors.textSecondary} />
+
+      <LimbView progress={progress} anchorX={32} anchorY={shoulderY} limb={pose.leftArm} color={colors.accent} />
+      <LimbView progress={progress} anchorX={32} anchorY={shoulderY} limb={pose.rightArm} color={colors.accent} />
+
+      {(pose.equipment === 'dumbbells' || pose.equipment === 'dumbbell') && (
         <>
-          <AnimatedLine x1={32} y1={lerp(pose.torsoY2)} x2={20} y2={58} stroke={colors.textSecondary} strokeWidth={3} strokeLinecap="round" />
-          <AnimatedLine x1={32} y1={lerp(pose.torsoY2)} x2={44} y2={58} stroke={colors.textSecondary} strokeWidth={3} strokeLinecap="round" />
+          <AnimatedCircle cx={lerpPt(progress, pose.leftArm.end, 0)} cy={lerpPt(progress, pose.leftArm.end, 1)} r={3} fill={colors.accent} stroke={colors.textSecondary} strokeWidth={1} />
+          {pose.equipment === 'dumbbells' && (
+            <AnimatedCircle cx={lerpPt(progress, pose.rightArm.end, 0)} cy={lerpPt(progress, pose.rightArm.end, 1)} r={3} fill={colors.accent} stroke={colors.textSecondary} strokeWidth={1} />
+          )}
         </>
       )}
     </Svg>
