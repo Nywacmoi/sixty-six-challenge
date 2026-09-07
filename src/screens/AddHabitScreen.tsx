@@ -8,14 +8,14 @@ import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ROUTINE_TEMPLATES } from '../data/templates';
+import { COMMON_HABITS } from '../data/commonHabits';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 
 const EMOJIS = [
   '🔥', '💪', '🏃', '🏋️', '🚴', '🧘', '🚶', '🥗', '💧', '🍎',
-  '🥦', '🚭', '🍷', '📖', '✍️', '🎨', '🎸', '🎧', '💻', '🧠',
-  '🛌', '🌙', '☀️', '🧴', '🧹', '🐶', '🙏', '📵', '💊', '🩺',
-  '🚿', '💰', '📷', '🗓️', '🎯', '🌱', '🧩', '🥶', '☕', '🎮', '👅',
+  '🥦', '🍷', '📖', '✍️', '🎨', '🎸', '💻', '🧠',
+  '🛌', '🌙', '📵', '🚿', '💰', '🎯', '🌱', '👅',
 ];
 
 const COLORS = ['#005FFE', '#3ECF5B', '#FF5A2E', '#FFC542', '#B15AFF', '#FF4D8D', '#2EC4B6'];
@@ -31,6 +31,8 @@ export default function AddHabitScreen({ navigation, route }: any) {
   const [icon, setIcon] = useState(EMOJIS[0]);
   const [color, setColor] = useState(COLORS[0]);
   const [addedId, setAddedId] = useState<string | null>(null);
+  const [checkedCommon, setCheckedCommon] = useState<Set<string>>(new Set());
+  const [showCustomForm, setShowCustomForm] = useState(false);
   const scaleRefs = useRef<Record<string, Animated.Value>>({});
 
   const getScale = (id: string) => {
@@ -45,6 +47,25 @@ export default function AddHabitScreen({ navigation, route }: any) {
   };
 
   const existingNames = new Set(habits.map((h) => h.name.trim().toLowerCase()));
+
+  const toggleCommon = (habitName: string) => {
+    setCheckedCommon((prev) => {
+      const next = new Set(prev);
+      if (next.has(habitName)) next.delete(habitName);
+      else next.add(habitName);
+      return next;
+    });
+  };
+
+  const handleAddChecked = async () => {
+    const toAdd = COMMON_HABITS.filter(
+      (h) => checkedCommon.has(h.name) && !existingNames.has(h.name.trim().toLowerCase())
+    );
+    if (toAdd.length === 0) return;
+    await addHabitsBulk(toAdd);
+    showToast('✅', `${toAdd.length} habitude${toAdd.length > 1 ? 's' : ''} ajoutée${toAdd.length > 1 ? 's' : ''} !`);
+    navigation.goBack();
+  };
 
   const handleAddTemplate = async (templateId: string) => {
     if (addedId) return;
@@ -102,40 +123,84 @@ export default function AddHabitScreen({ navigation, route }: any) {
 
       {mode === 'custom' ? (
         <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}>
-          <Text style={[typography.caption, { marginBottom: spacing.xs }]}>NOM DE L'HABITUDE</Text>
-          <TextInput
-            value={name}
-            onChangeText={setName}
-            placeholder="ex. Course matinale"
-            placeholderTextColor={colors.textTertiary}
-            style={styles.input}
+          <Text style={[typography.caption, { marginBottom: spacing.sm }]}>HABITUDES COURANTES</Text>
+          <View style={styles.checklist}>
+            {COMMON_HABITS.map((h) => {
+              const checked = checkedCommon.has(h.name);
+              const alreadyAdded = existingNames.has(h.name.trim().toLowerCase());
+              return (
+                <Pressable
+                  key={h.name}
+                  onPress={() => !alreadyAdded && toggleCommon(h.name)}
+                  disabled={alreadyAdded}
+                  style={[styles.checkRow, checked && { borderColor: h.color, backgroundColor: h.color + '14' }, alreadyAdded && { opacity: 0.4 }]}
+                >
+                  <Text style={{ fontSize: 18 }}>{h.icon}</Text>
+                  <Text style={[typography.bodyBold, { flex: 1 }]}>{h.name}</Text>
+                  {alreadyAdded ? (
+                    <Text style={typography.small}>déjà ajoutée</Text>
+                  ) : (
+                    <Ionicons
+                      name={checked ? 'checkbox' : 'square-outline'}
+                      size={22}
+                      color={checked ? h.color : colors.textTertiary}
+                    />
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <PrimaryButton
+            label={`Ajouter${checkedCommon.size > 0 ? ` (${checkedCommon.size})` : ''}`}
+            onPress={handleAddChecked}
+            disabled={checkedCommon.size === 0}
+            style={{ marginTop: spacing.lg }}
           />
 
-          <Text style={[typography.caption, { marginTop: spacing.lg, marginBottom: spacing.sm }]}>ICÔNE</Text>
-          <View style={styles.grid}>
-            {EMOJIS.map((e, i) => (
-              <Pressable
-                key={`${e}-${i}`}
-                onPress={() => setIcon(e)}
-                style={[styles.iconOption, icon === e && { borderColor: color, backgroundColor: color + '22' }]}
-              >
-                <Text style={styles.emojiOption}>{e}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <Pressable onPress={() => setShowCustomForm((v) => !v)} style={styles.customToggle}>
+            <Ionicons name={showCustomForm ? 'chevron-down' : 'chevron-forward'} size={16} color={colors.textSecondary} />
+            <Text style={[typography.bodyBold, { color: colors.textSecondary }]}>Ou créer une habitude personnalisée</Text>
+          </Pressable>
 
-          <Text style={[typography.caption, { marginTop: spacing.lg, marginBottom: spacing.sm }]}>COULEUR</Text>
-          <View style={styles.grid}>
-            {COLORS.map((c) => (
-              <Pressable
-                key={c}
-                onPress={() => setColor(c)}
-                style={[styles.colorOption, { backgroundColor: c }, color === c && styles.colorOptionSelected]}
+          {showCustomForm && (
+            <View style={{ marginTop: spacing.md }}>
+              <Text style={[typography.caption, { marginBottom: spacing.xs }]}>NOM DE L'HABITUDE</Text>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder="ex. Course matinale"
+                placeholderTextColor={colors.textTertiary}
+                style={styles.input}
               />
-            ))}
-          </View>
 
-          <PrimaryButton label="Créer l'habitude" onPress={handleCreate} disabled={!name.trim()} style={{ marginTop: spacing.xl }} />
+              <Text style={[typography.caption, { marginTop: spacing.lg, marginBottom: spacing.sm }]}>ICÔNE</Text>
+              <View style={styles.grid}>
+                {EMOJIS.map((e, i) => (
+                  <Pressable
+                    key={`${e}-${i}`}
+                    onPress={() => setIcon(e)}
+                    style={[styles.iconOption, icon === e && { borderColor: color, backgroundColor: color + '22' }]}
+                  >
+                    <Text style={styles.emojiOption}>{e}</Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <Text style={[typography.caption, { marginTop: spacing.lg, marginBottom: spacing.sm }]}>COULEUR</Text>
+              <View style={styles.grid}>
+                {COLORS.map((c) => (
+                  <Pressable
+                    key={c}
+                    onPress={() => setColor(c)}
+                    style={[styles.colorOption, { backgroundColor: c }, color === c && styles.colorOptionSelected]}
+                  />
+                ))}
+              </View>
+
+              <PrimaryButton label="Créer l'habitude" onPress={handleCreate} disabled={!name.trim()} style={{ marginTop: spacing.xl }} />
+            </View>
+          )}
         </ScrollView>
       ) : (
         <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}>
@@ -218,6 +283,25 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       fontSize: 16,
       borderWidth: 1,
       borderColor: colors.border,
+    },
+    checklist: { gap: spacing.sm },
+    checkRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      paddingVertical: spacing.sm + 2,
+      paddingHorizontal: spacing.md,
+    },
+    customToggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: spacing.xl,
+      alignSelf: 'flex-start',
     },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     iconOption: {
