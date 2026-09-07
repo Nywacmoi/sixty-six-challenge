@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { fonts, ThemeColors } from '../theme/theme';
+import { useKeyboardVisible } from '../hooks/useKeyboardVisible';
 
 const ICONS: Record<string, string> = {
   Today: 'today',
@@ -34,6 +35,9 @@ export function CustomTabBar({ state, navigation }: any) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomPadding = Math.max(insets.bottom, 14);
+  const keyboardVisible = useKeyboardVisible();
+
+  if (keyboardVisible) return null;
 
   return (
     <View style={[styles.container, { paddingBottom: bottomPadding }]}>
