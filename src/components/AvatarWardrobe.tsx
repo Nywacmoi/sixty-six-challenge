@@ -41,7 +41,7 @@ export function AvatarWardrobe() {
             onPress={() => toggle(item)}
             style={[styles.card, !unlocked && styles.cardLocked, equipped && styles.cardEquipped]}
           >
-            <Text style={styles.emoji}>{unlocked ? item.emoji : '🔒'}</Text>
+            <Ionicons name={unlocked ? (item.icon as any) : 'lock-closed'} size={26} color={unlocked ? colors.text : colors.textTertiary} />
             <Text style={[typography.small, { textAlign: 'center', marginTop: 6 }]}>{item.name}</Text>
             {!unlocked ? (
               <Text style={[typography.small, { color: colors.textTertiary, marginTop: 2 }]}>Jour {item.unlockDay}</Text>
@@ -76,7 +76,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
     },
     cardLocked: { opacity: 0.5 },
     cardEquipped: { borderColor: colors.accent, backgroundColor: colors.accent + '0F' },
-    emoji: { fontSize: 26 },
     statusRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
   });
 }

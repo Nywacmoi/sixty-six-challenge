@@ -135,7 +135,10 @@ export default function ProfileScreen() {
             <Text style={typography.caption}>Check-ins</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={typography.h1}>🧊 {profile.streakFreezes}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="snow" size={20} color={colors.accent} />
+              <Text style={typography.h1}>{profile.streakFreezes}</Text>
+            </View>
             <Text style={typography.caption}>Freezes</Text>
           </View>
         </View>

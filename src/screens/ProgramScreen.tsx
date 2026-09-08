@@ -44,7 +44,7 @@ export default function ProgramScreen({ navigation, route }: any) {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}>
-        <Text style={styles.emoji}>{template.emoji}</Text>
+        <Ionicons name={template.emoji as any} size={40} color={colors.accent} style={{ marginBottom: spacing.xs }} />
         <Text style={typography.display}>{template.title}</Text>
         <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.xs }]}>{program.subtitle}</Text>
 
@@ -77,7 +77,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg },
-    emoji: { fontSize: 40, marginBottom: spacing.xs },
     weekCard: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,

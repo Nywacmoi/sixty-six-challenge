@@ -5,7 +5,7 @@ export const JAWLINE_SESSIONS: JawlineSession[] = [
   {
     id: 'mewing',
     label: 'Mewing & posture',
-    emoji: '👅',
+    emoji: 'accessibility',
     exercises: [
       {
         name: 'Posture linguale (mewing)',
@@ -27,7 +27,7 @@ export const JAWLINE_SESSIONS: JawlineSession[] = [
   {
     id: 'strength',
     label: 'Renforcement mâchoire',
-    emoji: '💪',
+    emoji: 'fitness',
     exercises: [
       {
         name: 'Jaw clench (serrage mâchoire)',
@@ -49,7 +49,7 @@ export const JAWLINE_SESSIONS: JawlineSession[] = [
   {
     id: 'neck',
     label: 'Cou & fermeté',
-    emoji: '🦢',
+    emoji: 'body',
     exercises: [
       {
         name: 'Neck curl-up',

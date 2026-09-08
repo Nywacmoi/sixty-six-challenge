@@ -13,10 +13,10 @@ import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 
-const EMOJIS = [
-  '🔥', '💪', '🏃', '🏋️', '🚴', '🧘', '🚶', '🥗', '💧', '🍎',
-  '🥦', '🍷', '📖', '✍️', '🎨', '🎸', '💻', '🧠',
-  '🛌', '🌙', '📵', '🚿', '💰', '🎯', '🌱', '👅',
+const ICONS = [
+  'flame', 'fitness', 'walk', 'barbell', 'bicycle', 'leaf', 'walk', 'nutrition', 'water', 'restaurant',
+  'nutrition', 'wine', 'book', 'pencil', 'color-palette', 'musical-notes', 'laptop', 'bulb',
+  'bed', 'moon', 'phone-portrait', 'water', 'cash', 'locate', 'leaf', 'accessibility',
 ];
 
 const COLORS = ['#005FFE', '#3ECF5B', '#FF5A2E', '#FFC542', '#B15AFF', '#FF4D8D', '#2EC4B6'];
@@ -29,7 +29,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
   const topInset = useTopInset();
   const [mode, setMode] = useState<'custom' | 'template'>(route?.params?.initialTab === 'template' ? 'template' : 'custom');
   const [name, setName] = useState('');
-  const [icon, setIcon] = useState(EMOJIS[0]);
+  const [icon, setIcon] = useState(ICONS[0]);
   const [color, setColor] = useState(COLORS[0]);
   const [addedId, setAddedId] = useState<string | null>(null);
   const [checkedCommon, setCheckedCommon] = useState<Set<string>>(new Set());
@@ -64,7 +64,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
     );
     if (toAdd.length === 0) return;
     await addHabitsBulk(toAdd);
-    showToast('✅', `${toAdd.length} habitude${toAdd.length > 1 ? 's' : ''} ajoutée${toAdd.length > 1 ? 's' : ''} !`);
+    showToast('checkmark-circle', `${toAdd.length} habitude${toAdd.length > 1 ? 's' : ''} ajoutée${toAdd.length > 1 ? 's' : ''} !`);
     navigation.goBack();
   };
 
@@ -136,7 +136,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
                   disabled={alreadyAdded}
                   style={[styles.checkRow, checked && { borderColor: h.color, backgroundColor: h.color + '14' }, alreadyAdded && { opacity: 0.4 }]}
                 >
-                  <Text style={{ fontSize: 18 }}>{h.icon}</Text>
+                  <Ionicons name={h.icon as any} size={18} color={checked ? h.color : colors.textSecondary} />
                   <Text style={[typography.bodyBold, { flex: 1 }]}>{h.name}</Text>
                   {alreadyAdded ? (
                     <Text style={typography.small}>déjà ajoutée</Text>
@@ -178,13 +178,13 @@ export default function AddHabitScreen({ navigation, route }: any) {
 
               <Text style={[typography.caption, { marginTop: spacing.lg, marginBottom: spacing.sm }]}>ICÔNE</Text>
               <View style={styles.grid}>
-                {EMOJIS.map((e, i) => (
+                {ICONS.map((i, idx) => (
                   <Pressable
-                    key={`${e}-${i}`}
-                    onPress={() => setIcon(e)}
-                    style={[styles.iconOption, icon === e && { borderColor: color, backgroundColor: color + '22' }]}
+                    key={`${i}-${idx}`}
+                    onPress={() => setIcon(i)}
+                    style={[styles.iconOption, icon === i && { borderColor: color, backgroundColor: color + '22' }]}
                   >
-                    <Text style={styles.emojiOption}>{e}</Text>
+                    <Ionicons name={i as any} size={22} color={icon === i ? color : colors.textSecondary} />
                   </Pressable>
                 ))}
               </View>
@@ -217,7 +217,9 @@ export default function AddHabitScreen({ navigation, route }: any) {
                 style={[styles.templateCard, { transform: [{ scale: getScale(template.id) }] }, isAdded && styles.templateCardAdded]}
               >
                 <View style={styles.templateHeader}>
-                  <Text style={styles.templateEmoji}>{template.emoji}</Text>
+                  <View style={styles.templateEmoji}>
+                    <Ionicons name={template.emoji as any} size={26} color={colors.accent} />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={typography.bodyBold}>{template.title}</Text>
                     <Text style={typography.caption}>{template.description}</Text>
@@ -226,7 +228,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
                 <View style={styles.chipsRow}>
                   {template.habits.map((h) => (
                     <View key={h.name} style={[styles.chip, { backgroundColor: h.color + '1F' }]}>
-                      <Text style={styles.chipEmoji}>{h.icon}</Text>
+                      <Ionicons name={h.icon as any} size={14} color={h.color} />
                       <Text style={[typography.small, { color: colors.text }]}>{h.name}</Text>
                     </View>
                   ))}
@@ -316,7 +318,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       justifyContent: 'center',
       backgroundColor: colors.surface,
     },
-    emojiOption: { fontSize: 22 },
     colorOption: {
       width: 36,
       height: 36,
@@ -338,7 +339,7 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       borderColor: colors.success,
     },
     templateHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    templateEmoji: { fontSize: 28 },
+    templateEmoji: { width: 32, alignItems: 'center' },
     chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.md },
     chip: {
       flexDirection: 'row',
@@ -348,7 +349,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       paddingHorizontal: 10,
       borderRadius: radius.pill,
     },
-    chipEmoji: { fontSize: 14 },
     programLink: {
       flexDirection: 'row',
       alignItems: 'center',

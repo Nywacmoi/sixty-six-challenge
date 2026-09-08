@@ -6,6 +6,7 @@ import { todayKey, daysBetween, addDays } from '../utils/date';
 import { ACHIEVEMENTS } from '../data/achievements';
 import { TOTAL_DAYS } from '../theme/theme';
 import { getLevelInfo, LevelInfo, XP_PER_COMPLETION, XP_PER_ACHIEVEMENT, MAX_STREAK_FREEZES } from '../utils/gamification';
+import { migrateHabitIcon } from '../utils/iconMigration';
 
 type NewlyUnlocked = { id: string; title: string; icon: string } | null;
 type ToastState = { icon: string; message: string } | null;
@@ -100,7 +101,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         resolvedProfile = { ...p, avatarSeed: Math.random().toString(36).slice(2, 12) };
         await storage.setProfile(resolvedProfile);
       }
-      setHabits(h);
+      // One-time migration from the old emoji-based habit icons to Ionicons
+      // names — see iconMigration.ts. Only writes back if something
+      // actually changed, so this is a no-op after the first run.
+      let resolvedHabits = h;
+      const migratedHabits = h.map((habit) => ({ ...habit, icon: migrateHabitIcon(habit.icon) }));
+      if (migratedHabits.some((habit, i) => habit.icon !== h[i].icon)) {
+        resolvedHabits = migratedHabits;
+        await storage.setHabits(resolvedHabits);
+      }
+      setHabits(resolvedHabits);
       setCompletions(c);
       setProfile(resolvedProfile);
       setUnlockedAchievements(a);
@@ -456,7 +466,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
       const reminderMinutes = profile.reminderHour * 60 + profile.reminderMinute;
       if (nowMinutes < reminderMinutes) return;
-      showToast('⏰', "N'oublie pas de cocher tes habitudes aujourd'hui !");
+      showToast('alarm', "N'oublie pas de cocher tes habitudes aujourd'hui !");
       updateProfile({ lastReminderShownDate: todayKey() });
     };
 

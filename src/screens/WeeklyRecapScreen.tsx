@@ -123,7 +123,7 @@ export default function WeeklyRecapScreen({ navigation }: any) {
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Habitude la plus régulière</Text>
             <View style={styles.habitCard}>
               <View style={[styles.iconWrap, { backgroundColor: stats.best.habit.color + '26' }]}>
-                <Text style={styles.emoji}>{stats.best.habit.icon}</Text>
+                <Ionicons name={stats.best.habit.icon as any} size={18} color={stats.best.habit.color} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={typography.bodyBold}>{stats.best.habit.name}</Text>
@@ -141,7 +141,7 @@ export default function WeeklyRecapScreen({ navigation }: any) {
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>À travailler la semaine prochaine</Text>
             <View style={styles.habitCard}>
               <View style={[styles.iconWrap, { backgroundColor: stats.weakest.habit.color + '26' }]}>
-                <Text style={styles.emoji}>{stats.weakest.habit.icon}</Text>
+                <Ionicons name={stats.weakest.habit.icon as any} size={18} color={stats.weakest.habit.color} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={typography.bodyBold}>{stats.weakest.habit.name}</Text>
@@ -198,6 +198,5 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       padding: spacing.md,
     },
     iconWrap: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
-    emoji: { fontSize: 18 },
   });
 }

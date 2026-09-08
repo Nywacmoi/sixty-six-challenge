@@ -26,7 +26,7 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
   {
     id: 'push',
     label: 'Pectoraux / Épaules / Triceps',
-    emoji: '💪',
+    emoji: 'fitness',
     variants: [
       [
         { name: 'Développé couché', reps: '4x8-10', pattern: 'push', alt: 'Trop dur ? Développé incliné haltères, charge plus légère' },
@@ -47,7 +47,7 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
   {
     id: 'pull',
     label: 'Dos / Biceps',
-    emoji: '🏋️',
+    emoji: 'barbell',
     variants: [
       [
         { name: 'Tractions ou tirage vertical', reps: '4x8', pattern: 'pull', alt: 'Trop dur ? Tractions assistées (élastique) ou tirage vertical machine' },
@@ -68,7 +68,7 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
   {
     id: 'legs',
     label: 'Jambes',
-    emoji: '🦵',
+    emoji: 'footsteps',
     variants: [
       [
         { name: 'Squat', reps: '4x8-10', pattern: 'squat', alt: 'Trop dur ? Squat au poids du corps ou goblet squat' },
@@ -89,7 +89,7 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
   {
     id: 'shoulders',
     label: 'Épaules',
-    emoji: '🎯',
+    emoji: 'locate',
     variants: [
       [
         { name: 'Développé militaire', reps: '4x8', pattern: 'push' },
@@ -108,7 +108,7 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
   {
     id: 'abs',
     label: 'Abdos / Gainage',
-    emoji: '🔥',
+    emoji: 'flame',
     variants: [
       [
         { name: 'Planche', reps: '3x45s', pattern: 'hold', alt: 'Trop dur ? Planche sur les genoux' },
@@ -127,7 +127,7 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
   {
     id: 'cardio',
     label: 'Cardio',
-    emoji: '🏃',
+    emoji: 'walk',
     variants: [
       [
         { name: 'Course à intensité modérée', reps: '20-30 min', pattern: 'run' },
@@ -143,7 +143,7 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
   {
     id: 'fullbody',
     label: 'Full Body',
-    emoji: '⚡',
+    emoji: 'flash',
     variants: [
       [
         { name: 'Squat', reps: '3x10', pattern: 'squat' },
@@ -214,10 +214,10 @@ export type SportGoal = 'muscle' | 'weightloss' | 'endurance' | 'general';
 export type SportLevel = 'beginner' | 'intermediate' | 'advanced';
 
 export const SPORT_GOALS: { id: SportGoal; label: string; emoji: string }[] = [
-  { id: 'muscle', label: 'Prise de muscle', emoji: '💪' },
-  { id: 'weightloss', label: 'Perte de poids', emoji: '🔥' },
-  { id: 'endurance', label: 'Endurance', emoji: '🏃' },
-  { id: 'general', label: 'Forme générale', emoji: '⚡' },
+  { id: 'muscle', label: 'Prise de muscle', emoji: 'fitness' },
+  { id: 'weightloss', label: 'Perte de poids', emoji: 'flame' },
+  { id: 'endurance', label: 'Endurance', emoji: 'walk' },
+  { id: 'general', label: 'Forme générale', emoji: 'flash' },
 ];
 
 export const SPORT_LEVELS: { id: SportLevel; label: string }[] = [

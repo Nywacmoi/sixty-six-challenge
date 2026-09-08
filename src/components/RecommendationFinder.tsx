@@ -48,7 +48,7 @@ export function RecommendationFinder({
               onPress={() => setSelected(c)}
               style={[styles.chip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
             >
-              <Text style={{ fontSize: 16 }}>{c.emoji}</Text>
+              <Ionicons name={c.emoji as any} size={16} color={active ? colors.accent : colors.textSecondary} />
               <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{c.label}</Text>
             </Pressable>
           );

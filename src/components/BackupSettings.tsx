@@ -30,7 +30,7 @@ export function BackupSettings() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('💾', 'Sauvegarde téléchargée !');
+    showToast('save', 'Sauvegarde téléchargée !');
   };
 
   const handlePickFile = () => {
@@ -53,7 +53,7 @@ export function BackupSettings() {
           setBusy(true);
           try {
             await importData(json);
-            showToast('✅', 'Sauvegarde restaurée !');
+            showToast('checkmark-circle', 'Sauvegarde restaurée !');
           } catch {
             notify('Fichier invalide', "Ce fichier ne semble pas être une sauvegarde valide de l'appli.");
           } finally {

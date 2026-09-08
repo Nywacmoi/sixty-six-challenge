@@ -9,11 +9,11 @@ import { PrimaryButton } from '../../components/PrimaryButton';
 import { StepDots } from '../../components/StepDots';
 
 const GOALS = [
-  { id: 'sport', emoji: '🏃', label: 'Être plus sportif' },
-  { id: 'discipline', emoji: '🧠', label: 'Plus de discipline' },
-  { id: 'wellbeing', emoji: '🧘', label: 'Bien-être & mental' },
-  { id: 'productivity', emoji: '🎯', label: 'Productivité' },
-  { id: 'all', emoji: '✨', label: 'Un peu de tout' },
+  { id: 'sport', icon: 'walk', label: 'Être plus sportif' },
+  { id: 'discipline', icon: 'bulb', label: 'Plus de discipline' },
+  { id: 'wellbeing', icon: 'leaf', label: 'Bien-être & mental' },
+  { id: 'productivity', icon: 'locate', label: 'Productivité' },
+  { id: 'all', icon: 'sparkles', label: 'Un peu de tout' },
 ];
 
 export default function GoalScreen({ navigation, route }: any) {
@@ -53,7 +53,7 @@ export default function GoalScreen({ navigation, route }: any) {
                 onPress={() => setGoal(g.id)}
                 style={[styles.goalCard, selected && { borderColor: colors.accent, backgroundColor: colors.accent + '14' }]}
               >
-                <Text style={styles.goalEmoji}>{g.emoji}</Text>
+                <Ionicons name={g.icon as any} size={22} color={selected ? colors.accent : colors.text} />
                 <Text style={typography.bodyBold}>{g.label}</Text>
                 {selected && <Ionicons name="checkmark-circle" size={20} color={colors.accent} style={{ marginLeft: 'auto' }} />}
               </Pressable>
@@ -85,7 +85,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       borderWidth: 1.5,
       borderColor: colors.border,
     },
-    goalEmoji: { fontSize: 24 },
     footer: {
       paddingHorizontal: spacing.xl,
       paddingTop: spacing.md,

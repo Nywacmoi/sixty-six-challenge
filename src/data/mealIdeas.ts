@@ -10,9 +10,9 @@ export type MealIdea = {
 };
 
 export const DIET_OPTIONS: { id: Diet; label: string; emoji: string }[] = [
-  { id: 'omnivore', label: 'Tout', emoji: '🍖' },
-  { id: 'vegetarien', label: 'Végétarien', emoji: '🥕' },
-  { id: 'vegan', label: 'Vegan', emoji: '🌱' },
+  { id: 'omnivore', label: 'Tout', emoji: 'restaurant' },
+  { id: 'vegetarien', label: 'Végétarien', emoji: 'leaf' },
+  { id: 'vegan', label: 'Vegan', emoji: 'flower' },
 ];
 
 const NO_MEAT: Diet[] = ['omnivore', 'vegetarien'];
@@ -22,7 +22,7 @@ export const MEAL_IDEAS: MealIdea[] = [
   {
     id: 'breakfast',
     label: 'Petit-déjeuner',
-    emoji: '🍳',
+    emoji: 'cafe',
     ideas: [
       { text: "Flocons d'avoine, fruits rouges et graines de chia", diet: VEGAN_OK },
       { text: 'Œufs brouillés, avocat et pain complet', diet: NO_MEAT },
@@ -36,7 +36,7 @@ export const MEAL_IDEAS: MealIdea[] = [
   {
     id: 'lunch',
     label: 'Déjeuner',
-    emoji: '🥗',
+    emoji: 'nutrition',
     ideas: [
       { text: 'Poulet grillé, quinoa et légumes rôtis', diet: ['omnivore'] },
       { text: 'Salade de lentilles, feta et tomates', diet: NO_MEAT },
@@ -50,7 +50,7 @@ export const MEAL_IDEAS: MealIdea[] = [
   {
     id: 'dinner',
     label: 'Dîner',
-    emoji: '🍲',
+    emoji: 'restaurant',
     ideas: [
       { text: 'Saumon, brocolis vapeur et riz complet', diet: ['omnivore'] },
       { text: 'Soupe de légumes maison et œuf poché', diet: NO_MEAT },
@@ -64,7 +64,7 @@ export const MEAL_IDEAS: MealIdea[] = [
   {
     id: 'snack',
     label: 'Collation',
-    emoji: '🍎',
+    emoji: 'nutrition',
     ideas: [
       { text: "Fruit frais et poignée d'amandes", diet: VEGAN_OK },
       { text: 'Yaourt nature et quelques noix', diet: NO_MEAT },

@@ -144,7 +144,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   const handleUseFreeze = async () => {
     const ok = await useStreakFreeze(habitId);
     if (ok) {
-      showToast('🧊', 'Streak freeze utilisé, ta série est sauvée !');
+      showToast('snow', 'Streak freeze utilisé, ta série est sauvée !');
     }
   };
 
@@ -207,7 +207,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
         <View style={styles.titleRow}>
           <View style={[styles.iconWrap, { backgroundColor: habit.color + '26' }]}>
-            <Text style={styles.emoji}>{habit.icon}</Text>
+            <Ionicons name={habit.icon as any} size={26} color={habit.color} />
           </View>
           <View style={{ flex: 1 }}>
             {editingName ? (
@@ -253,7 +253,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
         {canUseStreakFreeze(habitId) && (
           <Pressable style={styles.freezeBanner} onPress={handleUseFreeze}>
-            <Text style={styles.freezeEmoji}>🧊</Text>
+            <Ionicons name="snow" size={22} color={colors.accent} />
             <View style={{ flex: 1 }}>
               <Text style={typography.bodyBold}>Série en danger !</Text>
               <Text style={typography.caption}>Utilise un streak freeze pour la sauver ({profile.streakFreezes} disponible{profile.streakFreezes > 1 ? 's' : ''})</Text>
@@ -317,7 +317,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                 onPress={() => setSelectedSchedule('personal')}
                 style={[styles.splitChip, selectedSchedule === 'personal' && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
               >
-                <Text style={{ fontSize: 16 }}>🎯</Text>
+                <Ionicons name="locate" size={16} color={selectedSchedule === 'personal' ? colors.accent : colors.textSecondary} />
                 <Text style={[typography.bodyBold, selectedSchedule === 'personal' && { color: colors.accent }]}>Mon programme</Text>
               </Pressable>
               {WEEKLY_SCHEDULES.map((schedule) => {
@@ -345,7 +345,8 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                         onPress={() => setQuizGoal(g.id)}
                         style={[styles.quizChip, quizGoal === g.id && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                       >
-                        <Text>{g.emoji} {g.label}</Text>
+                        <Ionicons name={g.emoji as any} size={14} color={quizGoal === g.id ? colors.accent : colors.textSecondary} />
+                        <Text>{g.label}</Text>
                       </Pressable>
                     ))}
                   </View>
@@ -402,9 +403,10 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                       >
                         <Text style={[typography.body, { width: 80 }]}>{d.day}</Text>
                         {split ? (
-                          <Text style={typography.bodyBold}>
-                            {split.emoji} {split.label}
-                          </Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <Ionicons name={split.emoji as any} size={14} color={colors.text} />
+                            <Text style={typography.bodyBold}>{split.label}</Text>
+                          </View>
                         ) : (
                           <Text style={typography.caption}>Repos</Text>
                         )}
@@ -430,9 +432,10 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                         >
                           <Text style={[typography.body, { width: 80 }]}>{d.day}</Text>
                           {split ? (
-                            <Text style={typography.bodyBold}>
-                              {split.emoji} {split.label}
-                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <Ionicons name={split.emoji as any} size={14} color={colors.text} />
+                              <Text style={typography.bodyBold}>{split.label}</Text>
+                            </View>
                           ) : (
                             <Text style={typography.caption}>Repos</Text>
                           )}
@@ -454,7 +457,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     onPress={() => handleSelectSession(split.id)}
                     style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                   >
-                    <Text style={{ fontSize: 16 }}>{split.emoji}</Text>
+                    <Ionicons name={split.emoji as any} size={16} color={active ? colors.accent : colors.textSecondary} />
                     <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{split.label}</Text>
                   </Pressable>
                 );
@@ -497,7 +500,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     onPress={() => handleSelectSession(session.id)}
                     style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                   >
-                    <Text style={{ fontSize: 16 }}>{session.emoji}</Text>
+                    <Ionicons name={session.emoji as any} size={16} color={active ? colors.accent : colors.textSecondary} />
                     <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{session.label}</Text>
                   </Pressable>
                 );
@@ -567,7 +570,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     onPress={() => updateProfile({ foodPreference: opt.id })}
                     style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                   >
-                    <Text style={{ fontSize: 16 }}>{opt.emoji}</Text>
+                    <Ionicons name={opt.emoji as any} size={16} color={active ? colors.accent : colors.textSecondary} />
                     <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{opt.label}</Text>
                   </Pressable>
                 );
@@ -584,7 +587,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     onPress={() => handleSelectSession(meal.id)}
                     style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                   >
-                    <Text style={{ fontSize: 16 }}>{meal.emoji}</Text>
+                    <Ionicons name={meal.emoji as any} size={16} color={active ? colors.accent : colors.textSecondary} />
                     <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{meal.label}</Text>
                   </Pressable>
                 );
@@ -621,7 +624,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     onPress={() => handleSelectSession(goal.id)}
                     style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                   >
-                    <Text style={{ fontSize: 16 }}>{goal.emoji}</Text>
+                    <Ionicons name={goal.emoji as any} size={16} color={active ? colors.accent : colors.textSecondary} />
                     <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{goal.label}</Text>
                   </Pressable>
                 );
@@ -665,7 +668,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     onPress={() => handleSelectSession(session.id)}
                     style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                   >
-                    <Text style={{ fontSize: 16 }}>{session.emoji}</Text>
+                    <Ionicons name={session.emoji as any} size={16} color={active ? colors.accent : colors.textSecondary} />
                     <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{session.label}</Text>
                   </Pressable>
                 );
@@ -702,7 +705,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     onPress={() => handleSelectSession(goal.id)}
                     style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                   >
-                    <Text style={{ fontSize: 16 }}>{goal.emoji}</Text>
+                    <Ionicons name={goal.emoji as any} size={16} color={active ? colors.accent : colors.textSecondary} />
                     <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{goal.label}</Text>
                   </Pressable>
                 );
@@ -881,6 +884,9 @@ function createStyles(colors: ThemeColors, typography: Typography) {
     },
     quizChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
     quizChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
       borderWidth: 1.5,
       borderColor: colors.border,
       borderRadius: radius.pill,

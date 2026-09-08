@@ -10,7 +10,7 @@ export const MEDITATION_SESSIONS: MeditationSession[] = [
   {
     id: 'breathing',
     label: 'Respiration 4-7-8',
-    emoji: '🌬️',
+    emoji: 'cloud',
     duration: '5 min',
     steps: [
       'Inspire calmement par le nez pendant 4 secondes',
@@ -22,7 +22,7 @@ export const MEDITATION_SESSIONS: MeditationSession[] = [
   {
     id: 'bodyscan',
     label: 'Scan corporel',
-    emoji: '🧘',
+    emoji: 'body',
     duration: '10 min',
     steps: [
       'Allonge-toi confortablement et ferme les yeux',
@@ -34,7 +34,7 @@ export const MEDITATION_SESSIONS: MeditationSession[] = [
   {
     id: 'mindfulness',
     label: 'Pleine conscience',
-    emoji: '🙏',
+    emoji: 'leaf',
     duration: '10 min',
     steps: [
       'Assieds-toi le dos droit, les yeux fermés',
@@ -46,7 +46,7 @@ export const MEDITATION_SESSIONS: MeditationSession[] = [
   {
     id: 'visualization',
     label: 'Visualisation positive',
-    emoji: '✨',
+    emoji: 'sparkles',
     duration: '5 min',
     steps: [
       'Ferme les yeux et respire calmement',

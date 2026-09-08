@@ -9,34 +9,34 @@ import { todayKey } from '../utils/date';
 import { COMMON_HABITS } from '../data/commonHabits';
 import { PrimaryButton } from './PrimaryButton';
 
-const GREETINGS = ['Salut {name} 👋', 'Hey {name} !', 'Bonjour {name} ☀️', '{name}, prêt(e) pour aujourd\'hui ?'];
+const GREETINGS = ['Salut {name}', 'Hey {name} !', 'Bonjour {name}', '{name}, prêt(e) pour aujourd\'hui ?'];
 
 const MOODS = [
-  { emoji: '😴', label: 'Fatigué' },
-  { emoji: '😐', label: 'Moyen' },
-  { emoji: '🙂', label: 'Bien' },
-  { emoji: '🔥', label: 'En feu' },
+  { icon: 'bed', label: 'Fatigué' },
+  { icon: 'remove', label: 'Moyen' },
+  { icon: 'happy', label: 'Bien' },
+  { icon: 'flame', label: 'En feu' },
 ];
 
 const MOOD_REACTIONS: Record<string, string> = {
-  Fatigué: "Pas de souci, on y va doucement — un petit pas suffit à garder la série 💪",
-  Moyen: 'Ça arrive à tout le monde, une habitude cochée et ça ira déjà mieux 🙂',
-  Bien: 'Top, autant en profiter aujourd\'hui 🙌',
-  'En feu': "J'adore cette énergie 🔥 Direction le prochain jour du défi.",
+  Fatigué: 'Pas de souci, on y va doucement — un petit pas suffit à garder la série.',
+  Moyen: 'Ça arrive à tout le monde, une habitude cochée et ça ira déjà mieux.',
+  Bien: "Top, autant en profiter aujourd'hui.",
+  'En feu': "J'adore cette énergie. Direction le prochain jour du défi.",
 };
 
 const SLEEPS = [
-  { emoji: '😩', label: 'Mal dormi' },
-  { emoji: '😐', label: 'Sommeil moyen' },
-  { emoji: '😌', label: 'Bien dormi' },
-  { emoji: '🌟', label: 'Nuit parfaite' },
+  { icon: 'sad', label: 'Mal dormi' },
+  { icon: 'remove', label: 'Sommeil moyen' },
+  { icon: 'happy', label: 'Bien dormi' },
+  { icon: 'star', label: 'Nuit parfaite' },
 ];
 
 const SLEEP_REACTIONS: Record<string, string> = {
-  'Mal dormi': 'Pense à toi ce soir — une bonne nuit, ça change tout 🌙',
+  'Mal dormi': 'Pense à toi ce soir — une bonne nuit, ça change tout.',
   'Sommeil moyen': 'Correct, on fait avec !',
-  'Bien dormi': 'Parfait pour attaquer la journée 💪',
-  'Nuit parfaite': 'Un vrai carburant pour aujourd\'hui 🌟',
+  'Bien dormi': 'Parfait pour attaquer la journée.',
+  'Nuit parfaite': "Un vrai carburant pour aujourd'hui.",
 };
 
 // A few common habits not already on the list — offered as "want to add one
@@ -138,7 +138,7 @@ export function MorningCheckIn() {
           <View style={styles.moodRow}>
             {MOODS.map((m) => (
               <Pressable key={m.label} onPress={() => pickMood(m.label)} style={styles.moodChip}>
-                <Text style={styles.moodEmoji}>{m.emoji}</Text>
+                <Ionicons name={m.icon as any} size={22} color={colors.accent} />
                 <Text style={typography.caption}>{m.label}</Text>
               </Pressable>
             ))}
@@ -149,7 +149,7 @@ export function MorningCheckIn() {
           <View style={styles.moodRow}>
             {SLEEPS.map((s) => (
               <Pressable key={s.label} onPress={() => pickSleep(s.label)} style={styles.moodChip}>
-                <Text style={styles.moodEmoji}>{s.emoji}</Text>
+                <Ionicons name={s.icon as any} size={22} color={colors.accent} />
                 <Text style={typography.caption}>{s.label}</Text>
               </Pressable>
             ))}
@@ -165,7 +165,7 @@ export function MorningCheckIn() {
                   return (
                     <Pressable key={h.name} onPress={() => toggle(h.name)} style={styles.row}>
                       <View style={[styles.iconWrap, { backgroundColor: h.color + '26' }]}>
-                        <Text style={{ fontSize: 18 }}>{h.icon}</Text>
+                        <Ionicons name={h.icon as any} size={18} color={h.color} />
                       </View>
                       <Text style={[typography.body, { flex: 1 }]}>{h.name}</Text>
                       <Ionicons name={active ? 'checkbox' : 'square-outline'} size={22} color={active ? colors.accent : colors.textTertiary} />
@@ -223,7 +223,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       backgroundColor: colors.surface,
       minWidth: 76,
     },
-    moodEmoji: { fontSize: 26 },
     list: { marginTop: spacing.xl, gap: spacing.sm },
     row: {
       flexDirection: 'row',

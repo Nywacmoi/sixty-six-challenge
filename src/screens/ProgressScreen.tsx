@@ -57,7 +57,7 @@ export default function ProgressScreen({ navigation }: any) {
         {activeHabits.map((h) => (
           <View key={h.id} style={styles.habitCard}>
             <View style={[styles.iconWrap, { backgroundColor: h.color + '26' }]}>
-              <Text style={styles.emoji}>{h.icon}</Text>
+              <Ionicons name={h.icon as any} size={18} color={h.color} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={typography.bodyBold}>{h.name}</Text>
@@ -114,7 +114,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       marginBottom: spacing.sm,
     },
     iconWrap: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
-    emoji: { fontSize: 18 },
     streakPill: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   });
 }

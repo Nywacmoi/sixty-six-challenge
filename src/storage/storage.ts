@@ -106,7 +106,13 @@ export const storage = {
   importAll: async (json: string): Promise<void> => {
     const data = JSON.parse(json);
     if (!data || typeof data !== 'object') throw new Error('Fichier de sauvegarde invalide');
-    if (Array.isArray(data.habits)) await writeJson(KEYS.habits, data.habits);
+    if (Array.isArray(data.habits)) {
+      const { migrateHabitIcon } = await import('../utils/iconMigration');
+      await writeJson(
+        KEYS.habits,
+        data.habits.map((h: Habit) => ({ ...h, icon: migrateHabitIcon(h.icon) }))
+      );
+    }
     if (Array.isArray(data.completions)) await writeJson(KEYS.completions, data.completions);
     if (data.profile && typeof data.profile === 'object') await writeJson(KEYS.profile, data.profile);
     if (Array.isArray(data.unlockedAchievements)) await writeJson(KEYS.unlockedAchievements, data.unlockedAchievements);

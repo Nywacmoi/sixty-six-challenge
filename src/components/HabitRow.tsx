@@ -34,7 +34,7 @@ export function HabitRow({
     <SwipeableRow onDelete={onDelete}>
       <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && { opacity: 0.8 }]}>
         <View style={[styles.iconWrap, { backgroundColor: habit.color + '26' }]}>
-          <Text style={styles.emoji}>{habit.icon}</Text>
+          <Ionicons name={habit.icon as any} size={20} color={habit.color} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={typography.bodyBold}>{habit.name}</Text>
@@ -72,7 +72,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    emoji: { fontSize: 20 },
     streakRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
     streakText: { ...typography.small, color: colors.accent },
     streakTextMuted: { ...typography.small, marginTop: 3 },

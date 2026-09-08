@@ -16,12 +16,12 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
   {
     id: 'morning',
     title: 'Routine matinale',
-    emoji: '🌅',
+    emoji: 'partly-sunny',
     description: 'Bien démarrer chaque journée',
     habits: [
-      { name: "Boire un verre d'eau", icon: '💧', color: '#4E9BFF' },
-      { name: 'Étirements', icon: '🧘', color: '#3ECF5B' },
-      { name: 'Pas de téléphone au réveil', icon: '📵', color: '#FF4D8D' },
+      { name: "Boire un verre d'eau", icon: 'water', color: '#4E9BFF' },
+      { name: 'Étirements', icon: 'leaf', color: '#3ECF5B' },
+      { name: 'Pas de téléphone au réveil', icon: 'phone-portrait', color: '#FF4D8D' },
     ],
     program: {
       subtitle: '4 semaines pour ancrer un vrai rituel du matin',
@@ -64,12 +64,12 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
   {
     id: 'sport',
     title: 'Routine sportive',
-    emoji: '💪',
+    emoji: 'fitness',
     description: 'Bouger tous les jours',
     habits: [
-      { name: 'Séance de sport', icon: '🏋️', color: '#FF5A2E' },
-      { name: '10 000 pas', icon: '🚶', color: '#2EC4B6' },
-      { name: 'Étirements', icon: '🧘', color: '#3ECF5B' },
+      { name: 'Séance de sport', icon: 'barbell', color: '#FF5A2E' },
+      { name: '10 000 pas', icon: 'walk', color: '#2EC4B6' },
+      { name: 'Étirements', icon: 'leaf', color: '#3ECF5B' },
     ],
     program: {
       subtitle: 'Programme sportif progressif sur 4 semaines',
@@ -116,12 +116,12 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
   {
     id: 'wellbeing',
     title: 'Bien-être & mental',
-    emoji: '🧘',
+    emoji: 'leaf',
     description: "Prendre soin de ton esprit",
     habits: [
-      { name: 'Méditation', icon: '🙏', color: '#B15AFF' },
-      { name: 'Écriture / journaling', icon: '✍️', color: '#FFC542' },
-      { name: 'Sommeil régulier', icon: '🛌', color: '#4E9BFF' },
+      { name: 'Méditation', icon: 'leaf', color: '#B15AFF' },
+      { name: 'Écriture / journaling', icon: 'pencil', color: '#FFC542' },
+      { name: 'Sommeil régulier', icon: 'bed', color: '#4E9BFF' },
     ],
     program: {
       subtitle: '4 semaines pour calmer le mental et mieux dormir',
@@ -166,12 +166,12 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
   {
     id: 'productivity',
     title: 'Productivité',
-    emoji: '🎯',
+    emoji: 'locate',
     description: 'Avancer sur tes objectifs',
     habits: [
-      { name: 'Lire 20 pages', icon: '📖', color: '#4E9BFF' },
-      { name: "Pas d'écran le soir", icon: '📵', color: '#FF4D8D' },
-      { name: 'Planifier sa journée', icon: '🗓️', color: '#FFC542' },
+      { name: 'Lire 20 pages', icon: 'book', color: '#4E9BFF' },
+      { name: "Pas d'écran le soir", icon: 'phone-portrait', color: '#FF4D8D' },
+      { name: 'Planifier sa journée', icon: 'calendar', color: '#FFC542' },
     ],
     program: {
       subtitle: '4 semaines pour retrouver du focus',
@@ -214,12 +214,12 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
   {
     id: 'health',
     title: 'Alimentation saine',
-    emoji: '🥗',
+    emoji: 'nutrition',
     description: 'Mieux manger au quotidien',
     habits: [
-      { name: 'Sans sucre ajouté', icon: '🍎', color: '#FF5A2E' },
-      { name: '5 fruits et légumes', icon: '🥦', color: '#3ECF5B' },
-      { name: "Boire 2L d'eau", icon: '💧', color: '#4E9BFF' },
+      { name: 'Sans sucre ajouté', icon: 'restaurant', color: '#FF5A2E' },
+      { name: '5 fruits et légumes', icon: 'nutrition', color: '#3ECF5B' },
+      { name: "Boire 2L d'eau", icon: 'water', color: '#4E9BFF' },
     ],
     program: {
       subtitle: '4 semaines pour rééquilibrer ton alimentation',
@@ -262,22 +262,22 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
   {
     id: 'evening',
     title: 'Routine du soir',
-    emoji: '🌙',
+    emoji: 'moon',
     description: 'Bien terminer la journée',
     habits: [
-      { name: "Pas d'écran avant de dormir", icon: '📵', color: '#B15AFF' },
-      { name: 'Lecture avant dodo', icon: '📖', color: '#4E9BFF' },
-      { name: 'Coucher à heure fixe', icon: '🛌', color: '#2EC4B6' },
+      { name: "Pas d'écran avant de dormir", icon: 'phone-portrait', color: '#B15AFF' },
+      { name: 'Lecture avant dodo', icon: 'book', color: '#4E9BFF' },
+      { name: 'Coucher à heure fixe', icon: 'bed', color: '#2EC4B6' },
     ],
   },
   {
     id: 'jawline',
     title: 'Jawline',
-    emoji: '👅',
+    emoji: 'accessibility',
     description: 'Posture, mâchoire et fermeté du visage',
     habits: [
-      { name: 'Mewing (posture linguale)', icon: '👅', color: '#4E9BFF' },
-      { name: 'Exercices mâchoire', icon: '👅', color: '#FF5A2E' },
+      { name: 'Mewing (posture linguale)', icon: 'accessibility', color: '#4E9BFF' },
+      { name: 'Exercices mâchoire', icon: 'accessibility', color: '#FF5A2E' },
     ],
   },
 ];

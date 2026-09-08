@@ -46,9 +46,15 @@ export function AchievementToast({
             Succès débloqué : {achievement.title}
           </Text>
           {outfit && (
-            <Text style={typography.caption} numberOfLines={1}>
-              + tenue débloquée : {outfit.emoji} {outfit.name}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Text style={typography.caption} numberOfLines={1}>
+                + tenue débloquée :
+              </Text>
+              <Ionicons name={outfit.icon as any} size={13} color={colors.textSecondary} />
+              <Text style={typography.caption} numberOfLines={1}>
+                {outfit.name}
+              </Text>
+            </View>
           )}
         </View>
       </Pressable>
