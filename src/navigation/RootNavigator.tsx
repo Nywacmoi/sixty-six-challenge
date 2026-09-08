@@ -15,7 +15,6 @@ import ProfileScreen from '../screens/ProfileScreen';
 import AddHabitScreen from '../screens/AddHabitScreen';
 import HabitDetailScreen from '../screens/HabitDetailScreen';
 import ProgramScreen from '../screens/ProgramScreen';
-import AssistantScreen from '../screens/AssistantScreen';
 import GroupChatScreen from '../screens/GroupChatScreen';
 import DirectChatScreen from '../screens/DirectChatScreen';
 import WeeklyRecapScreen from '../screens/WeeklyRecapScreen';
@@ -51,7 +50,6 @@ function MainTabs() {
       <Tab.Screen name="Progress" component={ProgressScreen} />
       <Tab.Screen name="Social" component={SocialStackNavigator} />
       <Tab.Screen name="Achievements" component={AchievementsScreen} />
-      <Tab.Screen name="Assistant" component={AssistantScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
