@@ -42,6 +42,7 @@ const PROFILE_DEFAULTS: Profile = {
   sportGoal: null,
   sportLevel: null,
   sportDaysPerWeek: null,
+  lastCheckInDate: null,
 };
 
 export const storage = {

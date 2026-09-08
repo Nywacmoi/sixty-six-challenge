@@ -11,12 +11,14 @@ import {
   Poppins_800ExtraBold,
 } from '@expo-google-fonts/poppins';
 import { SpaceMono_400Regular, SpaceMono_700Bold } from '@expo-google-fonts/space-mono';
-import { AppProvider } from './src/context/AppContext';
+import { AppProvider, useApp } from './src/context/AppContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { ConfirmProvider } from './src/context/ConfirmContext';
 import { SocialProvider } from './src/context/SocialContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { LaunchScreen } from './src/components/LaunchScreen';
+import { MorningCheckIn } from './src/components/MorningCheckIn';
+import { todayKey } from './src/utils/date';
 
 const LAUNCH_DURATION = 2500;
 
@@ -31,6 +33,7 @@ Notifications.setNotificationHandler({
 
 function AppShell() {
   const { mode, colors } = useTheme();
+  const { loading, profile } = useApp();
   const [fontsLoaded] = useFonts({
     Anton_400Regular,
     Poppins_400Regular,
@@ -52,10 +55,13 @@ function AppShell() {
     return <LaunchScreen duration={LAUNCH_DURATION} />;
   }
 
+  const showCheckIn = !loading && profile.onboardingCompleted && profile.lastCheckInDate !== todayKey();
+
   return (
     <>
       <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       <RootNavigator />
+      {showCheckIn && <MorningCheckIn />}
     </>
   );
 }
