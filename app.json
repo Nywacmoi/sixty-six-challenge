@@ -42,7 +42,8 @@
           "photosPermission": "Utilisé pour ajouter des photos de progression à tes check-ins quotidiens."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-sharing"
     ],
     "extra": {
       "eas": {

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Image, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Image, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 // Renders the profile avatar via DiceBear's "open-peeps" set — real,
@@ -51,6 +51,46 @@ function buildAvatarUrl(opts: {
   return `${DICEBEAR_BASE}?${params.toString()}`;
 }
 
+// DiceBear serves the image cross-origin without a matching `crossOrigin`
+// attribute on the underlying <img> (react-native-web's Image doesn't
+// expose one) — on web that "taints" any <canvas> that draws it, which
+// silently breaks the share-card export (react-native-view-shot uses
+// html2canvas under the hood). Fetching the bytes ourselves and swapping in
+// a data: URI sidesteps the whole problem, since a data: URI is always
+// same-origin as far as canvas is concerned. Native has no such concept —
+// this only runs on web, and quietly keeps the original remote URL if the
+// fetch fails (offline, etc.) rather than showing nothing.
+function useCanvasSafeUri(uri: string) {
+  const [resolved, setResolved] = useState(uri);
+  useEffect(() => {
+    setResolved(uri);
+    if (Platform.OS !== 'web') return;
+    let cancelled = false;
+    fetch(uri)
+      .then((r) => r.blob())
+      .then(
+        (blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          })
+      )
+      .then((dataUri) => {
+        if (!cancelled) setResolved(dataUri);
+      })
+      .catch(() => {
+        // offline or blocked — the plain remote URL still displays fine,
+        // it just can't be captured onto a <canvas>
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [uri]);
+  return resolved;
+}
+
 export function AvatarDisplay({
   color,
   seed,
@@ -84,6 +124,7 @@ export function AvatarDisplay({
     clothingColor: color,
     size: 256,
   });
+  const displayUri = useCanvasSafeUri(uri);
 
   return (
     <View style={{ width: size, height: size }}>
@@ -109,7 +150,7 @@ export function AvatarDisplay({
           backgroundColor: color + '1A',
         }}
       >
-        <Image source={{ uri }} style={{ width: size, height: size }} resizeMode="cover" />
+        <Image source={{ uri: displayUri }} style={{ width: size, height: size }} resizeMode="cover" />
       </View>
       {hasStar && (
         <View

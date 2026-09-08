@@ -1,12 +1,16 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
+import { useConfirm } from '../context/ConfirmContext';
 import { spacing, radius, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
 import { RingProgress } from '../components/RingProgress';
+import { ShareCard, CARD_WIDTH, CARD_HEIGHT } from '../components/ShareCard';
 import { addDays, todayKey, formatDayLabel } from '../utils/date';
 
 function last7Ending(dateKey: string): string[] {
@@ -14,11 +18,14 @@ function last7Ending(dateKey: string): string[] {
 }
 
 export default function WeeklyRecapScreen({ navigation }: any) {
-  const { habits, isCompleted, getStreak } = useApp();
+  const { habits, isCompleted, getStreak, profile, currentDay } = useApp();
   const { colors, typography } = useTheme();
+  const { notify } = useConfirm();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
   const activeHabits = useMemo(() => habits.filter((h) => !h.archived), [habits]);
+  const cardRef = useRef<View>(null);
+  const [sharing, setSharing] = useState(false);
 
   const stats = useMemo(() => {
     const thisWeek = last7Ending(todayKey());
@@ -58,6 +65,40 @@ export default function WeeklyRecapScreen({ navigation }: any) {
     if (stats.delta < 0) return "Un peu moins que la semaine dernière, rien de grave, on relance.";
     return "Aussi régulier que la semaine dernière — la constance paie.";
   }, [activeHabits.length, stats]);
+
+  const handleShare = async () => {
+    if (!cardRef.current || sharing) return;
+    setSharing(true);
+    try {
+      if (Platform.OS === 'web') {
+        const dataUri = await captureRef(cardRef, { format: 'png', quality: 1, result: 'data-uri' });
+        const res = await fetch(dataUri);
+        const blob = await res.blob();
+        const file = new File([blob], 'defi99-recap.png', { type: 'image/png' });
+        const nav = navigator as any;
+        if (nav.canShare && nav.canShare({ files: [file] })) {
+          await nav.share({ files: [file], title: 'Défi 99' });
+        } else {
+          const link = document.createElement('a');
+          link.href = dataUri;
+          link.download = 'defi99-recap.png';
+          link.click();
+        }
+      } else {
+        const uri = await captureRef(cardRef, { format: 'png', quality: 1 });
+        const available = await Sharing.isAvailableAsync();
+        if (available) await Sharing.shareAsync(uri);
+      }
+    } catch (e: any) {
+      // A user cancelling the native share sheet also lands here — only
+      // surface a real error, not a routine cancellation.
+      if (e?.name !== 'AbortError') {
+        notify('Partage impossible', "Réessaie dans un instant.");
+      }
+    } finally {
+      setSharing(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -102,6 +143,26 @@ export default function WeeklyRecapScreen({ navigation }: any) {
             </View>
             <Text style={typography.caption}>Meilleure série</Text>
           </View>
+        </View>
+
+        <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Partager</Text>
+        <View style={styles.shareSection}>
+          <View style={styles.cardScaler}>
+            <ShareCard
+              ref={cardRef}
+              profile={profile}
+              currentDay={currentDay}
+              checkIns={stats.totalThisWeek}
+              perfectDays={stats.perfectDays}
+              bestStreak={stats.bestStreak}
+              colors={colors}
+              typography={typography}
+            />
+          </View>
+          <Pressable onPress={handleShare} disabled={sharing} style={[styles.shareBtn, sharing && { opacity: 0.6 }]}>
+            <Ionicons name="share-outline" size={18} color="#FFFFFF" />
+            <Text style={[typography.bodyBold, { color: '#FFFFFF' }]}>{sharing ? 'Un instant…' : 'Partager ma semaine'}</Text>
+          </Pressable>
         </View>
 
         {stats.totalLastWeek > 0 && (
@@ -161,6 +222,25 @@ function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     header: { flexDirection: 'row', alignItems: 'flex-start' },
+    shareSection: { alignItems: 'center', gap: spacing.md },
+    cardScaler: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.15,
+      shadowRadius: 20,
+      elevation: 6,
+    },
+    shareBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: colors.accent,
+      borderRadius: radius.pill,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.xl,
+      alignSelf: 'stretch',
+      justifyContent: 'center',
+    },
     closeBtn: {
       width: 36,
       height: 36,
