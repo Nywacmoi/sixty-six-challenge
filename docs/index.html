@@ -78,8 +78,10 @@
          screen expicitly passes accessibilityRole, so target every
          element instead of just [role="button"] — this is a touch-first
          app, not a keyboard-nav one, so it's safe to drop everywhere. */
-      #root *:focus {
-        outline: none;
+      #root *:focus,
+      #root *:focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
       }
       #root * {
         -webkit-tap-highlight-color: transparent;
@@ -94,6 +96,6 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script src="/sixty-six-challenge/_expo/static/js/web/index-6653b85be7d170fc1f1e7e545e3fb0c4.js" defer></script>
+  <script src="/sixty-six-challenge/_expo/static/js/web/index-0ba42b5f7c40362545acf4931ba6493e.js" defer></script>
 </body>
 </html>
