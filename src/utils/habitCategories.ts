@@ -25,7 +25,9 @@ export function isJawlineHabit(name: string, icon: string) {
 
 const MONEY_SAVING_ICONS = ['🚭', '🍷'];
 export function isMoneySavingHabit(name: string, icon: string) {
-  return MONEY_SAVING_ICONS.includes(icon) || /fumer|cigarette|tabac|clope|alcool|boire/i.test(name);
+  // "boire" alone would also match "Boire de l'eau" — only count it
+  // together with "alcool" so plain water-drinking habits aren't caught.
+  return MONEY_SAVING_ICONS.includes(icon) || /fumer|cigarette|tabac|clope|alcool/i.test(name);
 }
 
 const SCREEN_TIME_ICONS = ['📴', '👀'];
