@@ -72,7 +72,7 @@ export default function ProfileScreen() {
               face={profile.avatarFace}
               hasAura={currentDay >= 75}
               hasStar={currentDay >= 99}
-              size={84}
+              size={92}
             />
           </View>
           {editingName ? (
@@ -189,7 +189,7 @@ function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     profileCard: { alignItems: 'center', marginTop: spacing.xl, gap: 6 },
-    avatar: { width: 108, height: 118, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
+    avatar: { width: 132, height: 150, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
     nameInput: {
       ...typography.h1,
       borderBottomWidth: 1,
