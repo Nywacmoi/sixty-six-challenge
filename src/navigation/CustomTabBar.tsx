@@ -71,10 +71,6 @@ export function CustomTabBar({ state, navigation }: any) {
               <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface + '14' }]} />
             </>
           )}
-          {/* A sliver of extra-light border along just the top edge sells the
-              "light catching a glass edge" look — a single all-round border
-              color reads flat by comparison. */}
-          <View style={styles.glassEdge} />
         </View>
         {state.routes.map((route: any, index: number) => {
           const focused = state.index === index;
@@ -146,16 +142,6 @@ function createStyles(colors: ThemeColors) {
       overflow: 'hidden',
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
-    },
-    glassEdge: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: 1.5,
-      borderTopLeftRadius: 26,
-      borderTopRightRadius: 26,
-      backgroundColor: 'rgba(255,255,255,0.55)',
     },
     // react-native-web forwards unrecognised style keys straight to the DOM
     // node, so backdropFilter works here even though it's not a real RN
