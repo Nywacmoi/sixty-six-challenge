@@ -11,6 +11,8 @@ import {
   listFollowingIds,
   createGroup,
   joinGroupByCode,
+  joinGroupById,
+  listPublicGroups,
   subscribeToMyGroups,
   PublicProfile,
   SocialGroup,
@@ -38,8 +40,12 @@ type SocialContextValue = {
   refresh: () => Promise<void>;
   addFriend: (username: string) => Promise<void>;
   removeFriend: (uid: string) => Promise<void>;
-  makeGroup: (name: string, emoji: string) => Promise<SocialGroup>;
+  makeGroup: (name: string, emoji: string, isPublic: boolean) => Promise<SocialGroup>;
   joinGroup: (code: string) => Promise<SocialGroup | null>;
+  publicGroups: SocialGroup[];
+  discoveringGroups: boolean;
+  discoverPublicGroups: () => Promise<void>;
+  joinPublicGroup: (groupId: string) => Promise<SocialGroup | null>;
   hasUnread: (groupId: string) => boolean;
   hasAnyUnread: boolean;
   markGroupRead: (groupId: string) => void;
@@ -66,6 +72,8 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   const [username, setUsernameState] = useState<string | null>(null);
   const [following, setFollowing] = useState<PublicProfile[]>([]);
   const [groups, setGroups] = useState<SocialGroup[]>([]);
+  const [publicGroups, setPublicGroups] = useState<SocialGroup[]>([]);
+  const [discoveringGroups, setDiscoveringGroups] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [groupReads, setGroupReads] = useState<Record<string, number>>({});
   const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
@@ -264,11 +272,11 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   );
 
   const makeGroup = useCallback(
-    async (name: string, emoji: string) => {
+    async (name: string, emoji: string, isPublic: boolean) => {
       if (!uid) throw new Error('Pas encore connecté.');
       // No manual refresh needed — the realtime groups subscription above
       // picks this up as soon as Firestore confirms the write.
-      return createGroup(uid, name, emoji);
+      return createGroup(uid, name, emoji, isPublic);
     },
     [uid]
   );
@@ -277,6 +285,26 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     async (code: string) => {
       if (!uid) throw new Error('Pas encore connecté.');
       return joinGroupByCode(uid, code);
+    },
+    [uid]
+  );
+
+  const discoverPublicGroups = useCallback(async () => {
+    setDiscoveringGroups(true);
+    try {
+      const groups = await listPublicGroups();
+      setPublicGroups(groups);
+    } finally {
+      setDiscoveringGroups(false);
+    }
+  }, []);
+
+  const joinPublicGroup = useCallback(
+    async (groupId: string) => {
+      if (!uid) throw new Error('Pas encore connecté.');
+      const joined = await joinGroupById(uid, groupId);
+      setPublicGroups((prev) => prev.filter((g) => g.id !== groupId));
+      return joined;
     },
     [uid]
   );
@@ -317,6 +345,10 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     removeFriend,
     makeGroup,
     joinGroup,
+    publicGroups,
+    discoveringGroups,
+    discoverPublicGroups,
+    joinPublicGroup,
     hasUnread,
     hasAnyUnread,
     markGroupRead,

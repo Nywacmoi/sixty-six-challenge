@@ -213,21 +213,57 @@ function GroupCard({
 function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; typography: Typography; navigation: any }) {
   const styles = createStyles(colors, typography);
   const tabBarClearance = useTabBarClearance();
-  const { groups, makeGroup, joinGroup, refreshing, refresh, notificationsEnabled, notificationsSupported, setNotificationsEnabled } =
-    useSocial();
+  const {
+    groups,
+    makeGroup,
+    joinGroup,
+    refreshing,
+    refresh,
+    notificationsEnabled,
+    notificationsSupported,
+    setNotificationsEnabled,
+    publicGroups,
+    discoveringGroups,
+    discoverPublicGroups,
+    joinPublicGroup,
+  } = useSocial();
   const { notify } = useConfirm();
   const [nameDraft, setNameDraft] = useState('');
   const [emoji, setEmoji] = useState(GROUP_EMOJIS[0]);
+  const [isPublic, setIsPublic] = useState(false);
   const [codeDraft, setCodeDraft] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showDiscover, setShowDiscover] = useState(false);
 
   const create = async () => {
     if (!nameDraft.trim()) return;
     setBusy(true);
     try {
-      const group = await makeGroup(nameDraft.trim(), emoji);
+      const group = await makeGroup(nameDraft.trim(), emoji, isPublic);
       setNameDraft('');
-      notify('Groupe créé !', `Partage le code ${group.code} pour que d'autres te rejoignent.`);
+      notify(
+        'Groupe créé !',
+        isPublic
+          ? "Ton groupe est public — n'importe qui peut le trouver et le rejoindre. Le code marche aussi."
+          : `Partage le code ${group.code} pour que d'autres te rejoignent.`
+      );
+    } catch (e: any) {
+      notify('Impossible', e?.message ?? 'Réessaie dans un instant.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const toggleDiscover = () => {
+    const next = !showDiscover;
+    setShowDiscover(next);
+    if (next) discoverPublicGroups();
+  };
+
+  const joinDiscovered = async (groupId: string) => {
+    setBusy(true);
+    try {
+      await joinPublicGroup(groupId);
     } catch (e: any) {
       notify('Impossible', e?.message ?? 'Réessaie dans un instant.');
     } finally {
@@ -280,6 +316,25 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
                 </Pressable>
               ))}
             </View>
+            <View style={styles.visibilityRow}>
+              <Pressable
+                onPress={() => setIsPublic(false)}
+                style={[styles.visibilityChip, !isPublic && { borderColor: colors.accent, backgroundColor: colors.accent + '1A' }]}
+              >
+                <Ionicons name="lock-closed" size={14} color={!isPublic ? colors.accent : colors.textSecondary} />
+                <Text style={[typography.bodyBold, !isPublic && { color: colors.accent }]}>Privé</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setIsPublic(true)}
+                style={[styles.visibilityChip, isPublic && { borderColor: colors.accent, backgroundColor: colors.accent + '1A' }]}
+              >
+                <Ionicons name="earth" size={14} color={isPublic ? colors.accent : colors.textSecondary} />
+                <Text style={[typography.bodyBold, isPublic && { color: colors.accent }]}>Public</Text>
+              </Pressable>
+            </View>
+            <Text style={[typography.caption, { marginTop: spacing.xs }]}>
+              {isPublic ? "Visible dans \"Groupes publics\", tout le monde peut le rejoindre." : "Rejoignable uniquement avec le code."}
+            </Text>
           </View>
           <View style={styles.createCard}>
             <Text style={[typography.caption, { marginBottom: spacing.xs }]}>REJOINDRE AVEC UN CODE</Text>
@@ -298,6 +353,37 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
               </Pressable>
             </View>
           </View>
+
+          <View style={styles.createCard}>
+            <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }} onPress={toggleDiscover}>
+              <Ionicons name="earth" size={18} color={colors.accent} />
+              <Text style={[typography.bodyBold, { flex: 1 }]}>Groupes publics</Text>
+              <Ionicons name={showDiscover ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textTertiary} />
+            </Pressable>
+            {showDiscover && (
+              <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
+                {discoveringGroups && <ActivityIndicator color={colors.accent} />}
+                {!discoveringGroups && publicGroups.length === 0 && (
+                  <Text style={typography.caption}>Aucun groupe public pour l'instant — sois le premier à en créer un !</Text>
+                )}
+                {publicGroups.map((g) => (
+                  <View key={g.id} style={styles.discoverRow}>
+                    <Text style={{ fontSize: 20 }}>{g.emoji}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={typography.bodyBold}>{g.name}</Text>
+                      <Text style={typography.caption}>
+                        {g.memberIds.length} membre{g.memberIds.length > 1 ? 's' : ''}
+                      </Text>
+                    </View>
+                    <Pressable onPress={() => joinDiscovered(g.id)} disabled={busy} style={styles.joinBtn}>
+                      <Text style={[typography.bodyBold, { color: '#FFFFFF' }]}>Rejoindre</Text>
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
           {notificationsSupported && (
             <View style={styles.createCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
@@ -443,5 +529,24 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       marginTop: spacing.sm,
     },
     chatDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.danger },
+    visibilityRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    visibilityChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.pill,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    discoverRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    joinBtn: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.sm,
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.md,
+    },
   });
 }

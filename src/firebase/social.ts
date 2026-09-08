@@ -36,6 +36,7 @@ export type SocialGroup = {
   code: string;
   ownerId: string;
   memberIds: string[];
+  isPublic: boolean;
   lastMessageAt: number | null;
   lastMessageText: string | null;
   lastMessageSenderId: string | null;
@@ -57,6 +58,7 @@ function toGroup(id: string, data: any): SocialGroup {
     code: data.code,
     ownerId: data.ownerId,
     memberIds: data.memberIds,
+    isPublic: data.isPublic ?? false,
     lastMessageAt: data.lastMessageAt instanceof Timestamp ? data.lastMessageAt.toMillis() : null,
     lastMessageText: data.lastMessageText ?? null,
     lastMessageSenderId: data.lastMessageSenderId ?? null,
@@ -153,7 +155,7 @@ function generateGroupCode() {
   return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
-export async function createGroup(uid: string, name: string, emoji: string): Promise<SocialGroup> {
+export async function createGroup(uid: string, name: string, emoji: string, isPublic: boolean): Promise<SocialGroup> {
   const code = generateGroupCode();
   const ref = doc(collection(db, 'groups'));
   await setDoc(ref, {
@@ -162,6 +164,7 @@ export async function createGroup(uid: string, name: string, emoji: string): Pro
     code,
     ownerId: uid,
     memberIds: [uid],
+    isPublic,
     createdAt: serverTimestamp(),
     lastMessageAt: null,
     lastMessageText: null,
@@ -174,10 +177,26 @@ export async function createGroup(uid: string, name: string, emoji: string): Pro
     code,
     ownerId: uid,
     memberIds: [uid],
+    isPublic,
     lastMessageAt: null,
     lastMessageText: null,
     lastMessageSenderId: null,
   };
+}
+
+export async function joinGroupById(uid: string, groupId: string): Promise<SocialGroup | null> {
+  const ref = doc(db, 'groups', groupId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  await setDoc(ref, { memberIds: arrayUnion(uid) }, { merge: true });
+  const data = snap.data();
+  return toGroup(snap.id, { ...data, memberIds: [...data.memberIds, uid] });
+}
+
+export async function listPublicGroups(): Promise<SocialGroup[]> {
+  const q = query(collection(db, 'groups'), where('isPublic', '==', true), limit(30));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => toGroup(d.id, d.data()));
 }
 
 export async function joinGroupByCode(uid: string, code: string): Promise<SocialGroup | null> {
