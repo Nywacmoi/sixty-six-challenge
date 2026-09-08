@@ -8,11 +8,10 @@ import { AVATAR_ITEMS, AvatarSlot } from '../data/avatarItems';
 import { Profile } from '../types';
 
 const SLOT_KEYS: Partial<Record<AvatarSlot, keyof Profile>> = {
-  head: 'avatarHead',
-  face: 'avatarFace',
-  outfit: 'avatarOutfit',
-  legs: 'avatarLegs',
-  feet: 'avatarFeet',
+  hair: 'avatarHair',
+  accessory: 'avatarAccessory',
+  facialHair: 'avatarFacialHair',
+  expression: 'avatarExpression',
 };
 
 export function AvatarWardrobe() {

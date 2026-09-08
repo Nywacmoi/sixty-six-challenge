@@ -44,11 +44,11 @@ const PROFILE_DEFAULTS: Profile = {
   sportLevel: null,
   sportDaysPerWeek: null,
   lastCheckInDate: null,
-  avatarHead: null,
-  avatarFace: null,
-  avatarOutfit: null,
-  avatarLegs: null,
-  avatarFeet: null,
+  avatarSeed: null,
+  avatarHair: null,
+  avatarAccessory: null,
+  avatarFacialHair: null,
+  avatarExpression: null,
   foodPreference: null,
 };
 

@@ -47,11 +47,15 @@ export type Profile = {
   sportLevel: string | null;
   sportDaysPerWeek: number | null;
   lastCheckInDate: string | null;
-  avatarHead: string | null;
-  avatarFace: string | null;
-  avatarOutfit: string | null;
-  avatarLegs: string | null;
-  avatarFeet: string | null;
+  // DiceBear "open-peeps" options used to render the profile avatar — see
+  // src/components/AvatarDisplay.tsx. avatarSeed is generated once (first
+  // launch) and kept stable so the base look doesn't shuffle on every
+  // render; the other four are unlocked/equipped per AVATAR_ITEMS.
+  avatarSeed: string | null;
+  avatarHair: string | null;
+  avatarAccessory: string | null;
+  avatarFacialHair: string | null;
+  avatarExpression: string | null;
   foodPreference: 'omnivore' | 'vegetarien' | 'vegan' | null;
 };
 

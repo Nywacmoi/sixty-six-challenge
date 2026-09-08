@@ -70,11 +70,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     sportLevel: null,
     sportDaysPerWeek: null,
     lastCheckInDate: null,
-    avatarHead: null,
-    avatarFace: null,
-    avatarOutfit: null,
-    avatarLegs: null,
-    avatarFeet: null,
+    avatarSeed: null,
+    avatarHair: null,
+    avatarAccessory: null,
+    avatarFacialHair: null,
+    avatarExpression: null,
     foodPreference: null,
   });
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
@@ -91,9 +91,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         storage.getUnlockedAchievements(),
         storage.getMetrics(),
       ]);
+      // Generated once on first launch and kept stable — the avatar's base
+      // look (whatever the seed randomizes when no wardrobe item overrides
+      // it) shouldn't reshuffle every time the app reloads.
+      let resolvedProfile = p;
+      if (!p.avatarSeed) {
+        resolvedProfile = { ...p, avatarSeed: Math.random().toString(36).slice(2, 12) };
+        await storage.setProfile(resolvedProfile);
+      }
       setHabits(h);
       setCompletions(c);
-      setProfile(p);
+      setProfile(resolvedProfile);
       setUnlockedAchievements(a);
       setMetrics(m);
       setLoading(false);
