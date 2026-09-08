@@ -78,8 +78,10 @@
          screen expicitly passes accessibilityRole, so target every
          element instead of just [role="button"] — this is a touch-first
          app, not a keyboard-nav one, so it's safe to drop everywhere. */
-      #root *:focus {
-        outline: none;
+      #root *:focus,
+      #root *:focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
       }
       #root * {
         -webkit-tap-highlight-color: transparent;

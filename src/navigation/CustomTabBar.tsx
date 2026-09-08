@@ -89,7 +89,7 @@ export function CustomTabBar({ state, navigation }: any) {
           };
 
           return (
-            <Pressable key={route.key} onPress={onPress} style={styles.tab} hitSlop={8}>
+            <Pressable key={route.key} onPress={onPress} style={styles.tab} hitSlop={8} tabIndex={-1}>
               <View style={[styles.tabInner, focused && styles.tabInnerActive]}>
                 <View>
                   <Ionicons name={iconName as any} size={20} color={color} />
