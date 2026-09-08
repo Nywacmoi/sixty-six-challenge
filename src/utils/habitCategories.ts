@@ -44,3 +44,8 @@ const PODCAST_ICONS = ['🎧'];
 export function isPodcastHabit(name: string, icon: string) {
   return PODCAST_ICONS.includes(icon) || /podcast/i.test(name);
 }
+
+const SLEEP_ICONS = ['🛌', '🌙'];
+export function isSleepHabit(name: string, icon: string) {
+  return SLEEP_ICONS.includes(icon) || /sommeil|dormir|coucher|réveil|reveil|endorm/i.test(name);
+}

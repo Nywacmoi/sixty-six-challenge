@@ -34,6 +34,7 @@ import { PODCAST_CATEGORIES, BOOK_CATEGORIES } from '../data/discoveryCategories
 import { ResourceLinks } from '../components/ResourceLinks';
 import { RecommendationFinder } from '../components/RecommendationFinder';
 import { JAWLINE_SESSIONS } from '../data/jawlineProgram';
+import { SLEEP_TIPS } from '../data/sleepTips';
 import { MeasurementTracker } from '../components/MeasurementTracker';
 import { SavingsCounter } from '../components/SavingsCounter';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -47,6 +48,7 @@ import {
   isScreenTimeHabit,
   isLearningHabit,
   isPodcastHabit,
+  isSleepHabit,
 } from '../utils/habitCategories';
 
 function openSearch(query: string) {
@@ -519,6 +521,25 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                 ))}
               </View>
             )}
+          </>
+        )}
+
+        {isSleepHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Bien dormir</Text>
+            <View style={styles.splitCard}>
+              {SLEEP_TIPS.map((t) => (
+                <View key={t.name} style={styles.exerciseRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={typography.bodyBold}>{t.name}</Text>
+                    <Text style={[typography.small, { marginTop: 4 }]}>{t.tip}</Text>
+                  </View>
+                  <Pressable onPress={() => openSearch(`${t.name} pour bien dormir`)} hitSlop={8} style={styles.videoBtn}>
+                    <Ionicons name="logo-youtube" size={22} color={colors.danger} />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
           </>
         )}
 
