@@ -72,6 +72,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     lastCheckInDate: null,
     avatarHead: null,
     avatarFace: null,
+    avatarOutfit: null,
+    avatarLegs: null,
+    avatarFeet: null,
+    foodPreference: null,
   });
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
   const [newlyUnlocked, setNewlyUnlocked] = useState<NewlyUnlocked>(null);

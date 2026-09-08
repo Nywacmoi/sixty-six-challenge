@@ -70,6 +70,9 @@ export default function ProfileScreen() {
               color={profile.avatarColor}
               head={profile.avatarHead}
               face={profile.avatarFace}
+              outfit={profile.avatarOutfit}
+              legs={profile.avatarLegs}
+              feet={profile.avatarFeet}
               hasAura={currentDay >= 75}
               hasStar={currentDay >= 99}
               size={92}

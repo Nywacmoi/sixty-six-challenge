@@ -6,7 +6,13 @@ export type WorkoutSplit = {
   id: string;
   label: string;
   emoji: string;
-  exercises: Exercise[];
+  // Two alternate exercise sets for the same muscle group — a weekly
+  // schedule often trains the same split twice a week (e.g. pull on
+  // Tuesday and Friday), and showing the exact same list both times gets
+  // stale fast. Which one shows is picked deterministically per day (see
+  // dailyIndex in utils/date.ts), so it's stable within a day but differs
+  // from one occurrence to the next in a typical weekly split.
+  variants: [Exercise[], Exercise[]];
 };
 
 export type WeeklySchedule = {
@@ -21,124 +27,141 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
     id: 'push',
     label: 'Pectoraux / Épaules / Triceps',
     emoji: '💪',
-    exercises: [
-      { name: 'Développé couché', reps: '4x8-10', pattern: 'push', alt: 'Trop dur ? Développé incliné haltères, charge plus légère' },
-      { name: 'Développé militaire', reps: '3x10', pattern: 'push', alt: 'Trop dur ? Développé assis avec dossier' },
-      { name: 'Écarté haltères', reps: '3x12', pattern: 'raise' },
-      { name: 'Dips ou pompes lestées', reps: '3x max', pattern: 'push', alt: 'Trop dur ? Pompes classiques ou sur genoux' },
-      { name: 'Extension triceps à la poulie', reps: '3x12', pattern: 'push' },
-      { name: 'Pompes diamant', reps: '3x max', pattern: 'push', alt: 'Trop dur ? Pompes diamant sur genoux' },
+    variants: [
+      [
+        { name: 'Développé couché', reps: '4x8-10', pattern: 'push', alt: 'Trop dur ? Développé incliné haltères, charge plus légère' },
+        { name: 'Développé militaire', reps: '3x10', pattern: 'push', alt: 'Trop dur ? Développé assis avec dossier' },
+        { name: 'Écarté haltères', reps: '3x12', pattern: 'raise' },
+        { name: 'Dips ou pompes lestées', reps: '3x max', pattern: 'push', alt: 'Trop dur ? Pompes classiques ou sur genoux' },
+        { name: 'Extension triceps à la poulie', reps: '3x12', pattern: 'push' },
+      ],
+      [
+        { name: 'Développé incliné haltères', reps: '4x10', pattern: 'push', alt: 'Trop dur ? Développé incliné banc plus plat' },
+        { name: 'Écarté à la poulie', reps: '3x15', pattern: 'raise' },
+        { name: 'Pompes surélevées (pieds hauts)', reps: '3x max', pattern: 'push', alt: 'Trop dur ? Pompes classiques' },
+        { name: 'Développé Arnold', reps: '3x10', pattern: 'push' },
+        { name: 'Pompes diamant', reps: '3x max', pattern: 'push', alt: 'Trop dur ? Pompes diamant sur genoux' },
+      ],
     ],
   },
   {
     id: 'pull',
     label: 'Dos / Biceps',
     emoji: '🏋️',
-    exercises: [
-      { name: 'Tractions ou tirage vertical', reps: '4x8', pattern: 'pull', alt: 'Trop dur ? Tractions assistées (élastique) ou tirage vertical machine' },
-      { name: 'Rowing barre', reps: '4x10', pattern: 'pull' },
-      { name: 'Tirage horizontal', reps: '3x12', pattern: 'pull' },
-      { name: 'Curl biceps haltères', reps: '3x12', pattern: 'curl' },
-      { name: 'Face pull', reps: '3x15', pattern: 'pull' },
-      { name: 'Curl marteau', reps: '3x12', pattern: 'curl' },
+    variants: [
+      [
+        { name: 'Tractions ou tirage vertical', reps: '4x8', pattern: 'pull', alt: 'Trop dur ? Tractions assistées (élastique) ou tirage vertical machine' },
+        { name: 'Rowing barre', reps: '4x10', pattern: 'pull' },
+        { name: 'Tirage horizontal', reps: '3x12', pattern: 'pull' },
+        { name: 'Curl biceps haltères', reps: '3x12', pattern: 'curl' },
+        { name: 'Face pull', reps: '3x15', pattern: 'pull' },
+      ],
+      [
+        { name: 'Rowing unilatéral haltère', reps: '4x10 par bras', pattern: 'pull' },
+        { name: 'Tirage nuque', reps: '3x12', pattern: 'pull' },
+        { name: 'Tractions prise supination', reps: '3x max', pattern: 'pull', alt: 'Trop dur ? Tirage vertical prise serrée' },
+        { name: 'Curl marteau', reps: '3x12', pattern: 'curl' },
+        { name: 'Curl pupitre', reps: '3x12', pattern: 'curl' },
+      ],
     ],
   },
   {
     id: 'legs',
     label: 'Jambes',
     emoji: '🦵',
-    exercises: [
-      { name: 'Squat', reps: '4x8-10', pattern: 'squat', alt: 'Trop dur ? Squat au poids du corps ou goblet squat' },
-      { name: 'Presse à cuisses', reps: '3x12', pattern: 'squat' },
-      { name: 'Fentes marchées', reps: '3x12 par jambe', pattern: 'squat' },
-      { name: 'Soulevé de terre roumain', reps: '3x10', pattern: 'squat', alt: 'Trop dur ? Avec haltères légers, dos bien droit' },
-      { name: 'Leg curl', reps: '3x12', pattern: 'curl' },
-      { name: 'Mollets debout', reps: '4x15', pattern: 'raise' },
+    variants: [
+      [
+        { name: 'Squat', reps: '4x8-10', pattern: 'squat', alt: 'Trop dur ? Squat au poids du corps ou goblet squat' },
+        { name: 'Presse à cuisses', reps: '3x12', pattern: 'squat' },
+        { name: 'Fentes marchées', reps: '3x12 par jambe', pattern: 'squat' },
+        { name: 'Soulevé de terre roumain', reps: '3x10', pattern: 'squat', alt: 'Trop dur ? Avec haltères légers, dos bien droit' },
+        { name: 'Mollets debout', reps: '4x15', pattern: 'raise' },
+      ],
+      [
+        { name: 'Fentes bulgares', reps: '3x10 par jambe', pattern: 'squat', alt: 'Trop dur ? Fentes classiques sans surélévation' },
+        { name: 'Hip thrust', reps: '4x12', pattern: 'squat' },
+        { name: 'Squat sumo', reps: '3x10', pattern: 'squat' },
+        { name: 'Leg curl', reps: '3x12', pattern: 'curl' },
+        { name: 'Mollets assis', reps: '4x15', pattern: 'raise' },
+      ],
     ],
   },
   {
     id: 'shoulders',
     label: 'Épaules',
     emoji: '🎯',
-    exercises: [
-      { name: 'Développé militaire', reps: '4x8', pattern: 'push' },
-      { name: 'Élévations latérales', reps: '4x12', pattern: 'raise' },
-      { name: 'Élévations arrière', reps: '3x15', pattern: 'raise' },
-      { name: 'Shrugs haltères', reps: '3x12', pattern: 'raise' },
-      { name: 'Oiseau (rear delt fly)', reps: '3x15', pattern: 'raise' },
+    variants: [
+      [
+        { name: 'Développé militaire', reps: '4x8', pattern: 'push' },
+        { name: 'Élévations latérales', reps: '4x12', pattern: 'raise' },
+        { name: 'Élévations arrière', reps: '3x15', pattern: 'raise' },
+        { name: 'Shrugs haltères', reps: '3x12', pattern: 'raise' },
+      ],
+      [
+        { name: 'Développé Arnold', reps: '4x10', pattern: 'push' },
+        { name: 'Élévations frontales', reps: '3x12', pattern: 'raise' },
+        { name: 'Oiseau (rear delt fly)', reps: '3x15', pattern: 'raise' },
+        { name: 'Élévations latérales à la poulie', reps: '3x15', pattern: 'raise' },
+      ],
     ],
   },
   {
     id: 'abs',
     label: 'Abdos / Gainage',
     emoji: '🔥',
-    exercises: [
-      { name: 'Planche', reps: '3x45s', pattern: 'hold', alt: 'Trop dur ? Planche sur les genoux' },
-      { name: 'Crunchs', reps: '3x20', pattern: 'crunch' },
-      { name: 'Relevé de jambes', reps: '3x15', pattern: 'crunch', alt: 'Trop dur ? Genoux repliés au lieu de jambes tendues' },
-      { name: 'Gainage latéral', reps: '3x30s par côté', pattern: 'hold' },
-      { name: 'Russian twist', reps: '3x20', pattern: 'crunch' },
+    variants: [
+      [
+        { name: 'Planche', reps: '3x45s', pattern: 'hold', alt: 'Trop dur ? Planche sur les genoux' },
+        { name: 'Crunchs', reps: '3x20', pattern: 'crunch' },
+        { name: 'Relevé de jambes', reps: '3x15', pattern: 'crunch', alt: 'Trop dur ? Genoux repliés au lieu de jambes tendues' },
+        { name: 'Gainage latéral', reps: '3x30s par côté', pattern: 'hold' },
+      ],
+      [
+        { name: 'Mountain climbers', reps: '3x30s', pattern: 'crunch' },
+        { name: 'Russian twist', reps: '3x20', pattern: 'crunch' },
+        { name: 'Vélo (crunch croisé)', reps: '3x20', pattern: 'crunch' },
+        { name: 'Planche dynamique', reps: '3x20', pattern: 'hold', alt: 'Trop dur ? Planche statique classique' },
+      ],
     ],
   },
   {
     id: 'cardio',
     label: 'Cardio',
     emoji: '🏃',
-    exercises: [
-      { name: 'Course à intensité modérée', reps: '20-30 min', pattern: 'run' },
-      { name: 'HIIT (30s effort / 30s repos)', reps: '15 min', pattern: 'run', alt: 'Trop dur ? 20s effort / 40s repos' },
-      { name: 'Vélo ou rameur', reps: '25 min', pattern: 'run' },
-      { name: 'Corde à sauter', reps: '3x3 min', pattern: 'run' },
+    variants: [
+      [
+        { name: 'Course à intensité modérée', reps: '20-30 min', pattern: 'run' },
+        { name: 'HIIT (30s effort / 30s repos)', reps: '15 min', pattern: 'run', alt: 'Trop dur ? 20s effort / 40s repos' },
+      ],
+      [
+        { name: 'Vélo ou rameur', reps: '25 min', pattern: 'run' },
+        { name: 'Corde à sauter', reps: '3x3 min', pattern: 'run' },
+        { name: 'Burpees', reps: '3x10', pattern: 'run', alt: 'Trop dur ? Sans le saut final' },
+      ],
     ],
   },
   {
     id: 'fullbody',
     label: 'Full Body',
     emoji: '⚡',
-    exercises: [
-      { name: 'Squat', reps: '3x10', pattern: 'squat' },
-      { name: 'Développé couché ou pompes', reps: '3x10', pattern: 'push' },
-      { name: 'Rowing', reps: '3x10', pattern: 'pull' },
-      { name: 'Soulevé de terre', reps: '3x8', pattern: 'squat', alt: 'Trop dur ? Soulevé de terre jambes tendues, charge légère' },
-      { name: 'Gainage', reps: '3x30s', pattern: 'hold' },
+    variants: [
+      [
+        { name: 'Squat', reps: '3x10', pattern: 'squat' },
+        { name: 'Développé couché ou pompes', reps: '3x10', pattern: 'push' },
+        { name: 'Rowing', reps: '3x10', pattern: 'pull' },
+        { name: 'Soulevé de terre', reps: '3x8', pattern: 'squat', alt: 'Trop dur ? Soulevé de terre jambes tendues, charge légère' },
+        { name: 'Gainage', reps: '3x30s', pattern: 'hold' },
+      ],
+      [
+        { name: 'Kettlebell swing', reps: '3x15', pattern: 'squat' },
+        { name: 'Thrusters', reps: '3x10', pattern: 'squat' },
+        { name: 'Tractions ou tirage vertical', reps: '3x8', pattern: 'pull', alt: 'Trop dur ? Tirage vertical assisté' },
+        { name: 'Pompes', reps: '3x max', pattern: 'push', alt: 'Trop dur ? Pompes sur genoux' },
+        { name: 'Planche', reps: '3x30s', pattern: 'hold' },
+      ],
     ],
   },
 ];
-
-// A small rotating pool per split — one is added to the day's session as a
-// "bonus exercice du jour" (see dailyIndex in utils/date.ts) so the same
-// split doesn't feel like the exact same session every time it comes
-// around, without touching the core proven exercise list above.
-export const BONUS_EXERCISES: Record<string, Exercise[]> = {
-  push: [
-    { name: 'Écarté à la poulie', reps: '3x15', pattern: 'raise' },
-    { name: 'Pompes surélevées (pieds hauts)', reps: '3x max', pattern: 'push' },
-  ],
-  pull: [
-    { name: 'Tirage nuque', reps: '3x12', pattern: 'pull' },
-    { name: 'Rowing unilatéral haltère', reps: '3x10 par bras', pattern: 'pull' },
-  ],
-  legs: [
-    { name: 'Fentes bulgares', reps: '3x10 par jambe', pattern: 'squat' },
-    { name: 'Hip thrust', reps: '3x12', pattern: 'squat' },
-  ],
-  shoulders: [
-    { name: 'Élévations frontales', reps: '3x12', pattern: 'raise' },
-    { name: 'Arnold press', reps: '3x10', pattern: 'push' },
-  ],
-  abs: [
-    { name: 'Mountain climbers', reps: '3x30s', pattern: 'crunch' },
-    { name: 'Vélo (crunch croisé)', reps: '3x20', pattern: 'crunch' },
-  ],
-  cardio: [
-    { name: 'Burpees', reps: '3x10', pattern: 'run' },
-    { name: 'Jumping jacks', reps: '3x1 min', pattern: 'run' },
-  ],
-  fullbody: [
-    { name: 'Kettlebell swing', reps: '3x15', pattern: 'squat' },
-    { name: 'Thrusters', reps: '3x10', pattern: 'squat' },
-  ],
-};
 
 // A structured weekly split, not just a flat exercise list — pick a level
 // and it tells you which split to train each day of the week.

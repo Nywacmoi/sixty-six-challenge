@@ -49,6 +49,10 @@ export type Profile = {
   lastCheckInDate: string | null;
   avatarHead: string | null;
   avatarFace: string | null;
+  avatarOutfit: string | null;
+  avatarLegs: string | null;
+  avatarFeet: string | null;
+  foodPreference: 'omnivore' | 'vegetarien' | 'vegan' | null;
 };
 
 export type MetricEntry = {

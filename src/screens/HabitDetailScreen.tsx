@@ -22,9 +22,9 @@ import {
   SPORT_LEVELS,
   SportGoal,
   SportLevel,
-  BONUS_EXERCISES,
 } from '../data/workoutSplits';
 import { DAILY_NUTRITION_TIPS } from '../data/dailyNutritionTips';
+import { DIET_OPTIONS } from '../data/mealIdeas';
 import { MEDITATION_SESSIONS } from '../data/meditationSessions';
 import { MEAL_IDEAS } from '../data/mealIdeas';
 import { READING_GOALS } from '../data/readingGoals';
@@ -152,9 +152,9 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   };
 
   const activeSplit = WORKOUT_SPLITS.find((s) => s.id === selectedSession);
-  const bonusPool = activeSplit ? BONUS_EXERCISES[activeSplit.id] : undefined;
-  const bonusExercise = bonusPool ? bonusPool[dailyIndex(bonusPool.length, activeSplit!.id)] : undefined;
+  const splitExercises = activeSplit ? activeSplit.variants[dailyIndex(2, activeSplit.id)] : undefined;
   const nutritionTip = DAILY_NUTRITION_TIPS[dailyIndex(DAILY_NUTRITION_TIPS.length, habitId)];
+  const diet = profile.foodPreference ?? 'omnivore';
   const activeMeditation = MEDITATION_SESSIONS.find((s) => s.id === selectedSession);
   const activeMeal = MEAL_IDEAS.find((s) => s.id === selectedSession);
   const activeReading = READING_GOALS.find((s) => s.id === selectedSession);
@@ -458,9 +458,14 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                 );
               })}
             </ScrollView>
-            {activeSplit && (
+            {activeSplit && splitExercises && (
               <View style={styles.splitCard}>
-                {activeSplit.exercises.map((ex) => (
+                <View style={[styles.exerciseRow, { paddingVertical: 0, marginBottom: 4 }]}>
+                  <View style={styles.bonusBadge}>
+                    <Text style={[typography.small, { color: colors.accent }]}>SÉANCE DU JOUR</Text>
+                  </View>
+                </View>
+                {splitExercises.map((ex) => (
                   <View key={ex.name} style={styles.exerciseRow}>
                     <ExerciseAnimation pattern={ex.pattern} size={44} />
                     <View style={{ flex: 1 }}>
@@ -473,23 +478,6 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     </Pressable>
                   </View>
                 ))}
-                {bonusExercise && (
-                  <View style={styles.exerciseRow}>
-                    <ExerciseAnimation pattern={bonusExercise.pattern} size={44} />
-                    <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={typography.bodyBold}>{bonusExercise.name}</Text>
-                        <View style={styles.bonusBadge}>
-                          <Text style={[typography.small, { color: colors.accent }]}>DU JOUR</Text>
-                        </View>
-                      </View>
-                      <Text style={typography.caption}>{bonusExercise.reps}</Text>
-                    </View>
-                    <Pressable onPress={() => openSearch(`${bonusExercise.name} technique musculation`)} hitSlop={8} style={styles.videoBtn}>
-                      <Ionicons name="logo-youtube" size={22} color={colors.danger} />
-                    </Pressable>
-                  </View>
-                )}
               </View>
             )}
           </>
@@ -544,7 +532,24 @@ export default function HabitDetailScreen({ route, navigation }: any) {
               </View>
             </View>
 
-            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Idées repas du jour</Text>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Tes préférences</Text>
+            <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
+              {DIET_OPTIONS.map((opt) => {
+                const active = diet === opt.id;
+                return (
+                  <Pressable
+                    key={opt.id}
+                    onPress={() => updateProfile({ foodPreference: opt.id })}
+                    style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                  >
+                    <Text style={{ fontSize: 16 }}>{opt.emoji}</Text>
+                    <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{opt.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Text style={[typography.h2, { marginBottom: spacing.md }]}>Idées repas du jour</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
               {MEAL_IDEAS.map((meal) => {
                 const active = selectedSession === meal.id;
@@ -560,19 +565,22 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                 );
               })}
             </ScrollView>
-            {activeMeal && (
-              <View style={styles.splitCard}>
-                {activeMeal.ideas.map((idea) => (
-                  <View key={idea} style={styles.exerciseRow}>
+            {activeMeal && (() => {
+              const options = activeMeal.ideas.filter((i) => i.diet.includes(diet));
+              const pool = options.length > 0 ? options : activeMeal.ideas;
+              const idea = pool[dailyIndex(pool.length, `${activeMeal.id}:${diet}`)];
+              return (
+                <View style={styles.splitCard}>
+                  <View style={styles.exerciseRow}>
                     <Ionicons name="restaurant-outline" size={16} color={colors.textSecondary} />
-                    <Text style={[typography.body, { flex: 1 }]}>{idea}</Text>
-                    <Pressable onPress={() => openSearch(`${idea} recette facile`)} hitSlop={8} style={styles.videoBtn}>
+                    <Text style={[typography.body, { flex: 1 }]}>{idea.text}</Text>
+                    <Pressable onPress={() => openSearch(`${idea.text} recette facile`)} hitSlop={8} style={styles.videoBtn}>
                       <Ionicons name="logo-youtube" size={22} color={colors.danger} />
                     </Pressable>
                   </View>
-                ))}
-              </View>
-            )}
+                </View>
+              );
+            })()}
           </>
         )}
 

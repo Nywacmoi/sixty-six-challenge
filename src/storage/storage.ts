@@ -10,6 +10,7 @@ const KEYS = {
   metrics: '66c:metrics',
   groupReads: '66c:groupReads',
   groupNotificationsEnabled: '66c:groupNotifs',
+  dmReads: '66c:dmReads',
 };
 
 async function readJson<T>(key: string, fallback: T): Promise<T> {
@@ -45,6 +46,10 @@ const PROFILE_DEFAULTS: Profile = {
   lastCheckInDate: null,
   avatarHead: null,
   avatarFace: null,
+  avatarOutfit: null,
+  avatarLegs: null,
+  avatarFeet: null,
+  foodPreference: null,
 };
 
 export const storage = {
@@ -77,6 +82,9 @@ export const storage = {
 
   getGroupNotificationsEnabled: () => readJson<boolean>(KEYS.groupNotificationsEnabled, false),
   setGroupNotificationsEnabled: (v: boolean) => writeJson(KEYS.groupNotificationsEnabled, v),
+
+  getDmReads: () => readJson<Record<string, number>>(KEYS.dmReads, {}),
+  setDmReads: (v: Record<string, number>) => writeJson(KEYS.dmReads, v),
 
   exportAll: async (): Promise<string> => {
     const [habits, completions, profile, unlockedAchievements, metrics, themeMode] = await Promise.all([

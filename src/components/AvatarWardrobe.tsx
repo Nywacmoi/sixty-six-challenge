@@ -4,7 +4,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
-import { AVATAR_ITEMS } from '../data/avatarItems';
+import { AVATAR_ITEMS, AvatarSlot } from '../data/avatarItems';
+import { Profile } from '../types';
+
+const SLOT_KEYS: Partial<Record<AvatarSlot, keyof Profile>> = {
+  head: 'avatarHead',
+  face: 'avatarFace',
+  outfit: 'avatarOutfit',
+  legs: 'avatarLegs',
+  feet: 'avatarFeet',
+};
 
 export function AvatarWardrobe() {
   const { profile, currentDay, updateProfile } = useApp();
@@ -12,9 +21,9 @@ export function AvatarWardrobe() {
   const styles = createStyles(colors, typography);
 
   const toggle = (item: (typeof AVATAR_ITEMS)[number]) => {
-    if (item.slot === 'special') return;
-    const key = item.slot === 'head' ? 'avatarHead' : 'avatarFace';
-    const current = item.slot === 'head' ? profile.avatarHead : profile.avatarFace;
+    const key = SLOT_KEYS[item.slot];
+    if (!key) return;
+    const current = profile[key];
     updateProfile({ [key]: current === item.id ? null : item.id } as any);
   };
 
@@ -22,9 +31,9 @@ export function AvatarWardrobe() {
     <View style={styles.grid}>
       {AVATAR_ITEMS.map((item) => {
         const unlocked = currentDay >= item.unlockDay;
-        const equipped =
-          item.slot === 'head' ? profile.avatarHead === item.id : item.slot === 'face' ? profile.avatarFace === item.id : unlocked;
-        const canEquip = item.slot !== 'special';
+        const key = SLOT_KEYS[item.slot];
+        const canEquip = !!key;
+        const equipped = canEquip ? profile[key!] === item.id : unlocked;
 
         return (
           <Pressable
