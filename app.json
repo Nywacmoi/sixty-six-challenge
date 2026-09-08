@@ -2,6 +2,7 @@
   "expo": {
     "name": "Défi 99",
     "slug": "sixty-six-challenge",
+    "owner": "nywa",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,6 +10,8 @@
     "backgroundColor": "#FFFFFF",
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.nywacmoi.defi99",
+      "buildNumber": "1",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Utilisé pour ajouter des photos de progression à tes check-ins quotidiens."
       }
@@ -22,7 +25,8 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "READ_EXTERNAL_STORAGE"
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -39,6 +43,11 @@
         }
       ],
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "efc3bf64-a741-48f4-bb18-88dd25c91aaf"
+      }
+    }
   }
 }
