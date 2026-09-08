@@ -10,6 +10,7 @@ import { addDays, todayKey, formatDayLabel } from '../utils/date';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
+import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 import { Toast } from '../components/Toast';
 import { ExerciseAnimation } from '../components/ExerciseAnimation';
 import { BreathingAnimation } from '../components/BreathingAnimation';
@@ -195,6 +196,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                 onChangeText={setNameDraft}
                 onSubmitEditing={saveName}
                 onBlur={saveName}
+                onFocus={scrollFocusedIntoView}
                 autoFocus
                 selectTextOnFocus
                 style={styles.nameInput}
@@ -256,6 +258,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                   <TextInput
                     value={heightDraft}
                     onChangeText={setHeightDraft}
+                    onFocus={scrollFocusedIntoView}
                     keyboardType="decimal-pad"
                     placeholder="175"
                     placeholderTextColor={colors.textTertiary}
@@ -267,6 +270,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                   <TextInput
                     value={goalWeightDraft}
                     onChangeText={setGoalWeightDraft}
+                    onFocus={scrollFocusedIntoView}
                     keyboardType="decimal-pad"
                     placeholder="70"
                     placeholderTextColor={colors.textTertiary}

@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { fonts, radius, spacing, TOTAL_DAYS, ThemeColors, Typography } from '../theme/theme';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
+import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { ProgressBar } from '../components/ProgressBar';
 import { BackupSettings } from '../components/BackupSettings';
@@ -71,6 +72,7 @@ export default function ProfileScreen() {
               onChangeText={setNameDraft}
               onSubmitEditing={saveName}
               onBlur={saveName}
+              onFocus={scrollFocusedIntoView}
               autoFocus
               style={styles.nameInput}
             />

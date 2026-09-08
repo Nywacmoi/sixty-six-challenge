@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { Habit } from '../types';
 import { PrimaryButton } from './PrimaryButton';
+import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 
 function formatMinutes(totalMinutes: number) {
   const hours = Math.floor(totalMinutes / 60);
@@ -51,6 +52,7 @@ export function SavingsCounter({
           <TextInput
             value={draft}
             onChangeText={setDraft}
+            onFocus={scrollFocusedIntoView}
             placeholder={unit === 'euros' ? 'ex. 8' : 'ex. 45'}
             placeholderTextColor={colors.textTertiary}
             keyboardType="decimal-pad"

@@ -1,28 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, TextInput, Platform } from 'react-native';
+import { View, Text, Pressable, StyleSheet, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useSocial } from '../context/SocialContext';
 import { useConfirm } from '../context/ConfirmContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { TRIAL_DAYS } from '../firebase/account';
+import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 
 type Mode = 'signup' | 'login';
-
-// On web, a custom-height app shell (see index.ts's --app-height, sized to
-// visualViewport to avoid a stale-toolbar gap) can end up out of sync with
-// the browser's own "scroll the focused input into view" behavior once the
-// keyboard opens mid-page — the input lands pinned near the top with a
-// large dead gap below it instead of being centered above the keyboard.
-// Forcing the scroll ourselves after the keyboard has had time to animate
-// in sidesteps that mismatch.
-function scrollFocusedIntoView() {
-  if (Platform.OS !== 'web') return;
-  setTimeout(() => {
-    const el = document.activeElement as HTMLElement | null;
-    el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-  }, 300);
-}
 
 export function AccountSettings() {
   const { colors, typography } = useTheme();

@@ -10,6 +10,7 @@ import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { SocialGroup, getProfile, PublicProfile } from '../firebase/social';
+import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 
 const GROUP_EMOJIS = ['🔥', '💪', '🧘', '📚', '🏃', '🎯'];
 
@@ -53,6 +54,7 @@ function UsernameSetup({ colors, typography }: { colors: ThemeColors; typography
       <TextInput
         value={draft}
         onChangeText={setDraft}
+        onFocus={scrollFocusedIntoView}
         placeholder="ex. Theo99"
         placeholderTextColor={colors.textTertiary}
         style={styles.input}
@@ -97,6 +99,7 @@ function FriendsTab({ colors, typography }: { colors: ThemeColors; typography: T
           <TextInput
             value={draft}
             onChangeText={setDraft}
+            onFocus={scrollFocusedIntoView}
             placeholder="Pseudo d'un ami"
             placeholderTextColor={colors.textTertiary}
             style={[styles.input, { flex: 1 }]}
@@ -261,6 +264,7 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
               <TextInput
                 value={nameDraft}
                 onChangeText={setNameDraft}
+                onFocus={scrollFocusedIntoView}
                 placeholder="Nom du groupe"
                 placeholderTextColor={colors.textTertiary}
                 style={[styles.input, { flex: 1 }]}
@@ -283,6 +287,7 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
               <TextInput
                 value={codeDraft}
                 onChangeText={setCodeDraft}
+                onFocus={scrollFocusedIntoView}
                 placeholder="Ex. AB12CD"
                 placeholderTextColor={colors.textTertiary}
                 style={[styles.input, { flex: 1 }]}

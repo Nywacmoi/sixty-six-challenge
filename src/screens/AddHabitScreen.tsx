@@ -11,6 +11,7 @@ import { ROUTINE_TEMPLATES } from '../data/templates';
 import { COMMON_HABITS } from '../data/commonHabits';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
+import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 
 const EMOJIS = [
   '🔥', '💪', '🏃', '🏋️', '🚴', '🧘', '🚶', '🥗', '💧', '🍎',
@@ -169,6 +170,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
               <TextInput
                 value={name}
                 onChangeText={setName}
+                onFocus={scrollFocusedIntoView}
                 placeholder="ex. Course matinale"
                 placeholderTextColor={colors.textTertiary}
                 style={styles.input}

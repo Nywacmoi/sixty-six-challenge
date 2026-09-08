@@ -9,6 +9,8 @@ import { todayKey } from '../utils/date';
 import { COMMON_HABITS } from '../data/commonHabits';
 import { PrimaryButton } from './PrimaryButton';
 
+const GREETINGS = ['Salut {name} 👋', 'Hey {name} !', 'Bonjour {name} ☀️', '{name}, prêt(e) pour aujourd\'hui ?'];
+
 const MOODS = [
   { emoji: '😴', label: 'Fatigué' },
   { emoji: '😐', label: 'Moyen' },
@@ -16,9 +18,32 @@ const MOODS = [
   { emoji: '🔥', label: 'En feu' },
 ];
 
+const MOOD_REACTIONS: Record<string, string> = {
+  Fatigué: "Pas de souci, on y va doucement — un petit pas suffit à garder la série 💪",
+  Moyen: 'Ça arrive à tout le monde, une habitude cochée et ça ira déjà mieux 🙂',
+  Bien: 'Top, autant en profiter aujourd\'hui 🙌',
+  'En feu': "J'adore cette énergie 🔥 Direction le prochain jour du défi.",
+};
+
+const SLEEPS = [
+  { emoji: '😩', label: 'Mal dormi' },
+  { emoji: '😐', label: 'Sommeil moyen' },
+  { emoji: '😌', label: 'Bien dormi' },
+  { emoji: '🌟', label: 'Nuit parfaite' },
+];
+
+const SLEEP_REACTIONS: Record<string, string> = {
+  'Mal dormi': 'Pense à toi ce soir — une bonne nuit, ça change tout 🌙',
+  'Sommeil moyen': 'Correct, on fait avec !',
+  'Bien dormi': 'Parfait pour attaquer la journée 💪',
+  'Nuit parfaite': 'Un vrai carburant pour aujourd\'hui 🌟',
+};
+
 // A few common habits not already on the list — offered as "want to add one
 // today?" rather than the full catalogue, to keep this quick.
 const SUGGESTION_COUNT = 4;
+
+type Step = 'mood' | 'moodReaction' | 'sleep' | 'sleepReaction' | 'routine';
 
 // Reveals `text` a few characters at a time — the "AI is typing" feel from
 // the reference, reinterpreted with this app's own colors instead of a
@@ -39,12 +64,13 @@ function useTypewriter(text: string, speed = 18) {
 }
 
 export function MorningCheckIn() {
-  const { profile, habits, addHabitsBulk, updateProfile } = useApp();
+  const { profile, habits, currentDay, addHabitsBulk, updateProfile } = useApp();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
-  const [step, setStep] = useState<'mood' | 'routine'>('mood');
+  const [step, setStep] = useState<Step>('mood');
   const [mood, setMood] = useState<string | null>(null);
+  const [sleep, setSleep] = useState<string | null>(null);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const fadeIn = useRef(new Animated.Value(0)).current;
 
@@ -56,9 +82,19 @@ export function MorningCheckIn() {
   const existingNames = new Set(habits.map((h) => h.name.trim().toLowerCase()));
   const suggestions = COMMON_HABITS.filter((h) => !existingNames.has(h.name.trim().toLowerCase())).slice(0, SUGGESTION_COUNT);
 
-  const greeting = useTypewriter(`Salut ${firstName} 👋`);
+  const greetingTemplate = GREETINGS[Math.max(0, currentDay) % GREETINGS.length];
+  const greeting = useTypewriter(greetingTemplate.replace('{name}', firstName));
+
   const question =
-    step === 'mood' ? 'Comment tu te sens aujourd\'hui ?' : 'Une routine à ajouter à ton défi aujourd\'hui ?';
+    step === 'mood'
+      ? "Comment tu te sens aujourd'hui ?"
+      : step === 'moodReaction'
+        ? MOOD_REACTIONS[mood ?? ''] ?? ''
+        : step === 'sleep'
+          ? 'Et cette nuit, tu as bien dormi ?'
+          : step === 'sleepReaction'
+            ? SLEEP_REACTIONS[sleep ?? ''] ?? ''
+            : `Jour ${currentDay} sur 99 — une routine à ajouter aujourd'hui ?`;
   const revealedQuestion = useTypewriter(question);
 
   const finish = async () => {
@@ -67,7 +103,14 @@ export function MorningCheckIn() {
 
   const pickMood = (label: string) => {
     setMood(label);
-    setTimeout(() => setStep('routine'), 350);
+    setStep('moodReaction');
+    setTimeout(() => setStep('sleep'), 1500);
+  };
+
+  const pickSleep = (label: string) => {
+    setSleep(label);
+    setStep('sleepReaction');
+    setTimeout(() => setStep('routine'), 1500);
   };
 
   const toggle = (name: string) => {
@@ -94,13 +137,20 @@ export function MorningCheckIn() {
         {step === 'mood' && (
           <View style={styles.moodRow}>
             {MOODS.map((m) => (
-              <Pressable
-                key={m.label}
-                onPress={() => pickMood(m.label)}
-                style={[styles.moodChip, mood === m.label && { borderColor: colors.accent, backgroundColor: colors.accent + '1A' }]}
-              >
+              <Pressable key={m.label} onPress={() => pickMood(m.label)} style={styles.moodChip}>
                 <Text style={styles.moodEmoji}>{m.emoji}</Text>
-                <Text style={[typography.caption, mood === m.label && { color: colors.accent }]}>{m.label}</Text>
+                <Text style={typography.caption}>{m.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        {step === 'sleep' && (
+          <View style={styles.moodRow}>
+            {SLEEPS.map((s) => (
+              <Pressable key={s.label} onPress={() => pickSleep(s.label)} style={styles.moodChip}>
+                <Text style={styles.moodEmoji}>{s.emoji}</Text>
+                <Text style={typography.caption}>{s.label}</Text>
               </Pressable>
             ))}
           </View>

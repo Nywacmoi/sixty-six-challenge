@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { MetricEntry } from '../types';
+import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 
 function Sparkline({ history, color, textColor }: { history: MetricEntry[]; color: string; textColor: string }) {
   const width = 240;
@@ -129,6 +130,7 @@ export function MeasurementTracker({
           <TextInput
             value={draft}
             onChangeText={setDraft}
+            onFocus={scrollFocusedIntoView}
             keyboardType="decimal-pad"
             placeholder={`ex. 72.5`}
             placeholderTextColor={colors.textTertiary}
