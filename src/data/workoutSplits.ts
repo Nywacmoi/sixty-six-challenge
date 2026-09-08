@@ -105,6 +105,41 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
   },
 ];
 
+// A small rotating pool per split — one is added to the day's session as a
+// "bonus exercice du jour" (see dailyIndex in utils/date.ts) so the same
+// split doesn't feel like the exact same session every time it comes
+// around, without touching the core proven exercise list above.
+export const BONUS_EXERCISES: Record<string, Exercise[]> = {
+  push: [
+    { name: 'Écarté à la poulie', reps: '3x15', pattern: 'raise' },
+    { name: 'Pompes surélevées (pieds hauts)', reps: '3x max', pattern: 'push' },
+  ],
+  pull: [
+    { name: 'Tirage nuque', reps: '3x12', pattern: 'pull' },
+    { name: 'Rowing unilatéral haltère', reps: '3x10 par bras', pattern: 'pull' },
+  ],
+  legs: [
+    { name: 'Fentes bulgares', reps: '3x10 par jambe', pattern: 'squat' },
+    { name: 'Hip thrust', reps: '3x12', pattern: 'squat' },
+  ],
+  shoulders: [
+    { name: 'Élévations frontales', reps: '3x12', pattern: 'raise' },
+    { name: 'Arnold press', reps: '3x10', pattern: 'push' },
+  ],
+  abs: [
+    { name: 'Mountain climbers', reps: '3x30s', pattern: 'crunch' },
+    { name: 'Vélo (crunch croisé)', reps: '3x20', pattern: 'crunch' },
+  ],
+  cardio: [
+    { name: 'Burpees', reps: '3x10', pattern: 'run' },
+    { name: 'Jumping jacks', reps: '3x1 min', pattern: 'run' },
+  ],
+  fullbody: [
+    { name: 'Kettlebell swing', reps: '3x15', pattern: 'squat' },
+    { name: 'Thrusters', reps: '3x10', pattern: 'squat' },
+  ],
+};
+
 // A structured weekly split, not just a flat exercise list — pick a level
 // and it tells you which split to train each day of the week.
 export const WEEKLY_SCHEDULES: WeeklySchedule[] = [

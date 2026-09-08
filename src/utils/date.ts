@@ -29,3 +29,16 @@ export function formatDayLabel(dateKey: string): string {
   const date = new Date(y, m - 1, d);
   return date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
 }
+
+// A stable index into `length` items that changes once a day (same value
+// all day if reloaded, different value tomorrow) — used to rotate daily
+// suggestions (a bonus exercise, a nutrition tip) without any stored state.
+export function dailyIndex(length: number, salt = ''): number {
+  if (length <= 0) return 0;
+  const key = todayKey() + salt;
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 31 + key.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash) % length;
+}

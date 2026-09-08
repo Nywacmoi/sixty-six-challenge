@@ -6,7 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, TOTAL_DAYS, ThemeColors, Typography } from '../theme/theme';
-import { addDays, todayKey, formatDayLabel } from '../utils/date';
+import { addDays, todayKey, formatDayLabel, dailyIndex } from '../utils/date';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
@@ -14,7 +14,17 @@ import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 import { Toast } from '../components/Toast';
 import { ExerciseAnimation } from '../components/ExerciseAnimation';
 import { BreathingAnimation } from '../components/BreathingAnimation';
-import { WORKOUT_SPLITS, WEEKLY_SCHEDULES, buildPersonalSchedule, SPORT_GOALS, SPORT_LEVELS, SportGoal, SportLevel } from '../data/workoutSplits';
+import {
+  WORKOUT_SPLITS,
+  WEEKLY_SCHEDULES,
+  buildPersonalSchedule,
+  SPORT_GOALS,
+  SPORT_LEVELS,
+  SportGoal,
+  SportLevel,
+  BONUS_EXERCISES,
+} from '../data/workoutSplits';
+import { DAILY_NUTRITION_TIPS } from '../data/dailyNutritionTips';
 import { MEDITATION_SESSIONS } from '../data/meditationSessions';
 import { MEAL_IDEAS } from '../data/mealIdeas';
 import { READING_GOALS } from '../data/readingGoals';
@@ -142,6 +152,9 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   };
 
   const activeSplit = WORKOUT_SPLITS.find((s) => s.id === selectedSession);
+  const bonusPool = activeSplit ? BONUS_EXERCISES[activeSplit.id] : undefined;
+  const bonusExercise = bonusPool ? bonusPool[dailyIndex(bonusPool.length, activeSplit!.id)] : undefined;
+  const nutritionTip = DAILY_NUTRITION_TIPS[dailyIndex(DAILY_NUTRITION_TIPS.length, habitId)];
   const activeMeditation = MEDITATION_SESSIONS.find((s) => s.id === selectedSession);
   const activeMeal = MEAL_IDEAS.find((s) => s.id === selectedSession);
   const activeReading = READING_GOALS.find((s) => s.id === selectedSession);
@@ -460,6 +473,23 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     </Pressable>
                   </View>
                 ))}
+                {bonusExercise && (
+                  <View style={styles.exerciseRow}>
+                    <ExerciseAnimation pattern={bonusExercise.pattern} size={44} />
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={typography.bodyBold}>{bonusExercise.name}</Text>
+                        <View style={styles.bonusBadge}>
+                          <Text style={[typography.small, { color: colors.accent }]}>DU JOUR</Text>
+                        </View>
+                      </View>
+                      <Text style={typography.caption}>{bonusExercise.reps}</Text>
+                    </View>
+                    <Pressable onPress={() => openSearch(`${bonusExercise.name} technique musculation`)} hitSlop={8} style={styles.videoBtn}>
+                      <Ionicons name="logo-youtube" size={22} color={colors.danger} />
+                    </Pressable>
+                  </View>
+                )}
               </View>
             )}
           </>
@@ -506,6 +536,14 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
         {isNutritionHabit(habit.name, habit.icon) && (
           <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Suggestion du jour</Text>
+            <View style={styles.splitCard}>
+              <View style={styles.exerciseRow}>
+                <Ionicons name="nutrition-outline" size={20} color={colors.accent} />
+                <Text style={[typography.body, { flex: 1 }]}>{nutritionTip}</Text>
+              </View>
+            </View>
+
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Idées repas du jour</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
               {MEAL_IDEAS.map((meal) => {
@@ -765,6 +803,12 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       padding: spacing.xs,
     },
     videoBtn: { padding: spacing.xs },
+    bonusBadge: {
+      backgroundColor: colors.accent + '1A',
+      borderRadius: radius.sm,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+    },
     goalsCard: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,
