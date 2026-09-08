@@ -8,12 +8,12 @@ import { useSocial } from '../context/SocialContext';
 import { fonts, ThemeColors } from '../theme/theme';
 import { useKeyboardVisible } from '../hooks/useKeyboardVisible';
 
-// wrap paddingTop(6) + pill paddingVertical(10*2) + tab item content
-// (icon 22 + gap 3 + label ~10, with its own 6*2 padding) ≈ the part of the
+// wrap paddingTop(6) + pill height(54), plus a little slack for the active
+// tab's capsule poking up above the pill's own top edge ≈ the part of the
 // bar's height that isn't the safe-area bottom inset. Screens with a
 // fixed-at-bottom control (e.g. the chat input) need this to avoid sitting
 // underneath the bar, since on web it's position:fixed and out of flow.
-export const TAB_BAR_BASE_HEIGHT = 78;
+export const TAB_BAR_BASE_HEIGHT = 76;
 
 const ICONS: Record<string, string> = {
   Today: 'today',
@@ -55,18 +55,23 @@ export function CustomTabBar({ state, navigation }: any) {
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { paddingBottom: bottomPadding }]}>
       <View style={styles.pill}>
-        {Platform.OS === 'web' ? (
-          <View style={styles.webGlass} />
-        ) : (
-          <>
-            <BlurView
-              intensity={mode === 'dark' ? 55 : 65}
-              tint={mode === 'dark' ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface + '4D' }]} />
-          </>
-        )}
+        {/* Separate clipped layer just for the blur/glass background — the
+            outer `pill` itself stays overflow:'visible' so the active tab's
+            capsule can poke up past the bar's own top edge. */}
+        <View style={styles.pillBg} pointerEvents="none">
+          {Platform.OS === 'web' ? (
+            <View style={styles.webGlass} />
+          ) : (
+            <>
+              <BlurView
+                intensity={mode === 'dark' ? 55 : 65}
+                tint={mode === 'dark' ? 'dark' : 'light'}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface + '4D' }]} />
+            </>
+          )}
+        </View>
         {state.routes.map((route: any, index: number) => {
           const focused = state.index === index;
           const color = focused ? colors.accent : colors.textTertiary;
@@ -81,7 +86,7 @@ export function CustomTabBar({ state, navigation }: any) {
 
           return (
             <Pressable key={route.key} onPress={onPress} style={styles.tab} hitSlop={8}>
-              <View style={[styles.tabInner, focused && { backgroundColor: colors.accent + '26' }]}>
+              <View style={[styles.tabInner, focused && styles.tabInnerActive]}>
                 <View>
                   <Ionicons name={iconName as any} size={20} color={color} />
                   {route.name === 'Social' && hasAnyUnread && <View style={styles.badge} />}
@@ -116,18 +121,27 @@ function createStyles(colors: ThemeColors) {
     } as any,
     pill: {
       flex: 1,
+      height: 54,
       flexDirection: 'row',
+      alignItems: 'flex-end',
       borderRadius: 26,
-      paddingVertical: 10,
       paddingHorizontal: 6,
-      overflow: 'hidden',
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.12,
       shadowRadius: 16,
       elevation: 8,
+    },
+    pillBg: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      borderRadius: 26,
+      overflow: 'hidden',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
     },
     // react-native-web forwards unrecognised style keys straight to the DOM
     // node, so backdropFilter works here even though it's not a real RN
@@ -146,7 +160,7 @@ function createStyles(colors: ThemeColors) {
     tab: {
       flex: 1,
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-end',
     },
     tabInner: {
       alignItems: 'center',
@@ -156,6 +170,22 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: 10,
       borderRadius: 18,
       minWidth: 44,
+    },
+    // Taller than the pill's own padding allows, so it pokes up past the
+    // bar's top edge instead of just tinting in place — the "raised chip"
+    // look from the reference the user sent, not a flush highlight.
+    tabInnerActive: {
+      backgroundColor: colors.background + 'F2',
+      paddingVertical: 16,
+      paddingHorizontal: 14,
+      borderRadius: 28,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 5,
     },
     label: {
       fontFamily: fonts.semiBold,
