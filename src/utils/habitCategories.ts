@@ -37,3 +37,8 @@ const LEARNING_ICONS = ['🎓', '🗣️'];
 export function isLearningHabit(name: string, icon: string) {
   return LEARNING_ICONS.includes(icon) || /former|formation|langue|apprendre|compétence|competence|étudier|etudier/i.test(name);
 }
+
+const PODCAST_ICONS = ['🎧'];
+export function isPodcastHabit(name: string, icon: string) {
+  return PODCAST_ICONS.includes(icon) || /podcast/i.test(name);
+}

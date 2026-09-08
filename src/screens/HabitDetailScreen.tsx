@@ -19,6 +19,10 @@ import { MEDITATION_SESSIONS } from '../data/meditationSessions';
 import { MEAL_IDEAS } from '../data/mealIdeas';
 import { READING_GOALS } from '../data/readingGoals';
 import { LEARNING_GOALS } from '../data/learningGoals';
+import { LANGUAGE_RESOURCES, SKILL_RESOURCES } from '../data/freeCourses';
+import { PODCAST_CATEGORIES, BOOK_CATEGORIES } from '../data/discoveryCategories';
+import { ResourceLinks } from '../components/ResourceLinks';
+import { RecommendationFinder } from '../components/RecommendationFinder';
 import { JAWLINE_SESSIONS } from '../data/jawlineProgram';
 import { MeasurementTracker } from '../components/MeasurementTracker';
 import { SavingsCounter } from '../components/SavingsCounter';
@@ -32,6 +36,7 @@ import {
   isMoneySavingHabit,
   isScreenTimeHabit,
   isLearningHabit,
+  isPodcastHabit,
 } from '../utils/habitCategories';
 
 function openSearch(query: string) {
@@ -559,7 +564,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                 </View>
               </View>
             )}
+
+            <RecommendationFinder title="Trouve ton prochain livre" categories={BOOK_CATEGORIES} kind="book" />
           </>
+        )}
+
+        {isPodcastHabit(habit.name, habit.icon) && (
+          <RecommendationFinder title="Trouve ton prochain podcast" categories={PODCAST_CATEGORIES} kind="podcast" />
         )}
 
         {isJawlineHabit(habit.name, habit.icon) && (
@@ -634,6 +645,11 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                 </View>
               </View>
             )}
+
+            <ResourceLinks
+              title="Ressources gratuites"
+              resources={/langue/i.test(habit.name) ? LANGUAGE_RESOURCES : SKILL_RESOURCES}
+            />
           </>
         )}
 
