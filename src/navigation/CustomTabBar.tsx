@@ -64,11 +64,11 @@ export function CustomTabBar({ state, navigation }: any) {
           ) : (
             <>
               <BlurView
-                intensity={mode === 'dark' ? 68 : 80}
+                intensity={mode === 'dark' ? 55 : 65}
                 tint={mode === 'dark' ? 'dark' : 'light'}
                 style={StyleSheet.absoluteFill}
               />
-              <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface + '26' }]} />
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface + '14' }]} />
             </>
           )}
           {/* A sliver of extra-light border along just the top edge sells the
@@ -169,9 +169,9 @@ function createStyles(colors: ThemeColors) {
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: colors.surface + '66',
-      backdropFilter: 'blur(28px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+      backgroundColor: colors.surface + '1F',
+      backdropFilter: 'blur(18px) saturate(200%)',
+      WebkitBackdropFilter: 'blur(18px) saturate(200%)',
     } as any,
     tab: {
       flex: 1,

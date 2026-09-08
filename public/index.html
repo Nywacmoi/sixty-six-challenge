@@ -70,6 +70,15 @@
         height: 100%;
         flex: 1;
       }
+      /* react-native-web renders every Pressable as a div[role="button"]
+         with a native browser focus ring — invisible on our light theme,
+         but a big pale halo around whatever was last tapped once the
+         background goes dark (e.g. the active tab bar item in dark mode).
+         This is a touch-first app, not a keyboard-nav one, so drop it. */
+      [role="button"] {
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+      }
     </style>
   </head>
 
