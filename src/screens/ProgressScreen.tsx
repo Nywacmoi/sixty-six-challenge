@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
@@ -9,7 +9,7 @@ import { RingProgress } from '../components/RingProgress';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 
-export default function ProgressScreen() {
+export default function ProgressScreen({ navigation }: any) {
   const { habits, currentDay, getStreak, getLongestStreak, getTotalCompletions } = useApp();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
@@ -22,6 +22,17 @@ export default function ProgressScreen() {
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl + tabBarClearance }}>
         <Text style={typography.display}>Progression</Text>
+
+        <Pressable style={styles.recapCard} onPress={() => navigation.navigate('WeeklyRecap')}>
+          <View style={styles.recapIcon}>
+            <Ionicons name="sparkles" size={18} color={colors.accent} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={typography.bodyBold}>Ton récap de la semaine</Text>
+            <Text style={typography.caption}>Check-ins, jours parfaits, meilleure habitude…</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+        </Pressable>
 
         <View style={styles.ringSection}>
           <RingProgress progress={overallProgress} size={160} strokeWidth={14}>
@@ -66,6 +77,23 @@ export default function ProgressScreen() {
 function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
+    recapCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginTop: spacing.lg,
+    },
+    recapIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: radius.md,
+      backgroundColor: colors.accent + '1F',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     ringSection: { alignItems: 'center', marginTop: spacing.xl, marginBottom: spacing.lg },
     summaryRow: { flexDirection: 'row', gap: spacing.md },
     summaryCard: {

@@ -18,6 +18,7 @@ import ProgramScreen from '../screens/ProgramScreen';
 import AssistantScreen from '../screens/AssistantScreen';
 import GroupChatScreen from '../screens/GroupChatScreen';
 import DirectChatScreen from '../screens/DirectChatScreen';
+import WeeklyRecapScreen from '../screens/WeeklyRecapScreen';
 
 const Tab = createBottomTabNavigator();
 const TodayStack = createNativeStackNavigator();
@@ -65,6 +66,7 @@ function AppStack() {
       <RootStack.Screen name="MainTabs" component={MainTabs} />
       <RootStack.Screen name="AddHabit" component={AddHabitScreen} options={{ presentation: 'modal' }} />
       <RootStack.Screen name="Program" component={ProgramScreen} options={{ presentation: 'modal' }} />
+      <RootStack.Screen name="WeeklyRecap" component={WeeklyRecapScreen} options={{ presentation: 'modal' }} />
     </RootStack.Navigator>
   );
 }
