@@ -28,6 +28,23 @@
 
 <!-- Les nouvelles entrées vont ICI, la plus récente en premier. -->
 
+## [2026-09-09] `expo export --output-dir docs` efface `docs/.nojekyll`
+
+- **Symptôme :** après un rebuild web (`npx expo export --platform web --output-dir docs`), GitHub Pages
+  sert une page blanche / 404 sur le bundle JS (`_expo/static/js/...`) une fois déployé.
+- **Contexte :** web (déploiement GitHub Pages depuis `docs/` sur `main`), étape `expo export`.
+- **Cause réelle :** `expo export` régénère tout le dossier `docs/` et ne recrée pas `docs/.nojekyll`. Sans
+  ce fichier, GitHub Pages applique son traitement Jekyll par défaut, qui ignore les dossiers commençant
+  par `_` — donc tout `_expo/*` (le bundle JS) n'est jamais servi. Déjà arrivé au moins 2 fois avant cette
+  entrée (voir commits `78bd9eb` et `8c78ba5`).
+- **Fix qui a marché :** juste après chaque `expo export --output-dir docs`, avant de commit/push :
+  `touch docs/.nojekyll`. Vérifier avec `git status docs/` que `.nojekyll` n'apparaît pas comme supprimé.
+- **Self-check :** `git status --porcelain docs/` ne doit montrer aucun `D docs/.nojekyll`.
+- **Statut :** résolu ✅ (mais se reproduira à chaque export tant que ce n'est pas automatisé)
+- **À promouvoir dans un script ?** oui — vu 3 fois maintenant, candidat pour un script `scripts/build-web.sh`
+  qui fait `expo export` puis `touch docs/.nojekyll` en une seule commande, pour ne plus dépendre de la
+  mémoire de qui déploie.
+
 ## [2026-09-08] Halo blanc autour de la barre de navigation en mode sombre
 
 - **Symptôme :** en thème sombre, un halo/liseré blanc visible autour de la pastille flottante de la barre
