@@ -22,3 +22,18 @@ const JAWLINE_ICONS = ['👅'];
 export function isJawlineHabit(name: string, icon: string) {
   return JAWLINE_ICONS.includes(icon) || /jawline|mewing|mâchoire|machoire|menton/i.test(name);
 }
+
+const MONEY_SAVING_ICONS = ['🚭', '🍷'];
+export function isMoneySavingHabit(name: string, icon: string) {
+  return MONEY_SAVING_ICONS.includes(icon) || /fumer|cigarette|tabac|clope|alcool|boire/i.test(name);
+}
+
+const SCREEN_TIME_ICONS = ['📴', '👀'];
+export function isScreenTimeHabit(name: string, icon: string) {
+  return SCREEN_TIME_ICONS.includes(icon) || /réseaux sociaux|reseaux sociaux|pause écran|pause ecran|temps d'écran|temps d'ecran/i.test(name);
+}
+
+const LEARNING_ICONS = ['🎓', '🗣️'];
+export function isLearningHabit(name: string, icon: string) {
+  return LEARNING_ICONS.includes(icon) || /former|formation|langue|apprendre|compétence|competence|étudier|etudier/i.test(name);
+}

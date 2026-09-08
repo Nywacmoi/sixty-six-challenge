@@ -5,6 +5,11 @@ export type Habit = {
   color: string;
   createdAt: string;
   archived: boolean;
+  // What one day of NOT doing this habit is worth to the person — money for
+  // a quitting habit (arrêter de fumer, réduire l'alcool), minutes for a
+  // screen-time habit. Unit depends on the category (see habitCategories.ts).
+  // Set by the person themselves via the savings counter, not a default.
+  savedPerDay?: number;
 };
 
 export type HabitCompletion = {

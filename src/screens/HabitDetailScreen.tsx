@@ -17,10 +17,21 @@ import { WORKOUT_SPLITS, WEEKLY_SCHEDULES, buildPersonalSchedule, SPORT_GOALS, S
 import { MEDITATION_SESSIONS } from '../data/meditationSessions';
 import { MEAL_IDEAS } from '../data/mealIdeas';
 import { READING_GOALS } from '../data/readingGoals';
+import { LEARNING_GOALS } from '../data/learningGoals';
 import { JAWLINE_SESSIONS } from '../data/jawlineProgram';
 import { MeasurementTracker } from '../components/MeasurementTracker';
+import { SavingsCounter } from '../components/SavingsCounter';
 import { PrimaryButton } from '../components/PrimaryButton';
-import { isSportHabit, isMeditationHabit, isNutritionHabit, isReadingHabit, isJawlineHabit } from '../utils/habitCategories';
+import {
+  isSportHabit,
+  isMeditationHabit,
+  isNutritionHabit,
+  isReadingHabit,
+  isJawlineHabit,
+  isMoneySavingHabit,
+  isScreenTimeHabit,
+  isLearningHabit,
+} from '../utils/habitCategories';
 
 function openSearch(query: string) {
   const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
@@ -129,6 +140,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   const activeMeal = MEAL_IDEAS.find((s) => s.id === selectedSession);
   const activeReading = READING_GOALS.find((s) => s.id === selectedSession);
   const activeJawline = JAWLINE_SESSIONS.find((s) => s.id === selectedSession);
+  const activeLearning = LEARNING_GOALS.find((s) => s.id === selectedSession);
 
   const saveGoals = async () => {
     let height = parseFloat(heightDraft.replace(',', '.'));
@@ -589,6 +601,54 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                 ))}
               </View>
             )}
+          </>
+        )}
+
+        {isLearningHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Objectif du jour</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+              {LEARNING_GOALS.map((goal) => {
+                const active = selectedSession === goal.id;
+                return (
+                  <Pressable
+                    key={goal.id}
+                    onPress={() => handleSelectSession(goal.id)}
+                    style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                  >
+                    <Text style={{ fontSize: 16 }}>{goal.emoji}</Text>
+                    <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{goal.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            {activeLearning && (
+              <View style={styles.splitCard}>
+                <View style={styles.exerciseRow}>
+                  <Ionicons name="bulb-outline" size={16} color={colors.textSecondary} />
+                  <Text style={[typography.body, { flex: 1 }]}>{activeLearning.tip}</Text>
+                </View>
+              </View>
+            )}
+          </>
+        )}
+
+        {isMoneySavingHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Argent économisé</Text>
+            <SavingsCounter habit={habit} days={getStreak(habitId)} unit="euros" question="Combien ça te coûtait par jour ?" />
+          </>
+        )}
+
+        {isScreenTimeHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Temps récupéré</Text>
+            <SavingsCounter
+              habit={habit}
+              days={getStreak(habitId)}
+              unit="minutes"
+              question="Combien de temps par jour tu y passais ?"
+            />
           </>
         )}
 
