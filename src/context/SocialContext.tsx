@@ -182,7 +182,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     try {
       if (Notification.permission !== 'granted') return;
       const preview = group.lastMessageText ?? '';
-      new Notification(`${group.emoji} ${group.name}`, {
+      new Notification(group.name, {
         body: preview.length > 120 ? `${preview.slice(0, 117)}...` : preview,
         tag: `group-${group.id}`,
       });

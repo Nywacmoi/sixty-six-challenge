@@ -31,7 +31,12 @@ export default function TodayScreen({ navigation }: any) {
           <Text style={typography.caption}>JOUR {Math.max(currentDay, activeHabits.length ? 1 : 0)} SUR {TOTAL_DAYS}</Text>
           <Text style={typography.display}>Aujourd'hui</Text>
         </View>
-        <Pressable style={styles.addBtn} onPress={() => navigation.navigate('AddHabit')}>
+        <Pressable
+          style={styles.addBtn}
+          onPress={() => navigation.navigate('AddHabit')}
+          accessibilityRole="button"
+          accessibilityLabel="Ajouter une habitude"
+        >
           <Ionicons name="add" size={26} color="#FFFFFF" />
         </Pressable>
       </View>

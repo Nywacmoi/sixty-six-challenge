@@ -197,10 +197,10 @@ export default function HabitDetailScreen({ route, navigation }: any) {
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl + tabBarClearance }}>
         <View style={styles.headerRow}>
-          <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
+          <Pressable onPress={() => navigation.goBack()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Retour">
             <Ionicons name="chevron-back" size={26} color={colors.text} />
           </Pressable>
-          <Pressable onPress={confirmDelete} hitSlop={10}>
+          <Pressable onPress={confirmDelete} hitSlop={10} accessibilityRole="button" accessibilityLabel="Supprimer l'habitude">
             <Ionicons name="trash-outline" size={22} color={colors.danger} />
           </Pressable>
         </View>
@@ -229,6 +229,8 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                 }}
                 style={styles.nameRow}
                 hitSlop={6}
+                accessibilityRole="button"
+                accessibilityLabel="Modifier le nom de l'habitude"
               >
                 <Text style={typography.h1} numberOfLines={1}>{habit.name}</Text>
                 <Ionicons name="pencil" size={16} color={colors.textSecondary} />
@@ -266,7 +268,12 @@ export default function HabitDetailScreen({ route, navigation }: any) {
           <>
             <View style={{ marginTop: spacing.xl, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={typography.h2}>Suivi corporel</Text>
-              <Pressable onPress={() => setEditingGoals((v) => !v)} hitSlop={8}>
+              <Pressable
+                onPress={() => setEditingGoals((v) => !v)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Modifier tes objectifs de taille et de poids"
+              >
                 <Ionicons name="settings-outline" size={18} color={colors.textSecondary} />
               </Pressable>
             </View>
@@ -366,11 +373,21 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
                   <Text style={[typography.caption, { marginTop: spacing.md, marginBottom: spacing.xs }]}>JOURS DISPONIBLES PAR SEMAINE</Text>
                   <View style={styles.stepperRow}>
-                    <Pressable onPress={() => setQuizDays((d) => Math.max(2, d - 1))} style={styles.stepperBtn}>
+                    <Pressable
+                      onPress={() => setQuizDays((d) => Math.max(2, d - 1))}
+                      style={styles.stepperBtn}
+                      accessibilityRole="button"
+                      accessibilityLabel="Diminuer le nombre de jours disponibles"
+                    >
                       <Ionicons name="remove" size={18} color={colors.text} />
                     </Pressable>
                     <Text style={typography.h1}>{quizDays}</Text>
-                    <Pressable onPress={() => setQuizDays((d) => Math.min(6, d + 1))} style={styles.stepperBtn}>
+                    <Pressable
+                      onPress={() => setQuizDays((d) => Math.min(6, d + 1))}
+                      style={styles.stepperBtn}
+                      accessibilityRole="button"
+                      accessibilityLabel="Augmenter le nombre de jours disponibles"
+                    >
                       <Ionicons name="add" size={18} color={colors.text} />
                     </Pressable>
                   </View>
@@ -478,7 +495,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                       <Text style={typography.caption}>{ex.reps}</Text>
                       {ex.alt && <Text style={[typography.small, { marginTop: 4 }]}>{ex.alt}</Text>}
                     </View>
-                    <Pressable onPress={() => openSearch(`${ex.name} technique musculation`)} hitSlop={8} style={styles.videoBtn}>
+                    <Pressable
+                      onPress={() => openSearch(`${ex.name} technique musculation`)}
+                      hitSlop={8}
+                      style={styles.videoBtn}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Voir une vidéo de démonstration : ${ex.name}`}
+                    >
                       <Ionicons name="logo-youtube" size={22} color={colors.danger} />
                     </Pressable>
                   </View>
@@ -537,7 +560,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     <Text style={typography.bodyBold}>{t.name}</Text>
                     <Text style={[typography.small, { marginTop: 4 }]}>{t.tip}</Text>
                   </View>
-                  <Pressable onPress={() => openSearch(`${t.name} pour bien dormir`)} hitSlop={8} style={styles.videoBtn}>
+                  <Pressable
+                    onPress={() => openSearch(`${t.name} pour bien dormir`)}
+                    hitSlop={8}
+                    style={styles.videoBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Voir une vidéo sur : ${t.name}`}
+                  >
                     <Ionicons name="logo-youtube" size={22} color={colors.danger} />
                   </Pressable>
                 </View>
@@ -602,7 +631,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                   <View style={styles.exerciseRow}>
                     <Ionicons name="restaurant-outline" size={16} color={colors.textSecondary} />
                     <Text style={[typography.body, { flex: 1 }]}>{idea.text}</Text>
-                    <Pressable onPress={() => openSearch(`${idea.text} recette facile`)} hitSlop={8} style={styles.videoBtn}>
+                    <Pressable
+                      onPress={() => openSearch(`${idea.text} recette facile`)}
+                      hitSlop={8}
+                      style={styles.videoBtn}
+                      accessibilityRole="button"
+                      accessibilityLabel="Voir une recette vidéo pour cette idée de repas"
+                    >
                       <Ionicons name="logo-youtube" size={22} color={colors.danger} />
                     </Pressable>
                   </View>
@@ -683,7 +718,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                       <Text style={typography.caption}>{ex.reps}</Text>
                       <Text style={[typography.small, { marginTop: 4 }]}>{ex.tip}</Text>
                     </View>
-                    <Pressable onPress={() => openSearch(`${ex.name} exercice jawline`)} hitSlop={8} style={styles.videoBtn}>
+                    <Pressable
+                      onPress={() => openSearch(`${ex.name} exercice jawline`)}
+                      hitSlop={8}
+                      style={styles.videoBtn}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Voir une vidéo de démonstration : ${ex.name}`}
+                    >
                       <Ionicons name="logo-youtube" size={22} color={colors.danger} />
                     </Pressable>
                   </View>
@@ -761,7 +802,12 @@ export default function HabitDetailScreen({ route, navigation }: any) {
         </View>
 
         <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Photo de progression</Text>
-        <Pressable style={styles.photoBox} onPress={pickPhoto}>
+        <Pressable
+          style={styles.photoBox}
+          onPress={pickPhoto}
+          accessibilityRole="button"
+          accessibilityLabel={photoUri ? 'Changer la photo de progression du jour' : 'Ajouter la photo de progression du jour'}
+        >
           {photoUri ? (
             <Image source={{ uri: photoUri }} style={styles.photo} />
           ) : (

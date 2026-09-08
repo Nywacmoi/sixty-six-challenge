@@ -19,7 +19,41 @@ const ICONS = [
   'bed', 'moon', 'phone-portrait', 'water', 'cash', 'locate', 'leaf', 'accessibility',
 ];
 
+const ICON_NAMES: Record<string, string> = {
+  flame: 'Flamme',
+  fitness: 'Fitness',
+  walk: 'Marche',
+  barbell: 'Haltères',
+  bicycle: 'Vélo',
+  leaf: 'Feuille',
+  nutrition: 'Nutrition',
+  water: 'Eau',
+  restaurant: 'Repas',
+  wine: 'Vin',
+  book: 'Livre',
+  pencil: 'Crayon',
+  'color-palette': 'Palette de couleurs',
+  'musical-notes': 'Musique',
+  laptop: 'Ordinateur',
+  bulb: 'Ampoule',
+  bed: 'Lit',
+  moon: 'Lune',
+  'phone-portrait': 'Téléphone',
+  cash: 'Argent',
+  locate: 'Cible',
+  accessibility: 'Étirement',
+};
+
 const COLORS = ['#005FFE', '#3ECF5B', '#FF5A2E', '#FFC542', '#B15AFF', '#FF4D8D', '#2EC4B6'];
+const COLOR_NAMES: Record<string, string> = {
+  '#005FFE': 'Bleu',
+  '#3ECF5B': 'Vert',
+  '#FF5A2E': 'Orange',
+  '#FFC542': 'Jaune',
+  '#B15AFF': 'Violet',
+  '#FF4D8D': 'Rose',
+  '#2EC4B6': 'Turquoise',
+};
 
 export default function AddHabitScreen({ navigation, route }: any) {
   const { addHabit, addHabitsBulk, habits, showToast } = useApp();
@@ -105,7 +139,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={{ paddingHorizontal: spacing.lg, paddingTop: topInset + spacing.sm }}>
         <View style={styles.headerRow}>
-          <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
+          <Pressable onPress={() => navigation.goBack()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Fermer">
             <Ionicons name="close" size={26} color={colors.text} />
           </Pressable>
           <Text style={typography.h1}>Ajouter</Text>
@@ -183,6 +217,9 @@ export default function AddHabitScreen({ navigation, route }: any) {
                     key={`${i}-${idx}`}
                     onPress={() => setIcon(i)}
                     style={[styles.iconOption, icon === i && { borderColor: color, backgroundColor: color + '22' }]}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: icon === i }}
+                    accessibilityLabel={`Icône ${ICON_NAMES[i] ?? i}`}
                   >
                     <Ionicons name={i as any} size={22} color={icon === i ? color : colors.textSecondary} />
                   </Pressable>
@@ -196,6 +233,9 @@ export default function AddHabitScreen({ navigation, route }: any) {
                     key={c}
                     onPress={() => setColor(c)}
                     style={[styles.colorOption, { backgroundColor: c }, color === c && styles.colorOptionSelected]}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: color === c }}
+                    accessibilityLabel={`Couleur ${COLOR_NAMES[c] ?? c}`}
                   />
                 ))}
               </View>

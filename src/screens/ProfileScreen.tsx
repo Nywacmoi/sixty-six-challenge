@@ -104,7 +104,12 @@ export default function ProfileScreen() {
               style={styles.nameInput}
             />
           ) : (
-            <Pressable onPress={() => setEditingName(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Pressable
+              onPress={() => setEditingName(true)}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              accessibilityRole="button"
+              accessibilityLabel="Modifier ton prénom"
+            >
               <Text style={typography.h1}>{profile.name}</Text>
               <Ionicons name="pencil" size={16} color={colors.textSecondary} />
             </Pressable>
@@ -157,7 +162,12 @@ export default function ProfileScreen() {
             <Ionicons name={mode === 'dark' ? 'moon' : 'sunny'} size={20} color={colors.text} />
             <Text style={typography.body}>Mode sombre</Text>
           </View>
-          <Switch value={mode === 'dark'} onValueChange={toggleTheme} trackColor={{ true: colors.accent }} />
+          <Switch
+            value={mode === 'dark'}
+            onValueChange={toggleTheme}
+            trackColor={{ true: colors.accent }}
+            accessibilityLabel="Mode sombre"
+          />
         </View>
 
         <View style={[styles.settingRow, { flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm }]}>
@@ -166,7 +176,12 @@ export default function ProfileScreen() {
               <Ionicons name="notifications-outline" size={20} color={colors.text} />
               <Text style={typography.body}>Rappels quotidiens</Text>
             </View>
-            <Switch value={profile.reminderEnabled} onValueChange={toggleReminders} trackColor={{ true: colors.accent }} />
+            <Switch
+              value={profile.reminderEnabled}
+              onValueChange={toggleReminders}
+              trackColor={{ true: colors.accent }}
+              accessibilityLabel="Rappels quotidiens"
+            />
           </View>
           {profile.reminderEnabled && (
             <>

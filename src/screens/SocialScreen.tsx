@@ -12,7 +12,15 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { SocialGroup, getProfile, PublicProfile, directThreadId } from '../firebase/social';
 import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 
-const GROUP_EMOJIS = ['🔥', '💪', '🧘', '📚', '🏃', '🎯'];
+const GROUP_EMOJIS = ['flame', 'fitness', 'leaf', 'book', 'walk', 'locate'];
+const GROUP_EMOJI_NAMES: Record<string, string> = {
+  flame: 'Feu',
+  fitness: 'Muscle',
+  leaf: 'Méditation',
+  book: 'Livres',
+  walk: 'Course',
+  locate: 'Cible',
+};
 
 function Avatar({ name, color, size = 40 }: { name: string; color: string; size?: number }) {
   return (
@@ -105,7 +113,13 @@ function FriendsTab({ colors, typography, navigation }: { colors: ThemeColors; t
             style={[styles.input, { flex: 1 }]}
             autoCapitalize="none"
           />
-          <Pressable onPress={submit} disabled={adding || !draft.trim()} style={styles.addBtn}>
+          <Pressable
+            onPress={submit}
+            disabled={adding || !draft.trim()}
+            style={styles.addBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Ajouter cet ami"
+          >
             <Ionicons name="add" size={22} color="#FFFFFF" />
           </Pressable>
         </View>
@@ -138,6 +152,8 @@ function FriendsTab({ colors, typography, navigation }: { colors: ThemeColors; t
               }
               style={styles.msgBtn}
               hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`Envoyer un message à ${item.username}`}
             >
               {uid && hasDmUnread(directThreadId(uid, item.uid)) && <View style={styles.msgDot} />}
               <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.accent} />
@@ -225,9 +241,15 @@ function GroupCard({
   };
 
   return (
-    <Pressable style={styles.squadCard} onPress={toggle}>
+    <Pressable
+      style={styles.squadCard}
+      onPress={toggle}
+      accessibilityRole="button"
+      accessibilityState={{ expanded }}
+      accessibilityLabel={`${group.name} — ${expanded ? 'masquer les membres' : 'afficher les membres'}`}
+    >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        <Text style={{ fontSize: 24 }}>{group.emoji}</Text>
+        <Ionicons name={group.emoji as any} size={22} color={colors.accent} />
         <View style={{ flex: 1 }}>
           <Text style={typography.bodyBold}>{group.name}</Text>
           <Text style={typography.caption}>
@@ -358,14 +380,27 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
                 placeholderTextColor={colors.textTertiary}
                 style={[styles.input, { flex: 1 }]}
               />
-              <Pressable onPress={create} disabled={busy || !nameDraft.trim()} style={styles.addBtn}>
+              <Pressable
+                onPress={create}
+                disabled={busy || !nameDraft.trim()}
+                style={styles.addBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Créer le groupe"
+              >
                 <Ionicons name="add" size={22} color="#FFFFFF" />
               </Pressable>
             </View>
             <View style={styles.emojiRow}>
               {GROUP_EMOJIS.map((e) => (
-                <Pressable key={e} onPress={() => setEmoji(e)} style={[styles.emojiOption, e === emoji && { borderColor: colors.accent }]}>
-                  <Text style={{ fontSize: 18 }}>{e}</Text>
+                <Pressable
+                  key={e}
+                  onPress={() => setEmoji(e)}
+                  style={[styles.emojiOption, e === emoji && { borderColor: colors.accent }]}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: e === emoji }}
+                  accessibilityLabel={`Icône ${GROUP_EMOJI_NAMES[e] ?? e}`}
+                >
+                  <Ionicons name={e as any} size={18} color={e === emoji ? colors.accent : colors.textSecondary} />
                 </Pressable>
               ))}
             </View>
@@ -401,14 +436,26 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
                 style={[styles.input, { flex: 1 }]}
                 autoCapitalize="characters"
               />
-              <Pressable onPress={join} disabled={busy || !codeDraft.trim()} style={styles.addBtn}>
+              <Pressable
+                onPress={join}
+                disabled={busy || !codeDraft.trim()}
+                style={styles.addBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Rejoindre avec ce code"
+              >
                 <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
               </Pressable>
             </View>
           </View>
 
           <View style={styles.createCard}>
-            <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }} onPress={toggleDiscover}>
+            <Pressable
+              style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
+              onPress={toggleDiscover}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showDiscover }}
+              accessibilityLabel={showDiscover ? 'Masquer les groupes publics' : 'Afficher les groupes publics'}
+            >
               <Ionicons name="earth" size={18} color={colors.accent} />
               <Text style={[typography.bodyBold, { flex: 1 }]}>Groupes publics</Text>
               <Ionicons name={showDiscover ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textTertiary} />
@@ -421,7 +468,7 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
                 )}
                 {publicGroups.map((g) => (
                   <View key={g.id} style={styles.discoverRow}>
-                    <Text style={{ fontSize: 20 }}>{g.emoji}</Text>
+                    <Ionicons name={g.emoji as any} size={18} color={colors.accent} />
                     <View style={{ flex: 1 }}>
                       <Text style={typography.bodyBold}>{g.name}</Text>
                       <Text style={typography.caption}>
@@ -452,6 +499,7 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
                     setNotificationsEnabled(v);
                   }}
                   trackColor={{ true: colors.accent }}
+                  accessibilityLabel="Notifications de groupe"
                 />
               </View>
             </View>

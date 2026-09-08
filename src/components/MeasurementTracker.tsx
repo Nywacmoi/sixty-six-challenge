@@ -139,7 +139,7 @@ export function MeasurementTracker({
             onSubmitEditing={save}
           />
           <Text style={[typography.caption, { color: colors.textSecondary }]}>{unit}</Text>
-          <Pressable onPress={save} style={styles.saveBtn}>
+          <Pressable onPress={save} style={styles.saveBtn} accessibilityRole="button" accessibilityLabel="Enregistrer la mesure">
             <Ionicons name="checkmark" size={18} color={variant === 'dark' ? colors.background : '#FFFFFF'} />
           </Pressable>
         </View>

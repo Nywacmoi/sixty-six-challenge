@@ -57,3 +57,21 @@ const OLD_EMOJI_TO_ICON: Record<string, string> = {
 export function migrateHabitIcon(icon: string): string {
   return OLD_EMOJI_TO_ICON[icon] ?? icon;
 }
+
+// Same idea for group emojis (SocialGroup.emoji, Firestore field `emoji`):
+// groups created before the icon migration have a raw glyph stored, shared
+// with every member of that group. Migrating on read (here) rather than
+// writing back to Firestore avoids touching a document other users also
+// own — every client just displays old and new groups the same way.
+const OLD_GROUP_EMOJI_TO_ICON: Record<string, string> = {
+  '🔥': 'flame',
+  '💪': 'fitness',
+  '🧘': 'leaf',
+  '📚': 'book',
+  '🏃': 'walk',
+  '🎯': 'locate',
+};
+
+export function migrateGroupEmoji(emoji: string): string {
+  return OLD_GROUP_EMOJI_TO_ICON[emoji] ?? emoji;
+}

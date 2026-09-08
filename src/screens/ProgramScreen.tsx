@@ -37,7 +37,7 @@ export default function ProgramScreen({ navigation, route }: any) {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={[styles.headerRow, { paddingTop: topInset + spacing.sm }]}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Retour">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </Pressable>
         <View style={{ width: 26 }} />

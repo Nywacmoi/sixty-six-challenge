@@ -18,7 +18,7 @@ export default function NameScreen({ navigation, route }: any) {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <View style={{ paddingHorizontal: spacing.lg, paddingTop: topInset + spacing.sm }}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Retour">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </Pressable>
       </View>

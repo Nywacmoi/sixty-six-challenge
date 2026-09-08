@@ -47,7 +47,14 @@ export function HabitRow({
             <Text style={styles.streakTextMuted}>Pas encore de série</Text>
           )}
         </View>
-        <Pressable onPress={handleToggle} hitSlop={10} style={[styles.checkbox, completed && styles.checkboxDone]}>
+        <Pressable
+          onPress={handleToggle}
+          hitSlop={10}
+          style={[styles.checkbox, completed && styles.checkboxDone]}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: completed }}
+          accessibilityLabel={`${habit.name} — ${completed ? 'fait aujourd\'hui' : 'pas encore fait'}`}
+        >
           {completed && <Ionicons name="checkmark" size={18} color={colors.background} />}
         </Pressable>
       </Pressable>

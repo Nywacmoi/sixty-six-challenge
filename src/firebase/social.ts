@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import { signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
 import { auth, db } from './config';
+import { migrateGroupEmoji } from '../utils/iconMigration';
 
 export type PublicProfile = {
   uid: string;
@@ -63,7 +64,7 @@ function toGroup(id: string, data: any): SocialGroup {
   return {
     id,
     name: data.name,
-    emoji: data.emoji,
+    emoji: migrateGroupEmoji(data.emoji),
     code: data.code,
     ownerId: data.ownerId,
     memberIds: data.memberIds,

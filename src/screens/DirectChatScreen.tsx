@@ -62,7 +62,7 @@ export default function DirectChatScreen({ route, navigation }: any) {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={[styles.header, { paddingTop: topInset + spacing.sm }]}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Retour">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </Pressable>
         <View style={[styles.avatar, { backgroundColor: peerAvatarColor + '33' }]}>
@@ -110,7 +110,13 @@ export default function DirectChatScreen({ route, navigation }: any) {
             multiline
             onSubmitEditing={send}
           />
-          <Pressable onPress={send} disabled={!draft.trim() || sending} style={[styles.sendBtn, !draft.trim() && { opacity: 0.4 }]}>
+          <Pressable
+            onPress={send}
+            disabled={!draft.trim() || sending}
+            style={[styles.sendBtn, !draft.trim() && { opacity: 0.4 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Envoyer le message"
+          >
             <Ionicons name="arrow-up" size={20} color="#FFFFFF" />
           </Pressable>
         </View>

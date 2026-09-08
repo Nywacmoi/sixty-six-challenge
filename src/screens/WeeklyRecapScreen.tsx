@@ -110,7 +110,13 @@ export default function WeeklyRecapScreen({ navigation }: any) {
               {formatDayLabel(stats.thisWeek[0])} → {formatDayLabel(stats.thisWeek[6])}
             </Text>
           </View>
-          <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.closeBtn}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            hitSlop={12}
+            style={styles.closeBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Fermer"
+          >
             <Ionicons name="close" size={22} color={colors.text} />
           </Pressable>
         </View>
