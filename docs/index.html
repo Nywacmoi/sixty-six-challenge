@@ -70,13 +70,18 @@
         height: 100%;
         flex: 1;
       }
-      /* react-native-web renders every Pressable as a div[role="button"]
-         with a native browser focus ring — invisible on our light theme,
-         but a big pale halo around whatever was last tapped once the
-         background goes dark (e.g. the active tab bar item in dark mode).
-         This is a touch-first app, not a keyboard-nav one, so drop it. */
-      [role="button"] {
+      /* react-native-web makes every Pressable focusable (tabIndex="0" on
+         its div), which gets the browser's native focus ring — invisible
+         on our light theme, but a big pale halo around whatever was last
+         tapped once the background goes dark (e.g. the active tab bar
+         item in dark mode). It doesn't carry role="button" unless a
+         screen expicitly passes accessibilityRole, so target every
+         element instead of just [role="button"] — this is a touch-first
+         app, not a keyboard-nav one, so it's safe to drop everywhere. */
+      #root *:focus {
         outline: none;
+      }
+      #root * {
         -webkit-tap-highlight-color: transparent;
       }
     </style>
