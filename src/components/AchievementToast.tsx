@@ -7,6 +7,9 @@ import { useTopInset } from '../hooks/useTopInset';
 import { ACHIEVEMENTS } from '../data/achievements';
 import { AVATAR_ITEMS } from '../data/avatarItems';
 
+// Same header-clearance fix as Toast.tsx — see .claude/journal.md.
+const HEADER_CLEARANCE = 80;
+
 // Every avatar item unlocks on the exact day of an existing day-N
 // achievement, so a single toast can flex both rewards at once instead of
 // needing a second, separate "new outfit" notification.
@@ -38,7 +41,7 @@ export function AchievementToast({
   }, []);
 
   return (
-    <Animated.View style={[styles.toast, { top: topInset + spacing.sm, transform: [{ translateY }] }]}>
+    <Animated.View style={[styles.toast, { top: topInset + spacing.sm + HEADER_CLEARANCE, transform: [{ translateY }] }]}>
       <Pressable style={styles.inner} onPress={onDismiss}>
         <Ionicons name={achievement.icon as any} size={22} color={colors.gold} />
         <View style={{ flex: 1 }}>

@@ -19,7 +19,9 @@ function pad(n: number) {
   return n.toString().padStart(2, '0');
 }
 
-const DAY_LABELS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+// Abbreviated on purpose: the full name ("mercredi", "vendredi"...) next to
+// the two stat columns was wrapping to two lines on narrow phones.
+const DAY_LABELS = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
 
 // A dashboard-style readout card — inspired by a reference the user shared
 // (monospace numbers, day/date header, best-vs-current stats, a progress

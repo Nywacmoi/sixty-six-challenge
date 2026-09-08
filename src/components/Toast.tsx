@@ -5,6 +5,11 @@ import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
 
+// Clears the tallest header this toast can appear under (TodayScreen's
+// two-line "JOUR X SUR 99 / Aujourd'hui") so the toast never overlaps the
+// screen title — see .claude/journal.md.
+const HEADER_CLEARANCE = 80;
+
 export function Toast({
   icon,
   message,
@@ -31,7 +36,7 @@ export function Toast({
   }, []);
 
   return (
-    <Animated.View style={[styles.toast, { top: topInset + spacing.sm, transform: [{ translateY }] }]}>
+    <Animated.View style={[styles.toast, { top: topInset + spacing.sm + HEADER_CLEARANCE, transform: [{ translateY }] }]}>
       <Pressable style={[styles.inner, { borderColor: accent + '55' }]} onPress={onDismiss}>
         <Ionicons name={icon as any} size={20} color={accent} />
         <Text style={typography.bodyBold} numberOfLines={2}>
