@@ -45,6 +45,7 @@ const PROFILE_DEFAULTS: Profile = {
   sportDaysPerWeek: null,
   lastCheckInDate: null,
   avatarSeed: null,
+  avatarGender: null,
   avatarHair: null,
   avatarAccessory: null,
   avatarFacialHair: null,

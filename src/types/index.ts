@@ -52,6 +52,7 @@ export type Profile = {
   // launch) and kept stable so the base look doesn't shuffle on every
   // render; the other four are unlocked/equipped per AVATAR_ITEMS.
   avatarSeed: string | null;
+  avatarGender: 'homme' | 'femme' | null;
   avatarHair: string | null;
   avatarAccessory: string | null;
   avatarFacialHair: string | null;

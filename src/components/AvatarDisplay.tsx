@@ -12,8 +12,17 @@ import { Ionicons } from '@expo/vector-icons';
 // happened to roll it.
 const DICEBEAR_BASE = 'https://api.dicebear.com/9.x/open-peeps/png';
 
+// Fallback hairstyle before the person has equipped anything from the
+// wardrobe — open-peeps has no separate "body" trait for this, hair is the
+// only thing that reads as gendered, so that's the only default this picks.
+function defaultHairFor(gender: 'homme' | 'femme' | null | undefined) {
+  if (gender === 'femme') return 'long';
+  return 'short1';
+}
+
 function buildAvatarUrl(opts: {
   seed: string;
+  gender: 'homme' | 'femme' | null;
   hair: string | null;
   accessory: string | null;
   facialHair: string | null;
@@ -24,7 +33,7 @@ function buildAvatarUrl(opts: {
   const params = new URLSearchParams();
   params.set('seed', opts.seed);
   params.set('size', String(opts.size));
-  params.append('head[]', opts.hair ?? 'short1');
+  params.append('head[]', opts.hair ?? defaultHairFor(opts.gender));
   params.append('face[]', opts.expression ?? 'smile');
   params.append('clothingColor[]', opts.clothingColor.replace('#', ''));
   if (opts.accessory) {
@@ -45,6 +54,7 @@ function buildAvatarUrl(opts: {
 export function AvatarDisplay({
   color,
   seed,
+  gender,
   hair,
   accessory,
   facialHair,
@@ -55,6 +65,7 @@ export function AvatarDisplay({
 }: {
   color: string;
   seed?: string | null;
+  gender?: 'homme' | 'femme' | null;
   hair?: string | null;
   accessory?: string | null;
   facialHair?: string | null;
@@ -65,6 +76,7 @@ export function AvatarDisplay({
 }) {
   const uri = buildAvatarUrl({
     seed: seed || 'default',
+    gender: gender ?? null,
     hair: hair ?? null,
     accessory: accessory ?? null,
     facialHair: facialHair ?? null,

@@ -64,13 +64,17 @@ export function CustomTabBar({ state, navigation }: any) {
           ) : (
             <>
               <BlurView
-                intensity={mode === 'dark' ? 55 : 65}
+                intensity={mode === 'dark' ? 68 : 80}
                 tint={mode === 'dark' ? 'dark' : 'light'}
                 style={StyleSheet.absoluteFill}
               />
-              <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface + '4D' }]} />
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface + '26' }]} />
             </>
           )}
+          {/* A sliver of extra-light border along just the top edge sells the
+              "light catching a glass edge" look — a single all-round border
+              color reads flat by comparison. */}
+          <View style={styles.glassEdge} />
         </View>
         {state.routes.map((route: any, index: number) => {
           const focused = state.index === index;
@@ -143,19 +147,31 @@ function createStyles(colors: ThemeColors) {
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
     },
+    glassEdge: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 1.5,
+      borderTopLeftRadius: 26,
+      borderTopRightRadius: 26,
+      backgroundColor: 'rgba(255,255,255,0.55)',
+    },
     // react-native-web forwards unrecognised style keys straight to the DOM
     // node, so backdropFilter works here even though it's not a real RN
     // style prop — same trick as the position:'fixed' cast above. expo-blur
-    // has only limited web support, hence the separate branch.
+    // has only limited web support, hence the separate branch. Saturating
+    // the blur is what makes it read as "glass" rather than just "frosted
+    // gray" — it's the standard iOS-style glassmorphism recipe.
     webGlass: {
       position: 'absolute',
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: colors.surface + 'CC',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
+      backgroundColor: colors.surface + '66',
+      backdropFilter: 'blur(28px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(28px) saturate(180%)',
     } as any,
     tab: {
       flex: 1,

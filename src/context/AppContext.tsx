@@ -71,6 +71,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     sportDaysPerWeek: null,
     lastCheckInDate: null,
     avatarSeed: null,
+    avatarGender: null,
     avatarHair: null,
     avatarAccessory: null,
     avatarFacialHair: null,

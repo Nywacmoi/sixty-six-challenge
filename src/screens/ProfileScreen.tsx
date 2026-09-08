@@ -69,6 +69,7 @@ export default function ProfileScreen() {
             <AvatarDisplay
               color={profile.avatarColor}
               seed={profile.avatarSeed}
+              gender={profile.avatarGender}
               hair={profile.avatarHair}
               accessory={profile.avatarAccessory}
               facialHair={profile.avatarFacialHair}
@@ -77,6 +78,20 @@ export default function ProfileScreen() {
               hasStar={currentDay >= 99}
               size={118}
             />
+          </View>
+          <View style={styles.genderRow}>
+            <Pressable
+              onPress={() => updateProfile({ avatarGender: 'homme' })}
+              style={[styles.genderChip, profile.avatarGender === 'homme' && { borderColor: colors.accent, backgroundColor: colors.accent + '1A' }]}
+            >
+              <Text style={[typography.bodyBold, profile.avatarGender === 'homme' && { color: colors.accent }]}>Homme</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => updateProfile({ avatarGender: 'femme' })}
+              style={[styles.genderChip, profile.avatarGender === 'femme' && { borderColor: colors.accent, backgroundColor: colors.accent + '1A' }]}
+            >
+              <Text style={[typography.bodyBold, profile.avatarGender === 'femme' && { color: colors.accent }]}>Femme</Text>
+            </Pressable>
           </View>
           {editingName ? (
             <TextInput
@@ -193,6 +208,15 @@ function createStyles(colors: ThemeColors, typography: Typography) {
     container: { flex: 1, backgroundColor: colors.background },
     profileCard: { alignItems: 'center', marginTop: spacing.xl, gap: 6 },
     avatar: { width: 132, height: 132, borderRadius: 66, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
+    genderRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+    genderChip: {
+      paddingVertical: 6,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.pill,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
     nameInput: {
       ...typography.h1,
       borderBottomWidth: 1,
