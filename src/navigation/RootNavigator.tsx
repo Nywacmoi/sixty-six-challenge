@@ -17,6 +17,7 @@ import HabitDetailScreen from '../screens/HabitDetailScreen';
 import ProgramScreen from '../screens/ProgramScreen';
 import AssistantScreen from '../screens/AssistantScreen';
 import GroupChatScreen from '../screens/GroupChatScreen';
+import DirectChatScreen from '../screens/DirectChatScreen';
 
 const Tab = createBottomTabNavigator();
 const TodayStack = createNativeStackNavigator();
@@ -37,6 +38,7 @@ function SocialStackNavigator() {
     <SocialStack.Navigator screenOptions={{ headerShown: false }}>
       <SocialStack.Screen name="SocialHome" component={SocialScreen} />
       <SocialStack.Screen name="GroupChat" component={GroupChatScreen} />
+      <SocialStack.Screen name="DirectChat" component={DirectChatScreen} />
     </SocialStack.Navigator>
   );
 }

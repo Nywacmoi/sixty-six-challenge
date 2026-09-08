@@ -50,6 +50,15 @@ export type GroupMessage = {
   createdAt: number | null;
 };
 
+export type DirectThread = {
+  id: string;
+  participantIds: string[];
+  participants: Record<string, { username: string; avatarColor: string }>;
+  lastMessageAt: number | null;
+  lastMessageText: string | null;
+  lastMessageSenderId: string | null;
+};
+
 function toGroup(id: string, data: any): SocialGroup {
   return {
     id,
@@ -67,6 +76,23 @@ function toGroup(id: string, data: any): SocialGroup {
 
 function normalizeUsername(username: string) {
   return username.trim().toLowerCase().replace(/\s+/g, '');
+}
+
+function toDirectThread(id: string, data: any): DirectThread {
+  return {
+    id,
+    participantIds: data.participantIds ?? [],
+    participants: data.participants ?? {},
+    lastMessageAt: data.lastMessageAt instanceof Timestamp ? data.lastMessageAt.toMillis() : null,
+    lastMessageText: data.lastMessageText ?? null,
+    lastMessageSenderId: data.lastMessageSenderId ?? null,
+  };
+}
+
+// Deterministic id so two people always land on the same thread doc no
+// matter who opens the conversation first — avoids duplicate threads.
+export function directThreadId(uidA: string, uidB: string) {
+  return [uidA, uidB].sort().join('_');
 }
 
 // Tracks the signed-in user for the lifetime of the app, not just at
@@ -240,6 +266,73 @@ export async function sendGroupMessage(groupId: string, senderId: string, sender
 
 export function subscribeToGroupMessages(groupId: string, cb: (messages: GroupMessage[]) => void) {
   const q = query(collection(db, 'groups', groupId, 'messages'), orderBy('createdAt', 'desc'), limit(100));
+  return onSnapshot(q, (snap) => {
+    const messages = snap.docs
+      .map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          text: data.text,
+          senderId: data.senderId,
+          senderUsername: data.senderUsername,
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : null,
+        };
+      })
+      .reverse();
+    cb(messages);
+  });
+}
+
+export function subscribeToMyDirectThreads(uid: string, cb: (threads: DirectThread[]) => void) {
+  const q = query(collection(db, 'directMessages'), where('participantIds', 'array-contains', uid));
+  return onSnapshot(q, (snap) => {
+    cb(snap.docs.map((d) => toDirectThread(d.id, d.data())));
+  });
+}
+
+// Unlike sendGroupMessage, the thread doc may not exist yet the first time
+// two people message each other — a group always exists before anyone can
+// send to it (you join it first), but a DM thread doesn't. So this upserts
+// the thread doc (with both participants' info, needed for security-rule
+// membership checks on the message write right after) before adding the
+// message, instead of after like the group version does.
+export async function sendDirectMessage(
+  myUid: string,
+  myUsername: string,
+  myAvatarColor: string,
+  peerUid: string,
+  peerUsername: string,
+  peerAvatarColor: string,
+  text: string
+) {
+  const trimmed = text.trim();
+  if (!trimmed) return;
+  const threadId = directThreadId(myUid, peerUid);
+  const threadRef = doc(db, 'directMessages', threadId);
+  await setDoc(
+    threadRef,
+    {
+      participantIds: [myUid, peerUid].sort(),
+      participants: {
+        [myUid]: { username: myUsername, avatarColor: myAvatarColor },
+        [peerUid]: { username: peerUsername, avatarColor: peerAvatarColor },
+      },
+      lastMessageAt: serverTimestamp(),
+      lastMessageText: trimmed,
+      lastMessageSenderId: myUid,
+    },
+    { merge: true }
+  );
+  await addDoc(collection(db, 'directMessages', threadId, 'messages'), {
+    text: trimmed,
+    senderId: myUid,
+    senderUsername: myUsername,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export function subscribeToDirectMessages(threadId: string, cb: (messages: GroupMessage[]) => void) {
+  const q = query(collection(db, 'directMessages', threadId, 'messages'), orderBy('createdAt', 'desc'), limit(100));
   return onSnapshot(q, (snap) => {
     const messages = snap.docs
       .map((d) => {

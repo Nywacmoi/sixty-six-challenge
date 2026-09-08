@@ -14,8 +14,11 @@ import {
   joinGroupById,
   listPublicGroups,
   subscribeToMyGroups,
+  subscribeToMyDirectThreads,
+  sendDirectMessage as sendDirectMessageApi,
   PublicProfile,
   SocialGroup,
+  DirectThread,
 } from '../firebase/social';
 import {
   signUpWithEmail,
@@ -50,6 +53,11 @@ type SocialContextValue = {
   hasAnyUnread: boolean;
   markGroupRead: (groupId: string) => void;
   setActiveChatGroupId: (groupId: string | null) => void;
+  threads: DirectThread[];
+  hasDmUnread: (threadId: string) => boolean;
+  markDmRead: (threadId: string) => void;
+  setActiveDmThreadId: (threadId: string | null) => void;
+  sendDirectMessage: (peerUid: string, peerUsername: string, peerAvatarColor: string, text: string) => Promise<void>;
   notificationsEnabled: boolean;
   notificationsSupported: boolean;
   setNotificationsEnabled: (enabled: boolean) => Promise<boolean>;
@@ -76,11 +84,15 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   const [discoveringGroups, setDiscoveringGroups] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [groupReads, setGroupReads] = useState<Record<string, number>>({});
+  const [threads, setThreads] = useState<DirectThread[]>([]);
+  const [dmReads, setDmReads] = useState<Record<string, number>>({});
   const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
   const [hasAccount, setHasAccount] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
   const activeChatGroupIdRef = useRef<string | null>(null);
   const knownLastMessageRef = useRef<Record<string, number> | null>(null);
+  const activeDmThreadIdRef = useRef<string | null>(null);
+  const knownLastDmMessageRef = useRef<Record<string, number> | null>(null);
   const notificationsSupported = Platform.OS === 'web' && typeof window !== 'undefined' && 'Notification' in window;
 
   // Persistent — not one-shot — so logging in/out (switching identity)
@@ -109,6 +121,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     storage.getGroupReads().then(setGroupReads);
     storage.getGroupNotificationsEnabled().then(setNotificationsEnabledState);
+    storage.getDmReads().then(setDmReads);
   }, []);
 
   useEffect(() => {
@@ -179,6 +192,52 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Same realtime-diff pattern as the groups subscription above, mirrored
+  // for 1:1 threads — see the comment there for why the diff-against-known
+  // approach is needed instead of just notifying on every snapshot.
+  useEffect(() => {
+    if (!uid || !username) return;
+    const unsub = subscribeToMyDirectThreads(uid, (myThreads) => {
+      setThreads(myThreads);
+
+      const known = knownLastDmMessageRef.current;
+      const nextKnown: Record<string, number> = {};
+      myThreads.forEach((t) => {
+        nextKnown[t.id] = t.lastMessageAt ?? 0;
+      });
+
+      if (known) {
+        myThreads.forEach((t) => {
+          const prevAt = known[t.id] ?? 0;
+          const isNewMessage = (t.lastMessageAt ?? 0) > prevAt;
+          const fromSomeoneElse = t.lastMessageSenderId && t.lastMessageSenderId !== uid;
+          const viewingThisChat = activeDmThreadIdRef.current === t.id;
+          if (isNewMessage && fromSomeoneElse && !viewingThisChat) {
+            notifyNewDirectMessage(t, uid);
+          }
+        });
+      }
+      knownLastDmMessageRef.current = nextKnown;
+    });
+    return unsub;
+  }, [uid, username]);
+
+  function notifyNewDirectMessage(thread: DirectThread, myUid: string) {
+    if (!notificationsEnabled || !notificationsSupported) return;
+    try {
+      if (Notification.permission !== 'granted') return;
+      const peerUid = thread.participantIds.find((id) => id !== myUid);
+      const peer = peerUid ? thread.participants[peerUid] : null;
+      const preview = thread.lastMessageText ?? '';
+      new Notification(peer?.username ?? 'Nouveau message', {
+        body: preview.length > 120 ? `${preview.slice(0, 117)}...` : preview,
+        tag: `dm-${thread.id}`,
+      });
+    } catch {
+      // see notifyNewMessage above
+    }
+  }
+
   const hasUnread = useCallback(
     (groupId: string) => {
       const group = groups.find((g) => g.id === groupId);
@@ -189,8 +248,6 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     },
     [groups, groupReads, uid]
   );
-
-  const hasAnyUnread = groups.some((g) => hasUnread(g.id));
 
   const markGroupRead = useCallback(
     (groupId: string) => {
@@ -207,6 +264,40 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   const setActiveChatGroupId = useCallback((groupId: string | null) => {
     activeChatGroupIdRef.current = groupId;
   }, []);
+
+  const hasDmUnread = useCallback(
+    (threadId: string) => {
+      const thread = threads.find((t) => t.id === threadId);
+      if (!thread || !thread.lastMessageAt) return false;
+      if (thread.lastMessageSenderId === uid) return false;
+      const readAt = dmReads[threadId] ?? 0;
+      return thread.lastMessageAt > readAt;
+    },
+    [threads, dmReads, uid]
+  );
+
+  const markDmRead = useCallback((threadId: string) => {
+    const at = Date.now();
+    setDmReads((prev) => {
+      const next = { ...prev, [threadId]: at };
+      storage.setDmReads(next);
+      return next;
+    });
+  }, []);
+
+  const setActiveDmThreadId = useCallback((threadId: string | null) => {
+    activeDmThreadIdRef.current = threadId;
+  }, []);
+
+  const hasAnyUnread = groups.some((g) => hasUnread(g.id)) || threads.some((t) => hasDmUnread(t.id));
+
+  const sendDirectMessage = useCallback(
+    async (peerUid: string, peerUsername: string, peerAvatarColor: string, text: string) => {
+      if (!uid || !username) throw new Error('Pas encore connecté.');
+      await sendDirectMessageApi(uid, username, profile.avatarColor, peerUid, peerUsername, peerAvatarColor, text);
+    },
+    [uid, username, profile.avatarColor]
+  );
 
   const setNotificationsEnabled = useCallback(async (enabled: boolean) => {
     if (!enabled) {
@@ -353,6 +444,11 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
     hasAnyUnread,
     markGroupRead,
     setActiveChatGroupId,
+    threads,
+    hasDmUnread,
+    markDmRead,
+    setActiveDmThreadId,
+    sendDirectMessage,
     notificationsEnabled,
     notificationsSupported,
     setNotificationsEnabled,

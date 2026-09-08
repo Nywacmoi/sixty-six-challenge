@@ -9,7 +9,7 @@ import { fonts, radius, spacing, ThemeColors, Typography } from '../theme/theme'
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { PrimaryButton } from '../components/PrimaryButton';
-import { SocialGroup, getProfile, PublicProfile } from '../firebase/social';
+import { SocialGroup, getProfile, PublicProfile, directThreadId } from '../firebase/social';
 import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 
 const GROUP_EMOJIS = ['🔥', '💪', '🧘', '📚', '🏃', '🎯'];
@@ -66,10 +66,10 @@ function UsernameSetup({ colors, typography }: { colors: ThemeColors; typography
   );
 }
 
-function FriendsTab({ colors, typography }: { colors: ThemeColors; typography: Typography }) {
+function FriendsTab({ colors, typography, navigation }: { colors: ThemeColors; typography: Typography; navigation: any }) {
   const styles = createStyles(colors, typography);
   const tabBarClearance = useTabBarClearance();
-  const { following, addFriend, removeFriend, refreshing, refresh } = useSocial();
+  const { uid, following, addFriend, removeFriend, refreshing, refresh, hasDmUnread } = useSocial();
   const { notify, confirmAction } = useConfirm();
   const [draft, setDraft] = useState('');
   const [adding, setAdding] = useState(false);
@@ -132,9 +132,62 @@ function FriendsTab({ colors, typography }: { colors: ThemeColors; typography: T
               <Ionicons name="flame" size={14} color={colors.accent} />
               <Text style={[typography.bodyBold, { color: colors.accent }]}>{item.currentStreak}</Text>
             </View>
+            <Pressable
+              onPress={() =>
+                navigation.navigate('DirectChat', { peerUid: item.uid, peerUsername: item.username, peerAvatarColor: item.avatarColor })
+              }
+              style={styles.msgBtn}
+              hitSlop={8}
+            >
+              {uid && hasDmUnread(directThreadId(uid, item.uid)) && <View style={styles.msgDot} />}
+              <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.accent} />
+            </Pressable>
           </View>
         </Pressable>
       )}
+    />
+  );
+}
+
+function MessagesTab({ colors, typography, navigation }: { colors: ThemeColors; typography: Typography; navigation: any }) {
+  const styles = createStyles(colors, typography);
+  const tabBarClearance = useTabBarClearance();
+  const { uid, threads, hasDmUnread } = useSocial();
+  const sorted = [...threads].sort((a, b) => (b.lastMessageAt ?? 0) - (a.lastMessageAt ?? 0));
+
+  return (
+    <FlatList
+      data={sorted}
+      keyExtractor={(t) => t.id}
+      contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl + tabBarClearance }}
+      ListEmptyComponent={
+        <Text style={[typography.caption, { textAlign: 'center', marginTop: spacing.xl }]}>
+          Aucune conversation pour l'instant. Écris à un ami depuis l'onglet "Amis".
+        </Text>
+      }
+      renderItem={({ item }) => {
+        const peerUid = item.participantIds.find((id) => id !== uid);
+        const peer = peerUid ? item.participants[peerUid] : null;
+        if (!peerUid || !peer) return null;
+        const unread = hasDmUnread(item.id);
+        return (
+          <Pressable
+            style={styles.feedCard}
+            onPress={() => navigation.navigate('DirectChat', { peerUid, peerUsername: peer.username, peerAvatarColor: peer.avatarColor })}
+          >
+            <View style={{ flexDirection: 'row', gap: spacing.md, alignItems: 'center' }}>
+              <Avatar name={peer.username} color={peer.avatarColor} />
+              <View style={{ flex: 1 }}>
+                <Text style={typography.bodyBold}>{peer.username}</Text>
+                <Text style={typography.caption} numberOfLines={1}>
+                  {item.lastMessageText ?? 'Nouvelle conversation'}
+                </Text>
+              </View>
+              {unread && <View style={styles.msgDot} />}
+            </View>
+          </Pressable>
+        );
+      }}
     />
   );
 }
@@ -414,11 +467,12 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
 }
 
 export default function SocialScreen({ navigation }: any) {
-  const [tab, setTab] = useState<'feed' | 'squads'>('feed');
+  const [tab, setTab] = useState<'feed' | 'messages' | 'squads'>('feed');
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
-  const { ready, username } = useSocial();
+  const { ready, username, threads, hasDmUnread } = useSocial();
+  const anyDmUnread = threads.some((t) => hasDmUnread(t.id));
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -428,6 +482,10 @@ export default function SocialScreen({ navigation }: any) {
           <View style={styles.tabBar}>
             <Pressable style={[styles.tabBtn, tab === 'feed' && styles.tabBtnActive]} onPress={() => setTab('feed')}>
               <Text style={[typography.bodyBold, tab !== 'feed' && { color: colors.textSecondary }]}>Amis</Text>
+            </Pressable>
+            <Pressable style={[styles.tabBtn, tab === 'messages' && styles.tabBtnActive]} onPress={() => setTab('messages')}>
+              {anyDmUnread && <View style={styles.tabDot} />}
+              <Text style={[typography.bodyBold, tab !== 'messages' && { color: colors.textSecondary }]}>Messages</Text>
             </Pressable>
             <Pressable style={[styles.tabBtn, tab === 'squads' && styles.tabBtnActive]} onPress={() => setTab('squads')}>
               <Text style={[typography.bodyBold, tab !== 'squads' && { color: colors.textSecondary }]}>Groupes</Text>
@@ -445,7 +503,9 @@ export default function SocialScreen({ navigation }: any) {
           <UsernameSetup colors={colors} typography={typography} />
         </View>
       ) : tab === 'feed' ? (
-        <FriendsTab colors={colors} typography={typography} />
+        <FriendsTab colors={colors} typography={typography} navigation={navigation} />
+      ) : tab === 'messages' ? (
+        <MessagesTab colors={colors} typography={typography} navigation={navigation} />
       ) : (
         <GroupsTab colors={colors} typography={typography} navigation={navigation} />
       )}
@@ -463,8 +523,9 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       padding: 4,
       marginTop: spacing.md,
     },
-    tabBtn: { flex: 1, paddingVertical: 8, borderRadius: radius.pill, alignItems: 'center' },
+    tabBtn: { flex: 1, flexDirection: 'row', gap: 5, paddingVertical: 8, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
     tabBtnActive: { backgroundColor: colors.surfaceElevated },
+    tabDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger },
     setupCard: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,
@@ -495,6 +556,8 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       marginBottom: spacing.sm,
     },
     streakBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    msgBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, padding: 4 },
+    msgDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.danger },
     createCard: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,
