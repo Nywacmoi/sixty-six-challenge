@@ -47,6 +47,8 @@ export type Profile = {
   sportLevel: string | null;
   sportDaysPerWeek: number | null;
   lastCheckInDate: string | null;
+  avatarHead: string | null;
+  avatarFace: string | null;
 };
 
 export type MetricEntry = {

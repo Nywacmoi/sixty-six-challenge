@@ -12,6 +12,8 @@ import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { ProgressBar } from '../components/ProgressBar';
 import { BackupSettings } from '../components/BackupSettings';
 import { AccountSettings } from '../components/AccountSettings';
+import { AvatarDisplay } from '../components/AvatarDisplay';
+import { AvatarWardrobe } from '../components/AvatarWardrobe';
 
 const REMINDER_TIMES = [
   { label: '7h', hour: 7, minute: 0 },
@@ -63,8 +65,15 @@ export default function ProfileScreen() {
         <Text style={typography.display}>Profil</Text>
 
         <View style={styles.profileCard}>
-          <View style={[styles.avatar, { backgroundColor: profile.avatarColor + '33' }]}>
-            <Text style={{ color: profile.avatarColor, fontSize: 28, fontFamily: fonts.display }}>{profile.name[0]?.toUpperCase()}</Text>
+          <View style={[styles.avatar, { backgroundColor: profile.avatarColor + '1F' }]}>
+            <AvatarDisplay
+              color={profile.avatarColor}
+              head={profile.avatarHead}
+              face={profile.avatarFace}
+              hasAura={currentDay >= 75}
+              hasStar={currentDay >= 99}
+              size={84}
+            />
           </View>
           {editingName ? (
             <TextInput
@@ -112,6 +121,10 @@ export default function ProfileScreen() {
             <Text style={typography.caption}>Freezes</Text>
           </View>
         </View>
+
+        <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.xs }]}>Garde-robe</Text>
+        <Text style={[typography.caption, { marginBottom: spacing.sm }]}>Débloque des tenues en avançant dans ton défi</Text>
+        <AvatarWardrobe />
 
         <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Compte</Text>
         <AccountSettings />
@@ -176,7 +189,7 @@ function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     profileCard: { alignItems: 'center', marginTop: spacing.xl, gap: 6 },
-    avatar: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
+    avatar: { width: 108, height: 118, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
     nameInput: {
       ...typography.h1,
       borderBottomWidth: 1,

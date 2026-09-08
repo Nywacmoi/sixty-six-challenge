@@ -43,6 +43,8 @@ const PROFILE_DEFAULTS: Profile = {
   sportLevel: null,
   sportDaysPerWeek: null,
   lastCheckInDate: null,
+  avatarHead: null,
+  avatarFace: null,
 };
 
 export const storage = {
