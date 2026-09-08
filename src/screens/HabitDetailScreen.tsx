@@ -533,7 +533,11 @@ export default function HabitDetailScreen({ route, navigation }: any) {
             </View>
 
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Tes préférences</Text>
-            <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: spacing.sm, marginBottom: spacing.md }}
+            >
               {DIET_OPTIONS.map((opt) => {
                 const active = diet === opt.id;
                 return (
@@ -547,7 +551,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                   </Pressable>
                 );
               })}
-            </View>
+            </ScrollView>
 
             <Text style={[typography.h2, { marginBottom: spacing.md }]}>Idées repas du jour</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
