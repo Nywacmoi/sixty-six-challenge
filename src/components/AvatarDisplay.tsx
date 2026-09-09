@@ -2,22 +2,31 @@ import React, { useEffect, useState } from 'react';
 import { View, Image, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// Renders the profile avatar via DiceBear's "open-peeps" set — real,
-// professionally illustrated hairstyles/accessories/expressions instead of
-// hand-drawn shapes, which is the whole point: a hand-coded SVG here can't
-// reach that finish no matter how much time goes into it. Unequipped slots
-// fall back to a fixed neutral look (short hair, smile, nothing extra)
-// rather than leaving them to DiceBear's per-seed randomization, so nobody
-// ends up with a "locked" cosmetic for free just because their seed
-// happened to roll it.
-const DICEBEAR_BASE = 'https://api.dicebear.com/9.x/open-peeps/png';
+// Renders the profile avatar via DiceBear's "adventurer" set — real,
+// professionally illustrated portraits instead of hand-drawn shapes, which
+// is the whole point: a hand-coded SVG here can't reach that finish no
+// matter how much time goes into it. Unequipped slots fall back to a fixed
+// neutral look (short hair, neutral mouth, nothing extra) rather than
+// leaving them to DiceBear's per-seed randomization, so nobody ends up with
+// a "locked" cosmetic for free just because their seed happened to roll it.
+//
+// Previously "open-peeps" — switched after that style didn't land well.
+// Adventurer's trait schema is unrelated (hair/glasses/features instead of
+// head/accessories/facialHair/clothingColor), so wardrobe item ids in
+// avatarItems.ts were redefined for it too. Anyone who had equipped an
+// open-peeps-era item just falls back to the default look here (their old
+// id matches nothing new) — nothing is lost since unlocks are tracked by
+// day, not by which item was equipped, so they can just re-pick from the
+// wardrobe. Adventurer also has no clothing layer, so `color` below only
+// drives the app-drawn circle behind the portrait, not the portrait itself.
+const DICEBEAR_BASE = 'https://api.dicebear.com/9.x/adventurer/png';
 
 // Fallback hairstyle before the person has equipped anything from the
-// wardrobe — open-peeps has no separate "body" trait for this, hair is the
-// only thing that reads as gendered, so that's the only default this picks.
+// wardrobe — hair is the only trait that reads as gendered, so that's the
+// only default this picks.
 function defaultHairFor(gender: 'homme' | 'femme' | null | undefined) {
-  if (gender === 'femme') return 'long';
-  return 'short1';
+  if (gender === 'femme') return 'long01';
+  return 'short01';
 }
 
 function buildAvatarUrl(opts: {
@@ -27,26 +36,25 @@ function buildAvatarUrl(opts: {
   accessory: string | null;
   facialHair: string | null;
   expression: string | null;
-  clothingColor: string;
   size: number;
 }) {
   const params = new URLSearchParams();
   params.set('seed', opts.seed);
   params.set('size', String(opts.size));
-  params.append('head[]', opts.hair ?? defaultHairFor(opts.gender));
-  params.append('face[]', opts.expression ?? 'smile');
-  params.append('clothingColor[]', opts.clothingColor.replace('#', ''));
+  params.set('backgroundColor', 'transparent');
+  params.append('hair[]', opts.hair ?? defaultHairFor(opts.gender));
+  params.append('mouth[]', opts.expression ?? 'variant01');
   if (opts.accessory) {
-    params.append('accessories[]', opts.accessory);
-    params.set('accessoriesProbability', '100');
+    params.append('glasses[]', opts.accessory);
+    params.set('glassesProbability', '100');
   } else {
-    params.set('accessoriesProbability', '0');
+    params.set('glassesProbability', '0');
   }
   if (opts.facialHair) {
-    params.append('facialHair[]', opts.facialHair);
-    params.set('facialHairProbability', '100');
+    params.append('features[]', opts.facialHair);
+    params.set('featuresProbability', '100');
   } else {
-    params.set('facialHairProbability', '0');
+    params.set('featuresProbability', '0');
   }
   return `${DICEBEAR_BASE}?${params.toString()}`;
 }
@@ -121,7 +129,6 @@ export function AvatarDisplay({
     accessory: accessory ?? null,
     facialHair: facialHair ?? null,
     expression: expression ?? null,
-    clothingColor: color,
     size: 256,
   });
   const displayUri = useCanvasSafeUri(uri);
