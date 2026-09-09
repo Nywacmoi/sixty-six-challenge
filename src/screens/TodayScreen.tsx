@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
@@ -103,12 +103,15 @@ export default function TodayScreen({ navigation }: any) {
           </Pressable>
         </View>
       ) : (
-        <FlatList
-          data={activeHabits}
-          keyExtractor={(h) => h.id}
-          contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl + tabBarClearance }}
-          renderItem={({ item }) => (
+        // A plain ScrollView + map instead of FlatList: habit lists are always
+        // short (never more than a handful of items), so there's nothing to
+        // gain from virtualization — and FlatList's windowing was intermittently
+        // unmounting off-screen rows on a fast scroll, making habits appear to
+        // vanish. Mapping directly keeps every row permanently mounted.
+        <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl + tabBarClearance }}>
+          {activeHabits.map((item) => (
             <HabitRow
+              key={item.id}
               habit={item}
               completed={isCompleted(item.id)}
               streak={getStreak(item.id)}
@@ -116,8 +119,8 @@ export default function TodayScreen({ navigation }: any) {
               onPress={() => navigation.navigate('HabitDetail', { habitId: item.id })}
               onDelete={() => removeHabit(item.id)}
             />
-          )}
-        />
+          ))}
+        </ScrollView>
       )}
 
       {toast && <Toast icon={toast.icon} message={toast.message} accentColor={colors.success} onDismiss={clearToast} />}
