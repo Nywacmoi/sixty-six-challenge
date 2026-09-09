@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
+import { useTopInset } from '../hooks/useTopInset';
 
 const CONFETTI_COLORS = ['#FFC542', '#58B7FF', '#3ECF5B', '#FFFFFF', '#FF8A5C'];
 const PIECE_COUNT = 16;
@@ -63,7 +64,8 @@ function ConfettiPiece({ piece }: { piece: Piece }) {
 // caller (goes true on the todayProgress 0→1 transition, false after).
 export function PerfectDayCelebration({ visible, day }: { visible: boolean; day: number }) {
   const { colors, typography } = useTheme();
-  const styles = createStyles(colors, typography);
+  const topInset = useTopInset();
+  const styles = createStyles(colors, typography, topInset);
   const slide = useRef(new Animated.Value(0)).current;
   const piecesRef = useRef<Piece[]>([]);
 
@@ -104,7 +106,7 @@ export function PerfectDayCelebration({ visible, day }: { visible: boolean; day:
   );
 }
 
-function createStyles(colors: ThemeColors, typography: Typography) {
+function createStyles(colors: ThemeColors, typography: Typography, topInset: number) {
   return StyleSheet.create({
     overlay: {
       ...StyleSheet.absoluteFill,
@@ -112,7 +114,7 @@ function createStyles(colors: ThemeColors, typography: Typography) {
     },
     banner: {
       position: 'absolute',
-      top: spacing.md,
+      top: topInset + spacing.sm,
       left: spacing.lg,
       right: spacing.lg,
       flexDirection: 'row',
