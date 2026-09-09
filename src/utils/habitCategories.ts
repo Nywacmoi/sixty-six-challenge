@@ -2,19 +2,24 @@
 // and commonHabits.ts) — not emoji. Keep each category's icon list disjoint
 // from every other category's so a single habit can't accidentally trigger
 // two modules at once.
-const SPORT_ICONS = ['barbell', 'fitness', 'walk', 'bicycle', 'flash'];
+// 'walk' is deliberately NOT here: it's shared with plain "go for a walk"
+// habits ("Marcher / prendre l'air") that shouldn't pull up the full
+// gym-workout module (weight/BMI tracking, Push/Pull/Legs splits). A
+// step-count habit like "10 000 pas" gets no module for the same reason —
+// none of the existing ones fit a step goal.
+const SPORT_ICONS = ['barbell', 'fitness', 'bicycle', 'flash'];
 export function isSportHabit(name: string, icon: string) {
   return SPORT_ICONS.includes(icon) || /sport|muscu|gym|fitness|salle/i.test(name);
 }
 
 const MEDITATION_ICONS = ['leaf'];
 export function isMeditationHabit(name: string, icon: string) {
-  return MEDITATION_ICONS.includes(icon) || /médit|relax|respiration|calme|mental/i.test(name);
+  return MEDITATION_ICONS.includes(icon) || /médit|relax|respiration|calme|mental|yoga/i.test(name);
 }
 
 const NUTRITION_ICONS = ['nutrition', 'restaurant'];
 export function isNutritionHabit(name: string, icon: string) {
-  return NUTRITION_ICONS.includes(icon) || /aliment|nutrition|manger|repas|sucre|cuisine/i.test(name);
+  return NUTRITION_ICONS.includes(icon) || /aliment|nutrition|manger|repas|sucre|cuisine|petit-déj|petit-dej/i.test(name);
 }
 
 const READING_ICONS = ['book'];
@@ -46,7 +51,10 @@ export function isScreenTimeHabit(name: string, icon: string) {
 
 const LEARNING_ICONS = ['school', 'language'];
 export function isLearningHabit(name: string, icon: string) {
-  return LEARNING_ICONS.includes(icon) || /former|formation|langue|apprendre|compétence|competence|étudier|etudier/i.test(name);
+  return (
+    LEARNING_ICONS.includes(icon) ||
+    /former|formation|langue|apprendre|compétence|competence|étudier|etudier|instrument/i.test(name)
+  );
 }
 
 const PODCAST_ICONS = ['headset'];
@@ -57,4 +65,23 @@ export function isPodcastHabit(name: string, icon: string) {
 const SLEEP_ICONS = ['bed', 'moon'];
 export function isSleepHabit(name: string, icon: string) {
   return SLEEP_ICONS.includes(icon) || /sommeil|dormir|coucher|réveil|reveil|endorm/i.test(name);
+}
+
+const CATEGORY_CHECKS: Array<[string, (name: string, icon: string) => boolean]> = [
+  ['sport', isSportHabit],
+  ['meditation', isMeditationHabit],
+  ['nutrition', isNutritionHabit],
+  ['reading', isReadingHabit],
+  ['jawline', isJawlineHabit],
+  ['moneySaving', isMoneySavingHabit],
+  ['screenTime', isScreenTimeHabit],
+  ['learning', isLearningHabit],
+  ['podcast', isPodcastHabit],
+  ['sleep', isSleepHabit],
+];
+
+// Every theme a habit belongs to — used to suggest new habits that fit
+// themes the person is already building, instead of a fixed generic list.
+export function getHabitCategories(name: string, icon: string): string[] {
+  return CATEGORY_CHECKS.filter(([, check]) => check(name, icon)).map(([key]) => key);
 }

@@ -14,9 +14,9 @@ import { useTopInset } from '../hooks/useTopInset';
 import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 
 const ICONS = [
-  'flame', 'fitness', 'walk', 'barbell', 'bicycle', 'leaf', 'walk', 'nutrition', 'water', 'restaurant',
-  'nutrition', 'wine', 'book', 'pencil', 'color-palette', 'musical-notes', 'laptop', 'bulb',
-  'bed', 'moon', 'phone-portrait', 'water', 'cash', 'locate', 'leaf', 'accessibility',
+  'flame', 'fitness', 'walk', 'barbell', 'bicycle', 'leaf', 'nutrition', 'water', 'restaurant',
+  'wine', 'book', 'pencil', 'color-palette', 'musical-notes', 'laptop', 'bulb',
+  'bed', 'moon', 'phone-portrait', 'cash', 'locate', 'accessibility',
 ];
 
 const ICON_NAMES: Record<string, string> = {
