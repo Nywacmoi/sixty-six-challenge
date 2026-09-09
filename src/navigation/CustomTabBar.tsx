@@ -168,14 +168,18 @@ function createStyles(colors: ThemeColors) {
       paddingTop: 6,
       paddingHorizontal: 14,
       backgroundColor: 'transparent',
-      // On web, pin the bar straight to the true bottom of the viewport
-      // instead of relying on the flex column above it to add up to
-      // exactly the right height — that chain has proven unreliable in
-      // iOS Safari standalone, leaving a gap whose size shifts with how
-      // much content the screen above happens to have.
-      ...(Platform.OS === 'web'
-        ? ({ position: 'fixed', bottom: 0, left: 0, right: 0 } as any)
-        : null),
+      // Floats over the screen instead of sitting in normal layout flow —
+      // on every platform, not just web. Without this, native had nothing
+      // but the screen's own solid background behind the BlurView, so the
+      // "glass" pill just rendered as a flat black rectangle: blurring
+      // solid black behind solid black looks identical to no blur at all.
+      // Overlapping real scrolling content (screens already pad for this
+      // via useTabBarClearance) is what makes the blur actually read as
+      // glass, matching Instagram/Revolut's floating bar.
+      position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
     } as any,
     pill: {
       flex: 1,
