@@ -34,9 +34,14 @@ export function isMoneySavingHabit(name: string, icon: string) {
   return MONEY_SAVING_ICONS.includes(icon) || /fumer|cigarette|tabac|clope|alcool/i.test(name);
 }
 
-const SCREEN_TIME_ICONS = ['airplane', 'eye'];
+const SCREEN_TIME_ICONS = ['airplane', 'eye', 'phone-portrait'];
 export function isScreenTimeHabit(name: string, icon: string) {
-  return SCREEN_TIME_ICONS.includes(icon) || /réseaux sociaux|reseaux sociaux|pause écran|pause ecran|temps d'écran|temps d'ecran/i.test(name);
+  return (
+    SCREEN_TIME_ICONS.includes(icon) ||
+    /réseaux sociaux|reseaux sociaux|pause écran|pause ecran|temps d'écran|temps d'ecran|pas d'écran|pas d'ecran|téléphone|telephone/i.test(
+      name
+    )
+  );
 }
 
 const LEARNING_ICONS = ['school', 'language'];

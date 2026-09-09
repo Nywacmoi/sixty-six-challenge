@@ -20,7 +20,7 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
     description: 'Bien démarrer chaque journée',
     habits: [
       { name: "Boire un verre d'eau", icon: 'water', color: '#4E9BFF' },
-      { name: 'Étirements', icon: 'leaf', color: '#3ECF5B' },
+      { name: 'Étirements', icon: 'body', color: '#3ECF5B' },
       { name: 'Pas de téléphone au réveil', icon: 'phone-portrait', color: '#FF4D8D' },
     ],
     program: {
@@ -69,7 +69,7 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
     habits: [
       { name: 'Séance de sport', icon: 'barbell', color: '#FF5A2E' },
       { name: '10 000 pas', icon: 'walk', color: '#2EC4B6' },
-      { name: 'Étirements', icon: 'leaf', color: '#3ECF5B' },
+      { name: 'Étirements', icon: 'body', color: '#3ECF5B' },
     ],
     program: {
       subtitle: 'Programme sportif progressif sur 4 semaines',
@@ -269,6 +269,43 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
       { name: 'Lecture avant dodo', icon: 'book', color: '#4E9BFF' },
       { name: 'Coucher à heure fixe', icon: 'bed', color: '#2EC4B6' },
     ],
+    program: {
+      subtitle: '4 semaines pour un vrai rituel de fin de journée',
+      weeks: [
+        {
+          label: 'Semaine 1',
+          focus: 'Un signal clair de fin de journée',
+          actions: [
+            'Fixe une heure de coucher et couche-toi à cette heure, même si tu ne dors pas tout de suite',
+            'Pose le téléphone hors de la chambre (ou en mode avion) 30 minutes avant',
+          ],
+        },
+        {
+          label: 'Semaine 2',
+          focus: 'Remplacer l’écran par la lecture',
+          actions: [
+            'Lis au moins 10 pages avant de dormir, à la place du téléphone',
+            'Garde la même heure de coucher, y compris le week-end',
+          ],
+        },
+        {
+          label: 'Semaine 3',
+          focus: 'Creuser la coupure écran',
+          actions: [
+            'Coupe les écrans 1h avant le coucher, pas juste une fois au lit',
+            'Ajoute un petit rituel avant la lecture (tisane, lumière tamisée…)',
+          ],
+        },
+        {
+          label: 'Semaine 4',
+          focus: 'Consolider le rituel',
+          actions: [
+            'Enchaîne les 3 habitudes dans le même ordre chaque soir, sans y penser',
+            'Compare ta qualité de sommeil ressentie à celle du début du mois',
+          ],
+        },
+      ],
+    },
   },
   {
     id: 'jawline',
@@ -279,5 +316,42 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
       { name: 'Mewing (posture linguale)', icon: 'accessibility', color: '#4E9BFF' },
       { name: 'Exercices mâchoire', icon: 'accessibility', color: '#FF5A2E' },
     ],
+    program: {
+      subtitle: '4 semaines pour ancrer la posture et voir les premiers effets',
+      weeks: [
+        {
+          label: 'Semaine 1',
+          focus: 'Apprendre le bon geste',
+          actions: [
+            'Positionne la langue au palais (mewing) dès que tu y penses dans la journée',
+            '5 minutes d’exercices de mâchoire, mouvements lents et contrôlés',
+          ],
+        },
+        {
+          label: 'Semaine 2',
+          focus: 'Tenir la posture plus longtemps',
+          actions: [
+            'Vise à garder le mewing pendant les activités passives (téléphone, télé, marche)',
+            'Passe à 8-10 minutes d’exercices, ajoute des répétitions',
+          ],
+        },
+        {
+          label: 'Semaine 3',
+          focus: 'Mesurer les progrès',
+          actions: [
+            'Prends une mesure du tour de mâchoire chaque semaine (Suivi corporel)',
+            'Ajoute une photo de profil pour comparer visuellement au fil des semaines',
+          ],
+        },
+        {
+          label: 'Semaine 4',
+          focus: 'Rendre ça automatique',
+          actions: [
+            'Le mewing doit devenir un réflexe permanent, pas un exercice ponctuel',
+            'Note si tu remarques une différence de fermeté ou de posture',
+          ],
+        },
+      ],
+    },
   },
 ];
