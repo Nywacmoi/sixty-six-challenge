@@ -7,6 +7,7 @@ import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
 import { todayKey } from '../utils/date';
 import { COMMON_HABITS } from '../data/commonHabits';
+import { getHabitCategories } from '../utils/habitCategories';
 import { PrimaryButton } from './PrimaryButton';
 
 const GREETINGS = ['Salut {name}', 'Hey {name} !', 'Bonjour {name}', '{name}, prêt(e) pour aujourd\'hui ?'];
@@ -45,10 +46,20 @@ const SUGGESTION_COUNT = 4;
 
 type Step = 'mood' | 'moodReaction' | 'sleep' | 'sleepReaction' | 'routine';
 
+const TYPEWRITER_SPEED = 18;
+// How long to leave a reaction on screen AFTER it's done typing — a flat
+// delay measured from when the step starts was mostly eaten by the
+// typewriter animation itself on longer reactions, leaving almost nothing
+// to actually read before it auto-advanced.
+const REACTION_READING_PAUSE = 1800;
+function reactionDelay(text: string) {
+  return text.length * TYPEWRITER_SPEED + REACTION_READING_PAUSE;
+}
+
 // Reveals `text` a few characters at a time — the "AI is typing" feel from
 // the reference, reinterpreted with this app's own colors instead of a
 // fixed dark palette (kept theme-aware, not copied verbatim).
-function useTypewriter(text: string, speed = 18) {
+function useTypewriter(text: string, speed = TYPEWRITER_SPEED) {
   const [shown, setShown] = useState('');
   useEffect(() => {
     setShown('');
@@ -80,7 +91,15 @@ export function MorningCheckIn() {
 
   const firstName = profile.name?.trim().split(/\s+/)[0] || 'toi';
   const existingNames = new Set(habits.map((h) => h.name.trim().toLowerCase()));
-  const suggestions = COMMON_HABITS.filter((h) => !existingNames.has(h.name.trim().toLowerCase())).slice(0, SUGGESTION_COUNT);
+  // Habit stacking: prioritize suggestions that share a theme with what the
+  // person already does (sport, sommeil, méditation...) over the generic
+  // catalogue order, so "ajouter une routine" builds on their existing
+  // habits rather than throwing an unrelated one at them.
+  const userCategories = new Set(habits.flatMap((h) => getHabitCategories(h.name, h.icon)));
+  const notAdded = COMMON_HABITS.filter((h) => !existingNames.has(h.name.trim().toLowerCase()));
+  const related = notAdded.filter((h) => getHabitCategories(h.name, h.icon).some((c) => userCategories.has(c)));
+  const unrelated = notAdded.filter((h) => !related.includes(h));
+  const suggestions = [...related, ...unrelated].slice(0, SUGGESTION_COUNT);
 
   const greetingTemplate = GREETINGS[Math.max(0, currentDay) % GREETINGS.length];
   const greeting = useTypewriter(greetingTemplate.replace('{name}', firstName));
@@ -104,13 +123,13 @@ export function MorningCheckIn() {
   const pickMood = (label: string) => {
     setMood(label);
     setStep('moodReaction');
-    setTimeout(() => setStep('sleep'), 1500);
+    setTimeout(() => setStep('sleep'), reactionDelay(MOOD_REACTIONS[label] ?? ''));
   };
 
   const pickSleep = (label: string) => {
     setSleep(label);
     setStep('sleepReaction');
-    setTimeout(() => setStep('routine'), 1500);
+    setTimeout(() => setStep('routine'), reactionDelay(SLEEP_REACTIONS[label] ?? ''));
   };
 
   const toggle = (name: string) => {
