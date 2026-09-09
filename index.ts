@@ -44,7 +44,7 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   setMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
   setMeta('apple-mobile-web-app-title', 'Défi 99');
   setMeta('mobile-web-app-capable', 'yes');
-  setMeta('theme-color', '#FFFFFF');
+  setMeta('theme-color', '#000000');
 
   // `100dvh` alone isn't reliably correct in iOS Safari standalone (home
   // screen) mode. A debug pass on a real device (iPhone 16 Pro, true CSS
