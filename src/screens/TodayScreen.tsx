@@ -53,25 +53,48 @@ export default function TodayScreen({ navigation }: any) {
         : `${topStreakHabit.streak} jour${plural} d'affilée sur "${topStreakHabit.name}" — plus que ${record - topStreakHabit.streak} pour battre ton record.`;
   }
 
+  const header = (
+    <View style={[styles.header, { paddingTop: topInset + spacing.sm }]}>
+      <View>
+        <Text style={typography.caption}>JOUR {Math.max(currentDay, activeHabits.length ? 1 : 0)} SUR {TOTAL_DAYS}</Text>
+        <Text style={typography.display}>Aujourd'hui</Text>
+      </View>
+      <Pressable
+        style={styles.addBtn}
+        onPress={() => navigation.navigate('AddHabit')}
+        accessibilityRole="button"
+        accessibilityLabel="Ajouter une habitude"
+      >
+        <Ionicons name="add" size={26} color="#FFFFFF" />
+      </Pressable>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <View style={[styles.header, { paddingTop: topInset + spacing.sm }]}>
-        <View>
-          <Text style={typography.caption}>JOUR {Math.max(currentDay, activeHabits.length ? 1 : 0)} SUR {TOTAL_DAYS}</Text>
-          <Text style={typography.display}>Aujourd'hui</Text>
-        </View>
-        <Pressable
-          style={styles.addBtn}
-          onPress={() => navigation.navigate('AddHabit')}
-          accessibilityRole="button"
-          accessibilityLabel="Ajouter une habitude"
-        >
-          <Ionicons name="add" size={26} color="#FFFFFF" />
-        </Pressable>
-      </View>
-
-      {activeHabits.length > 0 && (
+      {activeHabits.length === 0 ? (
         <>
+          {header}
+          <View style={styles.empty}>
+            <Ionicons name="flame-outline" size={48} color={colors.textTertiary} />
+            <Text style={[typography.h2, { marginTop: spacing.md, textAlign: 'center' }]}>Construis de la discipline, pas des habitudes</Text>
+            <Text style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs }]}>
+              Ajoute ta première habitude et commence ta transformation de {TOTAL_DAYS} jours.
+            </Text>
+            <PrimaryButton label="Ajouter ma première habitude" onPress={() => navigation.navigate('AddHabit')} style={{ marginTop: spacing.lg, paddingHorizontal: spacing.xl }} />
+            <Pressable onPress={() => navigation.navigate('AddHabit', { initialTab: 'template' })} style={{ marginTop: spacing.md }}>
+              <Text style={[typography.bodyBold, { color: colors.accent }]}>Ou découvrir des modèles de routine</Text>
+            </Pressable>
+          </View>
+        </>
+      ) : (
+        // Everything — header included — scrolls together as one page instead
+        // of pinning the dashboard card in place above a separately-scrolling
+        // list: that split made the screen feel like two stacked widgets
+        // rather than one continuous view, especially once the card grows
+        // tall (e.g. on a perfect day).
+        <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxl + tabBarClearance }}>
+          {header}
           <TodayDashboard
             doneCount={activeHabits.filter((h) => isCompleted(h.id)).length}
             totalCount={activeHabits.length}
@@ -87,39 +110,19 @@ export default function TodayScreen({ navigation }: any) {
               <ShareDayCta day={Math.max(currentDay, 1)} onPress={() => navigation.navigate('WeeklyRecap')} />
             </View>
           )}
-        </>
-      )}
-
-      {activeHabits.length === 0 ? (
-        <View style={styles.empty}>
-          <Ionicons name="flame-outline" size={48} color={colors.textTertiary} />
-          <Text style={[typography.h2, { marginTop: spacing.md, textAlign: 'center' }]}>Construis de la discipline, pas des habitudes</Text>
-          <Text style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs }]}>
-            Ajoute ta première habitude et commence ta transformation de {TOTAL_DAYS} jours.
-          </Text>
-          <PrimaryButton label="Ajouter ma première habitude" onPress={() => navigation.navigate('AddHabit')} style={{ marginTop: spacing.lg, paddingHorizontal: spacing.xl }} />
-          <Pressable onPress={() => navigation.navigate('AddHabit', { initialTab: 'template' })} style={{ marginTop: spacing.md }}>
-            <Text style={[typography.bodyBold, { color: colors.accent }]}>Ou découvrir des modèles de routine</Text>
-          </Pressable>
-        </View>
-      ) : (
-        // A plain ScrollView + map instead of FlatList: habit lists are always
-        // short (never more than a handful of items), so there's nothing to
-        // gain from virtualization — and FlatList's windowing was intermittently
-        // unmounting off-screen rows on a fast scroll, making habits appear to
-        // vanish. Mapping directly keeps every row permanently mounted.
-        <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl + tabBarClearance }}>
-          {activeHabits.map((item) => (
-            <HabitRow
-              key={item.id}
-              habit={item}
-              completed={isCompleted(item.id)}
-              streak={getStreak(item.id)}
-              onToggle={() => toggleCompletion(item.id)}
-              onPress={() => navigation.navigate('HabitDetail', { habitId: item.id })}
-              onDelete={() => removeHabit(item.id)}
-            />
-          ))}
+          <View style={{ padding: spacing.lg }}>
+            {activeHabits.map((item) => (
+              <HabitRow
+                key={item.id}
+                habit={item}
+                completed={isCompleted(item.id)}
+                streak={getStreak(item.id)}
+                onToggle={() => toggleCompletion(item.id)}
+                onPress={() => navigation.navigate('HabitDetail', { habitId: item.id })}
+                onDelete={() => removeHabit(item.id)}
+              />
+            ))}
+          </View>
         </ScrollView>
       )}
 

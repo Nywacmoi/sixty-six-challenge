@@ -108,7 +108,7 @@ export function TodayDashboard({
       </View>
 
       <View style={styles.ringSection}>
-        <RingProgress progress={score} size={148} strokeWidth={12} color={status.color}>
+        <RingProgress progress={score} size={112} strokeWidth={10} color={status.color}>
           <Text style={styles.ringPct}>{Math.round(score * 100)}%</Text>
           <Text style={styles.ringSub}>
             {doneCount}/{totalCount}
@@ -195,7 +195,7 @@ function createStyles(colors: ThemeColors) {
     statusDot: { width: 6, height: 6, borderRadius: 3 },
     statusText: { fontFamily: fonts.semiBold, fontSize: 10.5, letterSpacing: 0.4, textTransform: 'uppercase' },
     ringSection: { alignItems: 'center', marginTop: spacing.md },
-    ringPct: { fontFamily: fonts.extraBold, fontSize: 34, color: colors.text, letterSpacing: -0.6 },
+    ringPct: { fontFamily: fonts.extraBold, fontSize: 27, color: colors.text, letterSpacing: -0.6 },
     ringSub: { fontFamily: fonts.medium, fontSize: 11, color: colors.textTertiary, marginTop: 2 },
     xpRow: { flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: spacing.lg },
     xpBadge: {
