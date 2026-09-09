@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, Platform, Animated, LayoutChangeEvent } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,6 +39,8 @@ const LABELS: Record<string, string> = {
   Profile: 'Profil',
 };
 
+type TabLayout = { x: number; width: number };
+
 export function CustomTabBar({ state, navigation }: any) {
   const insets = useSafeAreaInsets();
   const { colors, mode } = useTheme();
@@ -46,6 +48,41 @@ export function CustomTabBar({ state, navigation }: any) {
   const bottomPadding = Math.max(insets.bottom, 14);
   const keyboardVisible = useKeyboardVisible();
   const { hasAnyUnread } = useSocial();
+
+  // The raised capsule is one shared Animated.View that slides/squishes to
+  // whichever tab is active, instead of each tab independently toggling its
+  // own background — that's what makes switching tabs feel like one piece
+  // of material moving, not five buttons snapping on and off.
+  const layouts = useRef<Record<number, TabLayout>>({});
+  const indicatorX = useRef(new Animated.Value(0)).current;
+  const indicatorWidth = useRef(new Animated.Value(0)).current;
+  const squish = useRef(new Animated.Value(1)).current;
+  const [indicatorReady, setIndicatorReady] = useState(false);
+
+  const moveIndicator = (index: number, animate: boolean) => {
+    const layout = layouts.current[index];
+    if (!layout) return;
+    if (animate) {
+      Animated.parallel([
+        Animated.spring(indicatorX, { toValue: layout.x, useNativeDriver: false, friction: 9, tension: 70 }),
+        Animated.spring(indicatorWidth, { toValue: layout.width, useNativeDriver: false, friction: 9, tension: 70 }),
+        Animated.sequence([
+          Animated.timing(squish, { toValue: 1.18, duration: 110, useNativeDriver: false }),
+          Animated.spring(squish, { toValue: 1, useNativeDriver: false, friction: 5, tension: 120 }),
+        ]),
+      ]).start();
+    } else {
+      indicatorX.setValue(layout.x);
+      indicatorWidth.setValue(layout.width);
+      setIndicatorReady(true);
+    }
+  };
+
+  const handleTabLayout = (index: number) => (e: LayoutChangeEvent) => {
+    const { x, width } = e.nativeEvent.layout;
+    layouts.current[index] = { x, width };
+    if (index === state.index && !indicatorReady) moveIndicator(index, false);
+  };
 
   if (keyboardVisible) return null;
 
@@ -69,6 +106,22 @@ export function CustomTabBar({ state, navigation }: any) {
             </>
           )}
         </View>
+
+        {indicatorReady && (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.indicator,
+              {
+                backgroundColor: colors.background + 'F2',
+                borderColor: colors.border,
+                width: indicatorWidth,
+                transform: [{ translateX: indicatorX }, { scaleX: squish }],
+              },
+            ]}
+          />
+        )}
+
         {state.routes.map((route: any, index: number) => {
           const focused = state.index === index;
           const color = focused ? colors.accent : colors.textTertiary;
@@ -78,11 +131,19 @@ export function CustomTabBar({ state, navigation }: any) {
             const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
             if (!focused && !event.defaultPrevented) {
               navigation.navigate(route.name);
+              moveIndicator(index, true);
             }
           };
 
           return (
-            <Pressable key={route.key} onPress={onPress} style={styles.tab} hitSlop={8} tabIndex={-1}>
+            <Pressable
+              key={route.key}
+              onPress={onPress}
+              onLayout={handleTabLayout(index)}
+              style={styles.tab}
+              hitSlop={8}
+              tabIndex={-1}
+            >
               <View style={[styles.tabInner, focused && styles.tabInnerActive]}>
                 <View>
                   <Ionicons name={iconName as any} size={20} color={color} />
@@ -156,6 +217,22 @@ function createStyles(colors: ThemeColors) {
       backdropFilter: 'blur(18px) saturate(200%)',
       WebkitBackdropFilter: 'blur(18px) saturate(200%)',
     } as any,
+    // The shared capsule that slides between tabs — same footprint as the
+    // old per-tab `tabInnerActive`, just owned by one Animated.View instead
+    // of toggled on whichever tab happens to be focused.
+    indicator: {
+      position: 'absolute',
+      left: 0,
+      bottom: 0,
+      height: 66,
+      borderRadius: 28,
+      borderWidth: StyleSheet.hairlineWidth,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 5,
+    },
     tab: {
       flex: 1,
       alignItems: 'center',
@@ -172,19 +249,12 @@ function createStyles(colors: ThemeColors) {
     },
     // Taller than the pill's own padding allows, so it pokes up past the
     // bar's top edge instead of just tinting in place — the "raised chip"
-    // look from the reference the user sent, not a flush highlight.
+    // look from the reference the user sent, not a flush highlight. The
+    // background itself now lives on the shared `indicator` above; this
+    // just keeps the active tab's own icon/label sized to match its footprint.
     tabInnerActive: {
-      backgroundColor: colors.background + 'F2',
       paddingVertical: 16,
       paddingHorizontal: 14,
-      borderRadius: 28,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      elevation: 5,
     },
     label: {
       fontFamily: fonts.semiBold,

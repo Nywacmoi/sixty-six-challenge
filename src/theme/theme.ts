@@ -28,12 +28,14 @@ export const lightColors: ThemeColors = {
   gold: '#B8860B',
 };
 
+// Whoop-style: near-true black rather than the usual dark-grey app surface,
+// so cards read mostly via a hairline border instead of a brightness jump.
 export const darkColors: ThemeColors = {
-  background: '#0B0B0D',
-  surface: '#17171A',
-  surfaceElevated: '#202024',
-  border: '#2A2A2E',
-  accent: '#3D8BFF',
+  background: '#000000',
+  surface: '#0A0A0C',
+  surfaceElevated: '#131316',
+  border: '#1C1C20',
+  accent: '#58B7FF',
   accentDim: '#0D2B5C',
   text: '#F5F5F0',
   textSecondary: '#9B9B9F',
@@ -43,23 +45,24 @@ export const darkColors: ThemeColors = {
   gold: '#FFC542',
 };
 
-// The monospace "dashboard readout" font from the Aujourd'hui banner,
-// applied to the whole app's typography for a consistent look.
+// Space Grotesk — same geometric-grotesk spirit as the previous Space Mono,
+// but reads as a real app instead of a terminal, and its tighter numerals
+// hold up better at the large "hero number" sizes used across the app.
 export const fonts = {
-  display: 'SpaceMono_700Bold',
-  regular: 'SpaceMono_400Regular',
-  medium: 'SpaceMono_400Regular',
-  semiBold: 'SpaceMono_700Bold',
-  bold: 'SpaceMono_700Bold',
-  extraBold: 'SpaceMono_700Bold',
-  mono: 'SpaceMono_400Regular',
-  monoBold: 'SpaceMono_700Bold',
+  display: 'SpaceGrotesk_700Bold',
+  regular: 'SpaceGrotesk_400Regular',
+  medium: 'SpaceGrotesk_500Medium',
+  semiBold: 'SpaceGrotesk_700Bold',
+  bold: 'SpaceGrotesk_700Bold',
+  extraBold: 'SpaceGrotesk_700Bold',
+  mono: 'SpaceGrotesk_400Regular',
+  monoBold: 'SpaceGrotesk_700Bold',
 };
 
 export function getTypography(colors: ThemeColors) {
   return {
-    display: { fontSize: 36, fontFamily: fonts.display, color: colors.text, letterSpacing: 0.4 },
-    h1: { fontSize: 26, fontFamily: fonts.display, color: colors.text, letterSpacing: 0.3 },
+    display: { fontSize: 36, fontFamily: fonts.display, color: colors.text, letterSpacing: -0.8 },
+    h1: { fontSize: 26, fontFamily: fonts.display, color: colors.text, letterSpacing: -0.5 },
     h2: { fontSize: 18, fontFamily: fonts.bold, color: colors.text },
     body: { fontSize: 15, fontFamily: fonts.regular, color: colors.text },
     bodyBold: { fontSize: 15, fontFamily: fonts.semiBold, color: colors.text },

@@ -7,11 +7,13 @@ export function RingProgress({
   progress,
   size = 120,
   strokeWidth = 12,
+  color,
   children,
 }: {
   progress: number;
   size?: number;
   strokeWidth?: number;
+  color?: string;
   children?: React.ReactNode;
 }) {
   const { colors } = useTheme();
@@ -28,7 +30,7 @@ export function RingProgress({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={colors.accent}
+          stroke={color ?? colors.accent}
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}

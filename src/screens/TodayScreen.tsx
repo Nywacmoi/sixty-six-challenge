@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,11 +11,13 @@ import { AchievementToast } from '../components/AchievementToast';
 import { Toast } from '../components/Toast';
 import { TodayDashboard } from '../components/TodayDashboard';
 import { ShareDayCta } from '../components/ShareDayCta';
+import { InsightBanner } from '../components/InsightBanner';
+import { PerfectDayCelebration } from '../components/PerfectDayCelebration';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 
 export default function TodayScreen({ navigation }: any) {
-  const { habits, currentDay, todayProgress, isCompleted, getStreak, getLongestStreak, profile, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast } = useApp();
+  const { habits, currentDay, todayProgress, isCompleted, getStreak, getLongestStreak, profile, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast, levelInfo } = useApp();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const activeHabits = habits.filter((h) => !h.archived);
@@ -23,6 +25,33 @@ export default function TodayScreen({ navigation }: any) {
   const tabBarClearance = useTabBarClearance();
   const bestStreak = activeHabits.reduce((max, h) => Math.max(max, getLongestStreak(h.id)), 0);
   const currentStreak = activeHabits.reduce((max, h) => Math.max(max, getStreak(h.id)), 0);
+
+  const [celebrating, setCelebrating] = useState(false);
+  const wasCompleteRef = useRef(todayProgress >= 1);
+  useEffect(() => {
+    const isComplete = todayProgress >= 1;
+    if (isComplete && !wasCompleteRef.current && activeHabits.length > 0) {
+      setCelebrating(true);
+      const timer = setTimeout(() => setCelebrating(false), 3000);
+      wasCompleteRef.current = true;
+      return () => clearTimeout(timer);
+    }
+    wasCompleteRef.current = isComplete;
+  }, [todayProgress, activeHabits.length]);
+
+  const topStreakHabit = activeHabits.reduce<{ id: string; name: string; streak: number } | null>((best, h) => {
+    const s = getStreak(h.id);
+    return s > 0 && (!best || s > best.streak) ? { id: h.id, name: h.name, streak: s } : best;
+  }, null);
+  let insightText: string | null = null;
+  if (topStreakHabit) {
+    const record = getLongestStreak(topStreakHabit.id);
+    const plural = topStreakHabit.streak > 1 ? 's' : '';
+    insightText =
+      topStreakHabit.streak >= record
+        ? `${topStreakHabit.streak} jour${plural} d'affilée sur "${topStreakHabit.name}" — c'est ton record, continue.`
+        : `${topStreakHabit.streak} jour${plural} d'affilée sur "${topStreakHabit.name}" — plus que ${record - topStreakHabit.streak} pour battre ton record.`;
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -50,7 +79,9 @@ export default function TodayScreen({ navigation }: any) {
             currentStreak={currentStreak}
             streakFreezes={profile.streakFreezes}
             done={todayProgress >= 1}
+            levelInfo={levelInfo}
           />
+          {insightText && <InsightBanner text={insightText} />}
           {todayProgress >= 1 && (
             <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.md }}>
               <ShareDayCta day={Math.max(currentDay, 1)} onPress={() => navigation.navigate('WeeklyRecap')} />
@@ -91,6 +122,7 @@ export default function TodayScreen({ navigation }: any) {
 
       {toast && <Toast icon={toast.icon} message={toast.message} accentColor={colors.success} onDismiss={clearToast} />}
       {!toast && newlyUnlocked && <AchievementToast achievement={newlyUnlocked} onDismiss={clearNewlyUnlocked} />}
+      <PerfectDayCelebration visible={celebrating} day={Math.max(currentDay, 1)} />
     </SafeAreaView>
   );
 }
