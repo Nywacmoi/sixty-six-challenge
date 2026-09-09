@@ -18,6 +18,14 @@ export default function ProgressScreen({ navigation }: any) {
   const topInset = useTopInset();
   const tabBarClearance = useTabBarClearance();
 
+  // The maximum number of check-ins that could exist so far, if every active
+  // habit had been checked every day since the challenge started — the same
+  // approximation WeeklyRecapScreen uses for its own (7-day) rate, just over
+  // the whole challenge instead of one week. Gives an honest "how am I
+  // doing" number, which nothing on this screen showed before.
+  const maxPossibleCompletions = activeHabits.length * Math.max(currentDay, 1);
+  const completionRate = maxPossibleCompletions > 0 ? getTotalCompletions() / maxPossibleCompletions : 0;
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl + tabBarClearance }}>
@@ -35,6 +43,7 @@ export default function ProgressScreen({ navigation }: any) {
         </Pressable>
 
         <View style={styles.ringSection}>
+          <Text style={[typography.caption, { marginBottom: spacing.sm }]}>TON PARCOURS</Text>
           <RingProgress progress={overallProgress} size={160} strokeWidth={14}>
             <Text style={[typography.display, { fontSize: 40 }]}>{currentDay}</Text>
             <Text style={typography.caption}>sur {TOTAL_DAYS} jours</Text>
@@ -42,6 +51,10 @@ export default function ProgressScreen({ navigation }: any) {
         </View>
 
         <View style={styles.summaryRow}>
+          <View style={styles.summaryCard}>
+            <Text style={typography.h1}>{Math.round(completionRate * 100)}%</Text>
+            <Text style={typography.caption}>Taux de réussite</Text>
+          </View>
           <View style={styles.summaryCard}>
             <Text style={typography.h1}>{getTotalCompletions()}</Text>
             <Text style={typography.caption}>Check-ins au total</Text>
@@ -61,11 +74,16 @@ export default function ProgressScreen({ navigation }: any) {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={typography.bodyBold}>{h.name}</Text>
-              <Text style={typography.caption}>Meilleure série : {getLongestStreak(h.id)} jour{getLongestStreak(h.id) > 1 ? 's' : ''}</Text>
+              <Text style={typography.caption}>
+                Record : {getLongestStreak(h.id)} jour{getLongestStreak(h.id) > 1 ? 's' : ''}
+              </Text>
             </View>
             <View style={styles.streakPill}>
               <Ionicons name="flame" size={14} color={colors.accent} />
-              <Text style={[typography.bodyBold, { color: colors.accent }]}>{getStreak(h.id)}</Text>
+              <View>
+                <Text style={[typography.bodyBold, { color: colors.accent }]}>{getStreak(h.id)}</Text>
+                <Text style={[typography.small, { color: colors.textTertiary }]}>actuelle</Text>
+              </View>
             </View>
           </View>
         ))}
