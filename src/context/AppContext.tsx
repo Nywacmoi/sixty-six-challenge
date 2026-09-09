@@ -7,6 +7,7 @@ import { ACHIEVEMENTS } from '../data/achievements';
 import { TOTAL_DAYS } from '../theme/theme';
 import { getLevelInfo, LevelInfo, XP_PER_COMPLETION, XP_PER_ACHIEVEMENT, MAX_STREAK_FREEZES } from '../utils/gamification';
 import { migrateHabitIcon } from '../utils/iconMigration';
+import { syncWidget } from '../utils/widgetSync';
 
 type NewlyUnlocked = { id: string; title: string; icon: string } | null;
 type ToastState = { icon: string; message: string } | null;
@@ -494,6 +495,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return () => document.removeEventListener('visibilitychange', onVisible);
     }
   }, [loading, profile.reminderEnabled, profile.reminderHour, profile.reminderMinute, profile.lastReminderShownDate, habits, todayProgress]);
+
+  // Keeps the iOS home screen widget in sync — it reads from a shared App
+  // Group container it can't compute itself, so the RN app pushes fresh
+  // numbers into it (and asks WidgetKit to redraw) on every change.
+  useEffect(() => {
+    if (loading) return;
+    const activeHabits = habits.filter((h) => !h.archived);
+    syncWidget({
+      currentDay: Math.max(currentDay, activeHabits.length ? 1 : 0),
+      totalDays: TOTAL_DAYS,
+      doneCount: activeHabits.filter((h) => isCompleted(h.id)).length,
+      totalCount: activeHabits.length,
+      progress: todayProgress,
+    });
+  }, [loading, currentDay, todayProgress, habits, isCompleted]);
 
   const value: AppContextValue = {
     loading,
