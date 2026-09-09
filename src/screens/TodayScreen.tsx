@@ -53,7 +53,7 @@ export default function TodayScreen({ navigation }: any) {
           />
           {todayProgress >= 1 && (
             <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.md }}>
-              <ShareDayCta day={currentDay} onPress={() => navigation.navigate('Social')} />
+              <ShareDayCta day={Math.max(currentDay, 1)} onPress={() => navigation.navigate('WeeklyRecap')} />
             </View>
           )}
         </>

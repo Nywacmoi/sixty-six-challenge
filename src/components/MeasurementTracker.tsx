@@ -108,17 +108,17 @@ export function MeasurementTracker({
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flex: 1, marginRight: spacing.sm }}>
           <View style={[styles.iconBadge, { backgroundColor: colors.accent + '1A' }]}>
             <Ionicons name={icon} size={15} color={colors.accent} />
           </View>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={[typography.bodyBold, { color: colors.text }]}>{title}</Text>
             {subtitle && <Text style={[typography.small, { color: colors.textTertiary }]}>{subtitle}</Text>}
           </View>
         </View>
         {!editing && (
-          <Pressable onPress={startEditing} style={styles.editBtn} hitSlop={8}>
+          <Pressable onPress={startEditing} style={[styles.editBtn, { flexShrink: 0 }]} hitSlop={8}>
             <Ionicons name="add-circle-outline" size={18} color={colors.accent} />
             <Text style={[typography.small, { color: colors.accent }]}>Noter aujourd'hui</Text>
           </Pressable>

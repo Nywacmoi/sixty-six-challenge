@@ -236,11 +236,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const first = ACHIEVEMENTS.find((a) => a.id === toUnlock[0])!;
         setNewlyUnlocked({ id: first.id, title: first.title, icon: first.icon });
 
-        const nextProfile = {
-          ...currentProfile,
-          streakFreezes: Math.min(currentProfile.streakFreezes + toUnlock.length, MAX_STREAK_FREEZES),
-        };
-        setProfile(nextProfile);
+        let nextProfile!: Profile;
+        setProfile((prev) => {
+          nextProfile = {
+            ...prev,
+            streakFreezes: Math.min(prev.streakFreezes + toUnlock.length, MAX_STREAK_FREEZES),
+          };
+          return nextProfile;
+        });
         await storage.setProfile(nextProfile);
       }
     },
@@ -261,13 +264,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setHabits(next);
       await storage.setHabits(next);
 
-      if (!profile.challengeStartDate) {
-        const nextProfile = { ...profile, challengeStartDate: todayKey() };
-        setProfile(nextProfile);
-        await storage.setProfile(nextProfile);
-      }
+      let nextProfile: Profile | null = null;
+      setProfile((prev) => {
+        if (prev.challengeStartDate) return prev;
+        nextProfile = { ...prev, challengeStartDate: todayKey() };
+        return nextProfile;
+      });
+      if (nextProfile) await storage.setProfile(nextProfile);
     },
-    [habits, profile]
+    [habits]
   );
 
   const addHabitsBulk = useCallback(
@@ -284,13 +289,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setHabits(next);
       await storage.setHabits(next);
 
-      if (!profile.challengeStartDate) {
-        const nextProfile = { ...profile, challengeStartDate: todayKey() };
-        setProfile(nextProfile);
-        await storage.setProfile(nextProfile);
-      }
+      let nextProfile: Profile | null = null;
+      setProfile((prev) => {
+        if (prev.challengeStartDate) return prev;
+        nextProfile = { ...prev, challengeStartDate: todayKey() };
+        return nextProfile;
+      });
+      if (nextProfile) await storage.setProfile(nextProfile);
     },
-    [habits, profile]
+    [habits]
   );
 
   const updateHabit = useCallback(
@@ -410,22 +417,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setCompletions(next);
       await storage.setCompletions(next);
 
-      const nextProfile = { ...profile, streakFreezes: profile.streakFreezes - 1 };
-      setProfile(nextProfile);
+      let nextProfile!: Profile;
+      setProfile((prev) => {
+        nextProfile = { ...prev, streakFreezes: prev.streakFreezes - 1 };
+        return nextProfile;
+      });
       await storage.setProfile(nextProfile);
       return true;
     },
-    [canUseStreakFreeze, completions, profile]
+    [canUseStreakFreeze, completions]
   );
 
-  const updateProfile = useCallback(
-    async (patch: Partial<Profile>) => {
-      const next = { ...profile, ...patch };
-      setProfile(next);
-      await storage.setProfile(next);
-    },
-    [profile]
-  );
+  const updateProfile = useCallback(async (patch: Partial<Profile>) => {
+    // Reads the latest profile via the functional updater rather than the
+    // closure's `profile` — two profile writes fired back-to-back (e.g.
+    // addHabit's challengeStartDate immediately followed by this from
+    // MorningCheckIn) would otherwise race: the second call could still see
+    // the pre-update `profile` and silently overwrite the first change.
+    let next!: Profile;
+    setProfile((prev) => {
+      next = { ...prev, ...patch };
+      return next;
+    });
+    await storage.setProfile(next);
+  }, []);
 
   const exportData = useCallback(() => storage.exportAll(), []);
 
