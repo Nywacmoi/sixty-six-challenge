@@ -353,7 +353,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                         style={[styles.quizChip, quizGoal === g.id && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                       >
                         <Ionicons name={g.emoji as any} size={14} color={quizGoal === g.id ? colors.accent : colors.textSecondary} />
-                        <Text>{g.label}</Text>
+                        <Text style={[typography.bodyBold, { color: quizGoal === g.id ? colors.accent : colors.text }]}>{g.label}</Text>
                       </Pressable>
                     ))}
                   </View>
@@ -366,7 +366,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                         onPress={() => setQuizLevel(l.id)}
                         style={[styles.quizChip, quizLevel === l.id && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
                       >
-                        <Text>{l.label}</Text>
+                        <Text style={[typography.bodyBold, { color: quizLevel === l.id ? colors.accent : colors.text }]}>{l.label}</Text>
                       </Pressable>
                     ))}
                   </View>
