@@ -153,6 +153,22 @@ export function MorningCheckIn() {
     setStep('routine');
   };
 
+  // One step back at a time, like the reference's back chevron — pop the
+  // last exchange out of the scrollback and clear the answer it held so the
+  // chips for that step are re-selectable.
+  const goBack = () => {
+    if (step === 'mood') return;
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setHistory((h) => h.slice(0, -1));
+    if (step === 'sleep') {
+      setMood(null);
+      setStep('mood');
+    } else if (step === 'routine') {
+      setSleep(null);
+      setStep('sleep');
+    }
+  };
+
   const toggle = (name: string) => {
     setChecked((prev) => {
       const next = new Set(prev);
@@ -179,13 +195,24 @@ export function MorningCheckIn() {
         />
       )}
       <View style={{ flex: 1, paddingTop: topInset + spacing.md, paddingHorizontal: spacing.lg }}>
-        <View style={styles.progressTrack}>
-          <Animated.View
-            style={[
-              styles.progressFill,
-              { backgroundColor: colors.accent, width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
-            ]}
-          />
+        <View style={styles.topRow}>
+          <Pressable
+            onPress={goBack}
+            disabled={step === 'mood'}
+            style={[styles.backBtn, { opacity: step === 'mood' ? 0 : 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Revenir à la question précédente"
+          >
+            <Ionicons name="chevron-back" size={20} color={colors.text} />
+          </Pressable>
+          <View style={styles.progressTrack}>
+            <Animated.View
+              style={[
+                styles.progressFill,
+                { backgroundColor: colors.accent, width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
+              ]}
+            />
+          </View>
         </View>
 
         <ScrollView
@@ -199,8 +226,8 @@ export function MorningCheckIn() {
             <View key={i} style={styles.historyBlock}>
               <Text style={[styles.historyBot, { color: colors.textTertiary }]}>{entry.bot}</Text>
               <View style={styles.answerRow}>
-                <View style={[styles.answerChip, { backgroundColor: colors.accent + '1F', borderColor: colors.accent + '55' }]}>
-                  <Text style={[styles.answerChipText, { color: colors.accent }]}>{entry.answer}</Text>
+                <View style={[styles.answerChip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+                  <Text style={[styles.answerChipText, { color: colors.text }]}>{entry.answer}</Text>
                 </View>
               </View>
             </View>
@@ -290,12 +317,21 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       backgroundColor: colors.background,
       zIndex: 200,
     },
+    topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xl },
+    backBtn: {
+      width: 34,
+      height: 34,
+      borderRadius: radius.pill,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     progressTrack: {
+      flex: 1,
       height: 4,
       borderRadius: radius.pill,
       backgroundColor: colors.surfaceElevated,
       overflow: 'hidden',
-      marginBottom: spacing.xl,
     },
     progressFill: {
       height: '100%',
