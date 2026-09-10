@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
-import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
+import { fonts, radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
 import { todayKey } from '../utils/date';
 import { COMMON_HABITS } from '../data/commonHabits';
@@ -72,6 +72,63 @@ function useTypewriter(text: string, speed = TYPEWRITER_SPEED) {
     return () => clearInterval(interval);
   }, [text]);
   return shown;
+}
+
+// Big icon-card options instead of small pill chips — the reference gives
+// each choice real visual weight (large icon, generous card) rather than a
+// row of compact buttons, and staggers them in one at a time instead of
+// popping in together.
+function OptionCard({ icon, label, onPress, index }: { icon: string; label: string; onPress: () => void; index: number }) {
+  const { colors } = useTheme();
+  const enter = useRef(new Animated.Value(0)).current;
+  const press = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.timing(enter, { toValue: 1, duration: 340, delay: index * 70, useNativeDriver: true }).start();
+  }, []);
+
+  return (
+    <Animated.View
+      style={{
+        width: '47%',
+        opacity: enter,
+        transform: [
+          { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) },
+          { scale: Animated.multiply(enter.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }), press) },
+        ],
+      }}
+    >
+      <Pressable
+        onPress={onPress}
+        onPressIn={() => Animated.spring(press, { toValue: 0.95, useNativeDriver: true, friction: 7, tension: 200 }).start()}
+        onPressOut={() => Animated.spring(press, { toValue: 1, useNativeDriver: true, friction: 5, tension: 150 }).start()}
+        style={{
+          alignItems: 'center',
+          gap: spacing.sm,
+          paddingVertical: spacing.lg,
+          paddingHorizontal: spacing.sm,
+          borderRadius: radius.lg,
+          borderWidth: 1.5,
+          borderColor: colors.border,
+          backgroundColor: colors.surface,
+        }}
+      >
+        <View
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: radius.pill,
+            backgroundColor: colors.accent + '14',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Ionicons name={icon as any} size={26} color={colors.accent} />
+        </View>
+        <Text style={{ fontFamily: fonts.semiBold, fontSize: 14, color: colors.text }}>{label}</Text>
+      </Pressable>
+    </Animated.View>
+  );
 }
 
 export function MorningCheckIn() {
@@ -244,22 +301,16 @@ export function MorningCheckIn() {
 
             {step === 'mood' && (
               <View style={styles.moodRow}>
-                {MOODS.map((m) => (
-                  <Pressable key={m.label} onPress={() => pickMood(m.label)} style={styles.moodChip}>
-                    <Ionicons name={m.icon as any} size={22} color={colors.accent} />
-                    <Text style={typography.caption}>{m.label}</Text>
-                  </Pressable>
+                {MOODS.map((m, i) => (
+                  <OptionCard key={m.label} icon={m.icon} label={m.label} onPress={() => pickMood(m.label)} index={i} />
                 ))}
               </View>
             )}
 
             {step === 'sleep' && (
               <View style={styles.moodRow}>
-                {SLEEPS.map((s) => (
-                  <Pressable key={s.label} onPress={() => pickSleep(s.label)} style={styles.moodChip}>
-                    <Ionicons name={s.icon as any} size={22} color={colors.accent} />
-                    <Text style={typography.caption}>{s.label}</Text>
-                  </Pressable>
+                {SLEEPS.map((s, i) => (
+                  <OptionCard key={s.label} icon={s.icon} label={s.label} onPress={() => pickSleep(s.label)} index={i} />
                 ))}
               </View>
             )}
@@ -353,19 +404,11 @@ function createStyles(colors: ThemeColors, typography: Typography) {
     },
     answerChipText: { fontFamily: typography.bodyBold.fontFamily, fontSize: 14 },
     greeting: { fontFamily: typography.body.fontFamily, fontSize: 16, marginBottom: spacing.sm },
-    question: { fontFamily: typography.display.fontFamily, fontSize: 26, lineHeight: 32 },
-    moodRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xl, flexWrap: 'wrap' },
-    moodChip: {
-      alignItems: 'center',
-      gap: 4,
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.md,
-      borderRadius: radius.md,
-      borderWidth: 1.5,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-      minWidth: 76,
-    },
+    // Regular weight, not the app's bold display face — the reference's
+    // questions read as light, almost conversational, and a heavy weight
+    // here fought that "someone typing to you" feel.
+    question: { fontFamily: fonts.regular, fontSize: 26, lineHeight: 32 },
+    moodRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.xl },
     list: { marginTop: spacing.xl, gap: spacing.sm },
     row: {
       flexDirection: 'row',
