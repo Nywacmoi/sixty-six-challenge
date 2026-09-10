@@ -8,6 +8,7 @@ import { TOTAL_DAYS } from '../theme/theme';
 import { getLevelInfo, LevelInfo, XP_PER_COMPLETION, XP_PER_ACHIEVEMENT, MAX_STREAK_FREEZES } from '../utils/gamification';
 import { migrateHabitIcon } from '../utils/iconMigration';
 import { syncWidget } from '../utils/widgetSync';
+import { syncLiveActivity } from '../utils/liveActivitySync';
 
 type NewlyUnlocked = { id: string; title: string; icon: string } | null;
 type ToastState = { icon: string; message: string } | null;
@@ -510,6 +511,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       progress: todayProgress,
     });
   }, [loading, currentDay, todayProgress, habits, isCompleted]);
+
+  // Live Activity (lock screen + Dynamic Island) — same numbers as the
+  // widget, pushed through ActivityKit instead of a shared UserDefaults
+  // container, so it updates the moment a habit is toggled rather than
+  // waiting for the next home-screen widget refresh.
+  useEffect(() => {
+    if (loading) return;
+    const activeHabits = habits.filter((h) => !h.archived);
+    const streak = activeHabits.reduce((max, h) => Math.max(max, getStreak(h.id)), 0);
+    syncLiveActivity({
+      currentDay: Math.max(currentDay, activeHabits.length ? 1 : 0),
+      totalDays: TOTAL_DAYS,
+      doneCount: activeHabits.filter((h) => isCompleted(h.id)).length,
+      totalCount: activeHabits.length,
+      progress: todayProgress,
+      streak,
+    });
+  }, [loading, currentDay, todayProgress, habits, isCompleted, getStreak]);
 
   const value: AppContextValue = {
     loading,

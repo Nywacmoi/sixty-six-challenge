@@ -1,0 +1,8 @@
+{
+  "name": "live-activity",
+  "version": "1.0.0",
+  "description": "Local bridge from JS to ActivityKit Live Activities for Défi 99",
+  "main": "src/index.ts",
+  "source": "src/index.ts",
+  "license": "MIT"
+}

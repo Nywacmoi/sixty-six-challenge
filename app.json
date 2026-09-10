@@ -14,7 +14,8 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Utilisé pour ajouter des photos de progression à tes check-ins quotidiens.",
-        "NSMotionUsageDescription": "Utilisé pour afficher ton nombre de pas du jour sur les habitudes liées à la marche."
+        "NSMotionUsageDescription": "Utilisé pour afficher ton nombre de pas du jour sur les habitudes liées à la marche.",
+        "NSSupportsLiveActivities": true
       },
       "entitlements": {
         "com.apple.security.application-groups": ["group.com.nywacmoi.defi99"]
