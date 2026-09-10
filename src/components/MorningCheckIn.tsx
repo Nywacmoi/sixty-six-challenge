@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Animated, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Animated, ScrollView, Platform, UIManager, LayoutAnimation } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
@@ -9,6 +10,10 @@ import { todayKey } from '../utils/date';
 import { COMMON_HABITS } from '../data/commonHabits';
 import { getHabitCategories } from '../utils/habitCategories';
 import { PrimaryButton } from './PrimaryButton';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const GREETINGS = ['Salut {name}', 'Hey {name} !', 'Bonjour {name}', '{name}, prêt(e) pour aujourd\'hui ?'];
 
@@ -71,7 +76,7 @@ function useTypewriter(text: string, speed = TYPEWRITER_SPEED) {
 
 export function MorningCheckIn() {
   const { profile, habits, currentDay, addHabitsBulk, updateProfile } = useApp();
-  const { colors, typography } = useTheme();
+  const { colors, typography, mode } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
   const [step, setStep] = useState<Step>('mood');
@@ -135,12 +140,14 @@ export function MorningCheckIn() {
   };
 
   const pickMood = (label: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setHistory((h) => [...h, { bot: moodQuestion, answer: label }]);
     setMood(label);
     setStep('sleep');
   };
 
   const pickSleep = (label: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setHistory((h) => [...h, { bot: `${MOOD_REACTIONS[mood ?? ''] ?? ''} ${sleepQuestion}`, answer: label }]);
     setSleep(label);
     setStep('routine');
@@ -162,102 +169,112 @@ export function MorningCheckIn() {
   };
 
   return (
-    <Animated.View style={[styles.overlay, { paddingTop: topInset + spacing.md, opacity: fadeIn }]}>
-      <View style={styles.progressTrack}>
-        <Animated.View
-          style={[
-            styles.progressFill,
-            { backgroundColor: colors.accent, width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
-          ]}
+    <Animated.View style={[styles.overlay, { opacity: fadeIn }]}>
+      {mode === 'dark' && (
+        <LinearGradient
+          colors={['#000000', '#000000', colors.accent + '17']}
+          locations={[0, 0.5, 1]}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
         />
-      </View>
+      )}
+      <View style={{ flex: 1, paddingTop: topInset + spacing.md, paddingHorizontal: spacing.lg }}>
+        <View style={styles.progressTrack}>
+          <Animated.View
+            style={[
+              styles.progressFill,
+              { backgroundColor: colors.accent, width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
+            ]}
+          />
+        </View>
 
-      <ScrollView
-        ref={scrollRef}
-        style={{ flex: 1 }}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
-      >
-        {history.map((entry, i) => (
-          <View key={i} style={styles.historyBlock}>
-            <Text style={[styles.historyBot, { color: colors.textTertiary }]}>{entry.bot}</Text>
-            <View style={styles.answerRow}>
-              <View style={[styles.answerChip, { backgroundColor: colors.accent + '1F', borderColor: colors.accent + '55' }]}>
-                <Text style={[styles.answerChipText, { color: colors.accent }]}>{entry.answer}</Text>
+        <ScrollView
+          ref={scrollRef}
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+        >
+          {history.map((entry, i) => (
+            <View key={i} style={styles.historyBlock}>
+              <Text style={[styles.historyBot, { color: colors.textTertiary }]}>{entry.bot}</Text>
+              <View style={styles.answerRow}>
+                <View style={[styles.answerChip, { backgroundColor: colors.accent + '1F', borderColor: colors.accent + '55' }]}>
+                  <Text style={[styles.answerChipText, { color: colors.accent }]}>{entry.answer}</Text>
+                </View>
               </View>
             </View>
-          </View>
-        ))}
+          ))}
 
-        <Animated.View
-          style={{
-            opacity: blockIn,
-            transform: [{ translateY: blockIn.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
-          }}
-        >
-          {step === 'mood' && <Text style={[styles.greeting, { color: colors.textSecondary }]}>{greeting}</Text>}
-          <Text style={[styles.question, { color: colors.text }]}>{revealedText}</Text>
+          <Animated.View
+            style={{
+              opacity: blockIn,
+              transform: [{ translateY: blockIn.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+            }}
+          >
+            {step === 'mood' && <Text style={[styles.greeting, { color: colors.textSecondary }]}>{greeting}</Text>}
+            <Text style={[styles.question, { color: colors.text }]}>{revealedText}</Text>
 
-          {step === 'mood' && (
-            <View style={styles.moodRow}>
-              {MOODS.map((m) => (
-                <Pressable key={m.label} onPress={() => pickMood(m.label)} style={styles.moodChip}>
-                  <Ionicons name={m.icon as any} size={22} color={colors.accent} />
-                  <Text style={typography.caption}>{m.label}</Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
+            {step === 'mood' && (
+              <View style={styles.moodRow}>
+                {MOODS.map((m) => (
+                  <Pressable key={m.label} onPress={() => pickMood(m.label)} style={styles.moodChip}>
+                    <Ionicons name={m.icon as any} size={22} color={colors.accent} />
+                    <Text style={typography.caption}>{m.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
 
-          {step === 'sleep' && (
-            <View style={styles.moodRow}>
-              {SLEEPS.map((s) => (
-                <Pressable key={s.label} onPress={() => pickSleep(s.label)} style={styles.moodChip}>
-                  <Ionicons name={s.icon as any} size={22} color={colors.accent} />
-                  <Text style={typography.caption}>{s.label}</Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
+            {step === 'sleep' && (
+              <View style={styles.moodRow}>
+                {SLEEPS.map((s) => (
+                  <Pressable key={s.label} onPress={() => pickSleep(s.label)} style={styles.moodChip}>
+                    <Ionicons name={s.icon as any} size={22} color={colors.accent} />
+                    <Text style={typography.caption}>{s.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
 
-          {step === 'routine' && (
-            <>
-              {suggestions.length > 0 ? (
-                <View style={styles.list}>
-                  {suggestions.map((h) => {
-                    const active = checked.has(h.name);
-                    return (
-                      <Pressable key={h.name} onPress={() => toggle(h.name)} style={styles.row}>
-                        <View style={[styles.iconWrap, { backgroundColor: h.color + '26' }]}>
-                          <Ionicons name={h.icon as any} size={18} color={h.color} />
-                        </View>
-                        <Text style={[typography.body, { flex: 1 }]}>{h.name}</Text>
-                        <Ionicons name={active ? 'checkbox' : 'square-outline'} size={22} color={active ? colors.accent : colors.textTertiary} />
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              ) : (
-                <Text style={[typography.caption, { marginTop: spacing.lg }]}>
-                  Tu as déjà de quoi faire — direction ta journée.
-                </Text>
-              )}
+            {step === 'routine' && (
+              <>
+                {suggestions.length > 0 ? (
+                  <View style={styles.list}>
+                    {suggestions.map((h) => {
+                      const active = checked.has(h.name);
+                      return (
+                        <Pressable key={h.name} onPress={() => toggle(h.name)} style={styles.row}>
+                          <View style={[styles.iconWrap, { backgroundColor: h.color + '26' }]}>
+                            <Ionicons name={h.icon as any} size={18} color={h.color} />
+                          </View>
+                          <Text style={[typography.body, { flex: 1 }]}>{h.name}</Text>
+                          <Ionicons name={active ? 'checkbox' : 'square-outline'} size={22} color={active ? colors.accent : colors.textTertiary} />
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <Text style={[typography.caption, { marginTop: spacing.lg }]}>
+                    Tu as déjà de quoi faire — direction ta journée.
+                  </Text>
+                )}
 
-              <PrimaryButton
-                label={checked.size > 0 ? `Ajouter (${checked.size}) et commencer` : 'Commencer ma journée'}
-                onPress={confirmRoutine}
-                style={{ marginTop: spacing.xl }}
-              />
-              {checked.size === 0 && (
-                <Pressable onPress={finish} style={{ marginTop: spacing.md, alignItems: 'center' }}>
-                  <Text style={[typography.caption, { color: colors.textTertiary }]}>Passer</Text>
-                </Pressable>
-              )}
-            </>
-          )}
-        </Animated.View>
-      </ScrollView>
+                <PrimaryButton
+                  label={checked.size > 0 ? `Ajouter (${checked.size}) et commencer` : 'Commencer ma journée'}
+                  onPress={confirmRoutine}
+                  style={{ marginTop: spacing.xl }}
+                />
+                {checked.size === 0 && (
+                  <Pressable onPress={finish} style={{ marginTop: spacing.md, alignItems: 'center' }}>
+                    <Text style={[typography.caption, { color: colors.textTertiary }]}>Passer</Text>
+                  </Pressable>
+                )}
+              </>
+            )}
+          </Animated.View>
+        </ScrollView>
+      </View>
     </Animated.View>
   );
 }
@@ -272,7 +289,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       bottom: 0,
       backgroundColor: colors.background,
       zIndex: 200,
-      paddingHorizontal: spacing.lg,
     },
     progressTrack: {
       height: 4,
@@ -281,7 +297,14 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       overflow: 'hidden',
       marginBottom: spacing.xl,
     },
-    progressFill: { height: '100%', borderRadius: radius.pill },
+    progressFill: {
+      height: '100%',
+      borderRadius: radius.pill,
+      shadowColor: colors.accent,
+      shadowOpacity: 0.7,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 0 },
+    },
     scrollContent: { flexGrow: 1, justifyContent: 'center', paddingBottom: spacing.xxl },
     historyBlock: { marginBottom: spacing.lg, opacity: 0.5 },
     historyBot: { fontFamily: typography.body.fontFamily, fontSize: 15, lineHeight: 20 },
