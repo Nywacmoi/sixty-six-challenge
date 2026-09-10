@@ -5,11 +5,16 @@
 // 'walk' is deliberately NOT here: it's shared with plain "go for a walk"
 // habits ("Marcher / prendre l'air") that shouldn't pull up the full
 // gym-workout module (weight/BMI tracking, Push/Pull/Legs splits). A
-// step-count habit like "10 000 pas" gets no module for the same reason —
-// none of the existing ones fit a step goal.
+// step-count habit like "10 000 pas" gets the dedicated steps module
+// instead (see isStepsHabit below).
 const SPORT_ICONS = ['barbell', 'fitness', 'bicycle', 'flash'];
 export function isSportHabit(name: string, icon: string) {
   return SPORT_ICONS.includes(icon) || /sport|muscu|gym|fitness|salle/i.test(name);
+}
+
+const STEPS_ICONS = ['walk'];
+export function isStepsHabit(name: string, icon: string) {
+  return STEPS_ICONS.includes(icon) || /\d[\s .,]?\d{2,3}\s*pas\b|nombre de pas|compteur de pas/i.test(name);
 }
 
 const MEDITATION_ICONS = ['leaf'];
@@ -69,6 +74,7 @@ export function isSleepHabit(name: string, icon: string) {
 
 const CATEGORY_CHECKS: Array<[string, (name: string, icon: string) => boolean]> = [
   ['sport', isSportHabit],
+  ['steps', isStepsHabit],
   ['meditation', isMeditationHabit],
   ['nutrition', isNutritionHabit],
   ['reading', isReadingHabit],

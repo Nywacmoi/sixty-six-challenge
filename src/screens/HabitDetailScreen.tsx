@@ -37,9 +37,11 @@ import { JAWLINE_SESSIONS } from '../data/jawlineProgram';
 import { SLEEP_TIPS } from '../data/sleepTips';
 import { MeasurementTracker } from '../components/MeasurementTracker';
 import { SavingsCounter } from '../components/SavingsCounter';
+import { StepsCard } from '../components/StepsCard';
 import { PrimaryButton } from '../components/PrimaryButton';
 import {
   isSportHabit,
+  isStepsHabit,
   isMeditationHabit,
   isNutritionHabit,
   isReadingHabit,
@@ -508,6 +510,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                 ))}
               </View>
             )}
+          </>
+        )}
+
+        {isStepsHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Pas aujourd'hui</Text>
+            <StepsCard habitName={habit.name} />
           </>
         )}
 
