@@ -6,13 +6,13 @@ export type WorkoutSplit = {
   id: string;
   label: string;
   emoji: string;
-  // Two alternate exercise sets for the same muscle group — a weekly
-  // schedule often trains the same split twice a week (e.g. pull on
-  // Tuesday and Friday), and showing the exact same list both times gets
+  // Alternate exercise sets for the same muscle group — a weekly schedule
+  // often trains the same split two or three times a week (e.g. push on
+  // Monday and Thursday), and showing the exact same list every time gets
   // stale fast. Which one shows is picked deterministically per day (see
-  // dailyIndex in utils/date.ts), so it's stable within a day but differs
-  // from one occurrence to the next in a typical weekly split.
-  variants: [Exercise[], Exercise[]];
+  // dailyIndex in utils/date.ts), so it's stable within a day but cycles
+  // through the full set across a split's recurring days.
+  variants: Exercise[][];
 };
 
 export type WeeklySchedule = {
@@ -42,6 +42,13 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
         { name: 'Développé Arnold', reps: '3x10', pattern: 'push' },
         { name: 'Pompes diamant', reps: '3x max', pattern: 'push', alt: 'Trop dur ? Pompes diamant sur genoux' },
       ],
+      [
+        { name: 'Développé décliné haltères', reps: '4x10', pattern: 'push' },
+        { name: 'Écarté incliné haltères', reps: '3x12', pattern: 'raise' },
+        { name: 'Extension triceps nuque', reps: '3x12', pattern: 'push' },
+        { name: 'Pompes serrées (triceps)', reps: '3x max', pattern: 'push', alt: 'Trop dur ? Pompes serrées sur les genoux' },
+        { name: 'Dips lestés', reps: '3x10', pattern: 'push', alt: 'Trop dur ? Dips au poids du corps' },
+      ],
     ],
   },
   {
@@ -62,6 +69,13 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
         { name: 'Tractions prise supination', reps: '3x max', pattern: 'pull', alt: 'Trop dur ? Tirage vertical prise serrée' },
         { name: 'Curl marteau', reps: '3x12', pattern: 'curl' },
         { name: 'Curl pupitre', reps: '3x12', pattern: 'curl' },
+      ],
+      [
+        { name: 'Tirage poitrine prise large', reps: '4x10', pattern: 'pull' },
+        { name: 'Rowing haltère buste penché', reps: '3x12', pattern: 'pull' },
+        { name: 'Tractions prise neutre', reps: '3x max', pattern: 'pull', alt: 'Trop dur ? Tirage vertical prise neutre' },
+        { name: 'Curl concentré', reps: '3x12 par bras', pattern: 'curl' },
+        { name: 'Extension lombaire', reps: '3x15', pattern: 'hold' },
       ],
     ],
   },
@@ -84,6 +98,13 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
         { name: 'Leg curl', reps: '3x12', pattern: 'curl' },
         { name: 'Mollets assis', reps: '4x15', pattern: 'raise' },
       ],
+      [
+        { name: 'Squat bulgare haltères', reps: '3x10 par jambe', pattern: 'squat' },
+        { name: 'Presse à cuisses pieds hauts', reps: '3x12', pattern: 'squat' },
+        { name: 'Soulevé de terre jambes tendues', reps: '3x10', pattern: 'squat', alt: 'Trop dur ? Charge légère, amplitude réduite' },
+        { name: 'Extension quadriceps', reps: '3x15', pattern: 'raise' },
+        { name: 'Mollets à la presse', reps: '4x15', pattern: 'raise' },
+      ],
     ],
   },
   {
@@ -102,6 +123,12 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
         { name: 'Élévations frontales', reps: '3x12', pattern: 'raise' },
         { name: 'Oiseau (rear delt fly)', reps: '3x15', pattern: 'raise' },
         { name: 'Élévations latérales à la poulie', reps: '3x15', pattern: 'raise' },
+      ],
+      [
+        { name: 'Développé haltères assis', reps: '4x10', pattern: 'push' },
+        { name: 'Rowing menton', reps: '3x12', pattern: 'pull' },
+        { name: 'Oiseau haltères penché en avant', reps: '3x15', pattern: 'raise' },
+        { name: 'Shrugs à la barre', reps: '3x12', pattern: 'raise' },
       ],
     ],
   },
@@ -122,6 +149,12 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
         { name: 'Vélo (crunch croisé)', reps: '3x20', pattern: 'crunch' },
         { name: 'Planche dynamique', reps: '3x20', pattern: 'hold', alt: 'Trop dur ? Planche statique classique' },
       ],
+      [
+        { name: 'Crunchs inversés', reps: '3x15', pattern: 'crunch' },
+        { name: 'Gainage avec levée de jambe', reps: '3x30s par côté', pattern: 'hold', alt: 'Trop dur ? Gainage classique' },
+        { name: 'Toe touches', reps: '3x20', pattern: 'crunch' },
+        { name: 'Superman', reps: '3x15', pattern: 'hold' },
+      ],
     ],
   },
   {
@@ -137,6 +170,11 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
         { name: 'Vélo ou rameur', reps: '25 min', pattern: 'run' },
         { name: 'Corde à sauter', reps: '3x3 min', pattern: 'run' },
         { name: 'Burpees', reps: '3x10', pattern: 'run', alt: 'Trop dur ? Sans le saut final' },
+      ],
+      [
+        { name: 'Marche rapide en côte ou tapis incliné', reps: '25 min', pattern: 'run' },
+        { name: 'Natation', reps: '25 min', pattern: 'run' },
+        { name: 'Boxe (shadow boxing)', reps: '15 min', pattern: 'run', alt: 'Trop dur ? 10 min avec pauses' },
       ],
     ],
   },
@@ -158,6 +196,13 @@ export const WORKOUT_SPLITS: WorkoutSplit[] = [
         { name: 'Tractions ou tirage vertical', reps: '3x8', pattern: 'pull', alt: 'Trop dur ? Tirage vertical assisté' },
         { name: 'Pompes', reps: '3x max', pattern: 'push', alt: 'Trop dur ? Pompes sur genoux' },
         { name: 'Planche', reps: '3x30s', pattern: 'hold' },
+      ],
+      [
+        { name: 'Fentes sautées', reps: '3x12', pattern: 'squat', alt: 'Trop dur ? Fentes marchées sans saut' },
+        { name: 'Pompes-rowing (renegade row)', reps: '3x8 par bras', pattern: 'pull' },
+        { name: 'Soulevé de terre roumain haltères', reps: '3x10', pattern: 'squat' },
+        { name: 'Développé militaire haltères', reps: '3x10', pattern: 'push' },
+        { name: 'Mountain climbers', reps: '3x30s', pattern: 'crunch' },
       ],
     ],
   },

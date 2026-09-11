@@ -156,7 +156,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   };
 
   const activeSplit = WORKOUT_SPLITS.find((s) => s.id === selectedSession);
-  const splitExercises = activeSplit ? activeSplit.variants[dailyIndex(2, activeSplit.id)] : undefined;
+  const splitExercises = activeSplit ? activeSplit.variants[dailyIndex(activeSplit.variants.length, activeSplit.id)] : undefined;
   const nutritionTip = DAILY_NUTRITION_TIPS[dailyIndex(DAILY_NUTRITION_TIPS.length, habitId)];
   const diet = profile.foodPreference ?? 'omnivore';
   const activeMeditation = MEDITATION_SESSIONS.find((s) => s.id === selectedSession);
