@@ -3,44 +3,35 @@
 // user-created habits' icon field.
 export type CommonHabit = { name: string; icon: string; color: string };
 
+// Trimmed from ~40 to the 20 strongest suggestions: kept the universal,
+// clearly-actionable ones and anything with its own detail-screen module
+// (sport, steps, meditation, nutrition, reading, learning, podcast, screen
+// time, money-saving — see src/utils/habitCategories.ts), cut the vague
+// ones ("Ranger / nettoyer", "Économiser de l'argent") and near-duplicates
+// ("Se coucher tôt" next to "Dormir 8h", "Faire une pause écran" next to
+// two other screen-time habits already on the list). This list is purely
+// the quick-add suggestions — it doesn't touch anyone's own custom habits,
+// and the routine templates in data/templates.ts define their own habits
+// independently of this file.
 export const COMMON_HABITS: CommonHabit[] = [
   { name: "Boire de l'eau", icon: 'water', color: '#4E9BFF' },
   { name: 'Faire du sport', icon: 'barbell', color: '#FF5A2E' },
   { name: '10 000 pas', icon: 'walk', color: '#2EC4B6' },
   { name: 'Méditer', icon: 'leaf', color: '#B15AFF' },
   { name: 'Lire 20 pages', icon: 'book', color: '#4E9BFF' },
-  { name: 'Étirements', icon: 'body', color: '#3ECF5B' },
   { name: 'Dormir 8h', icon: 'bed', color: '#2EC4B6' },
   { name: "Pas d'écran le soir", icon: 'phone-portrait', color: '#FF4D8D' },
   { name: '5 fruits et légumes', icon: 'nutrition', color: '#3ECF5B' },
   { name: 'Sans sucre ajouté', icon: 'restaurant', color: '#FF5A2E' },
   { name: 'Écriture / journaling', icon: 'pencil', color: '#FFC542' },
   { name: 'Planifier sa journée', icon: 'calendar', color: '#FFC542' },
-  { name: 'Se coucher tôt', icon: 'moon', color: '#B15AFF' },
   { name: 'Pas de téléphone au réveil', icon: 'phone-portrait', color: '#FF4D8D' },
   { name: 'Douche froide', icon: 'snow', color: '#4E9BFF' },
-  { name: 'Ranger / nettoyer', icon: 'home', color: '#2EC4B6' },
-  { name: "Économiser de l'argent", icon: 'cash', color: '#FFC542' },
-  { name: 'Mewing (posture linguale)', icon: 'accessibility', color: '#4E9BFF' },
   { name: 'Écouter un podcast', icon: 'headset', color: '#4E9BFF' },
   { name: 'Se former (apprendre une compétence)', icon: 'school', color: '#B15AFF' },
   { name: 'Apprendre une langue', icon: 'language', color: '#2EC4B6' },
   { name: 'Arrêter de fumer', icon: 'ban', color: '#FF5A2E' },
   { name: "Réduire l'alcool", icon: 'wine', color: '#FF4D8D' },
   { name: 'Moins de réseaux sociaux', icon: 'airplane', color: '#FFC542' },
-  { name: 'Marcher / prendre l\'air', icon: 'trail-sign', color: '#3ECF5B' },
-  { name: 'Faire du vélo', icon: 'bicycle', color: '#2EC4B6' },
   { name: 'Yoga', icon: 'flower', color: '#3ECF5B' },
-  { name: 'Prendre les escaliers', icon: 'trending-up', color: '#FF5A2E' },
-  { name: 'Fil dentaire', icon: 'medical', color: '#4E9BFF' },
-  { name: 'Routine de soin de la peau', icon: 'sparkles', color: '#FF4D8D' },
-  { name: 'Appeler un proche', icon: 'call', color: '#2EC4B6' },
-  { name: 'Passer du temps en famille', icon: 'people', color: '#FF4D8D' },
-  { name: 'Faire du bénévolat', icon: 'heart', color: '#2EC4B6' },
-  { name: 'Noter 3 choses positives', icon: 'star', color: '#FFC542' },
-  { name: 'Faire une pause écran', icon: 'eye', color: '#B15AFF' },
-  { name: 'Suivre son budget', icon: 'bar-chart', color: '#FFC542' },
-  { name: 'Jouer d\'un instrument', icon: 'musical-notes', color: '#FF5A2E' },
-  { name: 'Prendre un petit-déjeuner équilibré', icon: 'cafe', color: '#3ECF5B' },
-  { name: 'Bain de soleil (vitamine D)', icon: 'sunny', color: '#FFC542' },
 ];
