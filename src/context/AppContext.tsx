@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
-import { Habit, HabitCompletion, Profile, MetricEntry } from '../types';
+import { Habit, HabitCompletion, Profile, MetricEntry, JournalEntry } from '../types';
 import { storage } from '../storage/storage';
 import { todayKey, daysBetween, addDays } from '../utils/date';
 import { ACHIEVEMENTS } from '../data/achievements';
@@ -41,6 +41,9 @@ type AppContextValue = {
   logMetric: (key: string, value: number) => Promise<void>;
   getMetricHistory: (key: string) => MetricEntry[];
   getLatestMetric: (key: string) => number | undefined;
+  saveJournalEntry: (habitId: string, prompt: string, text: string) => Promise<void>;
+  getJournalEntries: (habitId: string) => JournalEntry[];
+  getTodayJournalEntry: (habitId: string) => JournalEntry | undefined;
   isCompleted: (habitId: string, dateKey?: string) => boolean;
   getStreak: (habitId: string) => number;
   getLongestStreak: (habitId: string) => number;
@@ -85,15 +88,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [newlyUnlocked, setNewlyUnlocked] = useState<NewlyUnlocked>(null);
   const [toast, setToast] = useState<ToastState>(null);
   const [metrics, setMetrics] = useState<MetricEntry[]>([]);
+  const [journal, setJournal] = useState<JournalEntry[]>([]);
 
   useEffect(() => {
     (async () => {
-      const [h, c, p, a, m] = await Promise.all([
+      const [h, c, p, a, m, j] = await Promise.all([
         storage.getHabits(),
         storage.getCompletions(),
         storage.getProfile(),
         storage.getUnlockedAchievements(),
         storage.getMetrics(),
+        storage.getJournal(),
       ]);
       // Generated once on first launch and kept stable — the avatar's base
       // look (whatever the seed randomizes when no wardrobe item overrides
@@ -117,6 +122,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setProfile(resolvedProfile);
       setUnlockedAchievements(a);
       setMetrics(m);
+      setJournal(j);
       setLoading(false);
     })();
   }, []);
@@ -395,6 +401,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [metrics]
   );
 
+  // One entry per habit per day, same overwrite-if-exists shape as
+  // logMetric — writing today's entry again (e.g. editing after the AI
+  // prompt already loaded) replaces it rather than duplicating.
+  const saveJournalEntry = useCallback(
+    async (habitId: string, prompt: string, text: string) => {
+      const dateKey = todayKey();
+      const existingIndex = journal.findIndex((j) => j.habitId === habitId && j.date === dateKey);
+      let next: JournalEntry[];
+      if (existingIndex >= 0) {
+        next = journal.map((j, i) => (i === existingIndex ? { ...j, prompt, text } : j));
+      } else {
+        next = [...journal, { habitId, date: dateKey, prompt, text }];
+      }
+      next.sort((a, b) => (a.date < b.date ? -1 : 1));
+      setJournal(next);
+      await storage.setJournal(next);
+    },
+    [journal]
+  );
+
+  const getJournalEntries = useCallback((habitId: string) => journal.filter((j) => j.habitId === habitId), [journal]);
+
+  const getTodayJournalEntry = useCallback(
+    (habitId: string) => journal.find((j) => j.habitId === habitId && j.date === todayKey()),
+    [journal]
+  );
+
   const canUseStreakFreeze = useCallback(
     (habitId: string) => {
       if (profile.streakFreezes <= 0) return false;
@@ -448,18 +481,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const importData = useCallback(async (json: string) => {
     await storage.importAll(json);
-    const [h, c, p, a, m] = await Promise.all([
+    const [h, c, p, a, m, j] = await Promise.all([
       storage.getHabits(),
       storage.getCompletions(),
       storage.getProfile(),
       storage.getUnlockedAchievements(),
       storage.getMetrics(),
+      storage.getJournal(),
     ]);
     setHabits(h);
     setCompletions(c);
     setProfile(p);
     setUnlockedAchievements(a);
     setMetrics(m);
+    setJournal(j);
   }, []);
 
   const clearNewlyUnlocked = useCallback(() => setNewlyUnlocked(null), []);
@@ -558,6 +593,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     logMetric,
     getMetricHistory,
     getLatestMetric,
+    saveJournalEntry,
+    getJournalEntries,
+    getTodayJournalEntry,
     isCompleted,
     getStreak,
     getLongestStreak,

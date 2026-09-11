@@ -77,6 +77,11 @@ export function isBudgetHabit(name: string, icon: string) {
   return BUDGET_ICONS.includes(icon) || /budget|dépense|depense|finances?\b/i.test(name);
 }
 
+const JOURNALING_ICONS = ['pencil'];
+export function isJournalingHabit(name: string, icon: string) {
+  return JOURNALING_ICONS.includes(icon) || /journal|écriture|ecriture|écrire|ecrire/i.test(name);
+}
+
 const CATEGORY_CHECKS: Array<[string, (name: string, icon: string) => boolean]> = [
   ['sport', isSportHabit],
   ['steps', isStepsHabit],
@@ -90,6 +95,7 @@ const CATEGORY_CHECKS: Array<[string, (name: string, icon: string) => boolean]> 
   ['podcast', isPodcastHabit],
   ['sleep', isSleepHabit],
   ['budget', isBudgetHabit],
+  ['journaling', isJournalingHabit],
 ];
 
 // Every theme a habit belongs to — used to suggest new habits that fit

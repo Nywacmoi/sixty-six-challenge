@@ -39,6 +39,7 @@ import { MeasurementTracker } from '../components/MeasurementTracker';
 import { SavingsCounter } from '../components/SavingsCounter';
 import { StepsCard } from '../components/StepsCard';
 import { BudgetTracker } from '../components/BudgetTracker';
+import { JournalTracker } from '../components/JournalTracker';
 import { PrimaryButton } from '../components/PrimaryButton';
 import {
   isSportHabit,
@@ -53,6 +54,7 @@ import {
   isPodcastHabit,
   isSleepHabit,
   isBudgetHabit,
+  isJournalingHabit,
 } from '../utils/habitCategories';
 
 function openSearch(query: string) {
@@ -802,6 +804,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
           <>
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Suivi des dépenses</Text>
             <BudgetTracker habit={habit} />
+          </>
+        )}
+
+        {isJournalingHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Prompt du jour</Text>
+            <JournalTracker habit={habit} />
           </>
         )}
 

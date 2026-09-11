@@ -3,7 +3,7 @@
 // user-created habits' icon field.
 export type CommonHabit = { name: string; icon: string; color: string };
 
-// Trimmed from ~40 to the 20 strongest suggestions: kept the universal,
+// Trimmed from ~40 to the strongest suggestions: kept the universal,
 // clearly-actionable ones and anything with its own detail-screen module
 // (sport, steps, meditation, nutrition, reading, learning, podcast, screen
 // time, money-saving — see src/utils/habitCategories.ts), cut the vague
@@ -34,4 +34,8 @@ export const COMMON_HABITS: CommonHabit[] = [
   { name: "Réduire l'alcool", icon: 'wine', color: '#FF4D8D' },
   { name: 'Moins de réseaux sociaux', icon: 'airplane', color: '#FFC542' },
   { name: 'Yoga', icon: 'flower', color: '#3ECF5B' },
+  // Cut in the original trim for being too vague to act on — back in now
+  // that it has a real module (BudgetTracker: dépense du jour, moyenne,
+  // prévision de fin de mois vs objectif).
+  { name: 'Suivre son budget', icon: 'bar-chart', color: '#FFC542' },
 ];

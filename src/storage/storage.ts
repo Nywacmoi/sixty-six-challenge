@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Habit, HabitCompletion, Profile, MetricEntry } from '../types';
+import { Habit, HabitCompletion, Profile, MetricEntry, JournalEntry } from '../types';
 
 const KEYS = {
   habits: '66c:habits',
@@ -11,6 +11,7 @@ const KEYS = {
   groupReads: '66c:groupReads',
   groupNotificationsEnabled: '66c:groupNotifs',
   dmReads: '66c:dmReads',
+  journal: '66c:journal',
 };
 
 async function readJson<T>(key: string, fallback: T): Promise<T> {
@@ -75,6 +76,9 @@ export const storage = {
   getMetrics: () => readJson<MetricEntry[]>(KEYS.metrics, []),
   setMetrics: (v: MetricEntry[]) => writeJson(KEYS.metrics, v),
 
+  getJournal: () => readJson<JournalEntry[]>(KEYS.journal, []),
+  setJournal: (v: JournalEntry[]) => writeJson(KEYS.journal, v),
+
   // Per-device "have I seen this group's latest message" markers — not
   // synced across devices on purpose, it's just a local read receipt for
   // the unread badge, not something worth round-tripping through Firestore.
@@ -88,16 +92,17 @@ export const storage = {
   setDmReads: (v: Record<string, number>) => writeJson(KEYS.dmReads, v),
 
   exportAll: async (): Promise<string> => {
-    const [habits, completions, profile, unlockedAchievements, metrics, themeMode] = await Promise.all([
+    const [habits, completions, profile, unlockedAchievements, metrics, themeMode, journal] = await Promise.all([
       readJson<Habit[]>(KEYS.habits, []),
       readJson<HabitCompletion[]>(KEYS.completions, []),
       readJson<Partial<Profile>>(KEYS.profile, {}),
       readJson<string[]>(KEYS.unlockedAchievements, []),
       readJson<MetricEntry[]>(KEYS.metrics, []),
       readJson<'light' | 'dark'>(KEYS.themeMode, 'light'),
+      readJson<JournalEntry[]>(KEYS.journal, []),
     ]);
     return JSON.stringify(
-      { version: 1, exportedAt: new Date().toISOString(), habits, completions, profile, unlockedAchievements, metrics, themeMode },
+      { version: 1, exportedAt: new Date().toISOString(), habits, completions, profile, unlockedAchievements, metrics, themeMode, journal },
       null,
       2
     );
@@ -118,5 +123,6 @@ export const storage = {
     if (Array.isArray(data.unlockedAchievements)) await writeJson(KEYS.unlockedAchievements, data.unlockedAchievements);
     if (Array.isArray(data.metrics)) await writeJson(KEYS.metrics, data.metrics);
     if (data.themeMode === 'light' || data.themeMode === 'dark') await writeJson(KEYS.themeMode, data.themeMode);
+    if (Array.isArray(data.journal)) await writeJson(KEYS.journal, data.journal);
   },
 };

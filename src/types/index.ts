@@ -69,3 +69,10 @@ export type MetricEntry = {
   date: string;
   value: number;
 };
+
+export type JournalEntry = {
+  habitId: string;
+  date: string;
+  prompt: string;
+  text: string;
+};
