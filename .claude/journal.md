@@ -28,6 +28,27 @@
 
 <!-- Les nouvelles entrées vont ICI, la plus récente en premier. -->
 
+## [2026-09-11] `npm run build:web` lancé avant la fin des edits source → déploiement en retard d'un commit
+
+- **Symptôme :** une habitude ("Suivre son budget") retirée puis remise dans `commonHabits.ts` — le commit
+  source contenant le fix était bien poussé, mais le site en ligne continuait d'afficher l'ancienne liste
+  sans cette habitude.
+- **Contexte :** web (déploiement GitHub Pages depuis `docs/`), workflow `build:web` → commit → push.
+- **Cause réelle :** `npm run build:web` avait été lancé (et son résultat commité) *avant* un edit tardif
+  dans la même session de travail. L'edit source a bien été commité juste après, mais dans le même commit
+  que `docs/` — sauf que ce `docs/` datait du build précédent, donc ne contenait pas encore ce dernier edit.
+  Le hash du bundle JS (`index-xxxx.js`) avait l'air "récent" au premier coup d'œil, ce qui a retardé le
+  diagnostic — il fallait comparer le *contenu* du bundle (`grep` la chaîne attendue dedans), pas juste
+  vérifier que le hash avait changé depuis la dernière fois.
+- **Fix qui a marché :** toujours faire `npm run build:web` **en tout dernier**, juste avant `git add docs/
+  && commit && push` — jamais avant un edit "de dernière minute" dans le même tour. Pour diagnostiquer un
+  doute sur un déploiement : `curl -s <url>/index.html | grep -o 'index-[a-z0-9]*\.js'` pour voir quel
+  bundle le serveur sert *réellement* (pas ce que le navigateur a en cache), puis `grep "chaîne attendue"
+  docs/_expo/static/js/web/<ce bundle>.js` pour confirmer que le contenu y est vraiment.
+- **Self-check :** avant de pousser, `grep -c "<texte distinctif du dernier edit>"
+  docs/_expo/static/js/web/*.js` doit renvoyer ≥ 1.
+- **Statut :** résolu ✅
+
 ## [2026-09-09] `expo export --output-dir docs` efface `docs/.nojekyll`
 
 - **Symptôme :** après un rebuild web (`npx expo export --platform web --output-dir docs`), GitHub Pages
