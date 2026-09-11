@@ -10,6 +10,10 @@ export type Habit = {
   // screen-time habit. Unit depends on the category (see habitCategories.ts).
   // Set by the person themselves via the savings counter, not a default.
   savedPerDay?: number;
+  // Target for the budget-tracking module (isBudgetHabit) — what the person
+  // wants to cap their spending at for the current calendar month. Set via
+  // the tracker itself, not a default.
+  monthlyBudget?: number;
 };
 
 export type HabitCompletion = {

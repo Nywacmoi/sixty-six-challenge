@@ -38,6 +38,7 @@ import { SLEEP_TIPS } from '../data/sleepTips';
 import { MeasurementTracker } from '../components/MeasurementTracker';
 import { SavingsCounter } from '../components/SavingsCounter';
 import { StepsCard } from '../components/StepsCard';
+import { BudgetTracker } from '../components/BudgetTracker';
 import { PrimaryButton } from '../components/PrimaryButton';
 import {
   isSportHabit,
@@ -51,6 +52,7 @@ import {
   isLearningHabit,
   isPodcastHabit,
   isSleepHabit,
+  isBudgetHabit,
 } from '../utils/habitCategories';
 
 function openSearch(query: string) {
@@ -793,6 +795,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
               unit="minutes"
               question="Combien de temps par jour tu y passais ?"
             />
+          </>
+        )}
+
+        {isBudgetHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Suivi des dépenses</Text>
+            <BudgetTracker habit={habit} />
           </>
         )}
 

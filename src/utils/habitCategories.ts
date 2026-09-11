@@ -72,6 +72,11 @@ export function isSleepHabit(name: string, icon: string) {
   return SLEEP_ICONS.includes(icon) || /sommeil|dormir|coucher|réveil|reveil|endorm/i.test(name);
 }
 
+const BUDGET_ICONS = ['bar-chart'];
+export function isBudgetHabit(name: string, icon: string) {
+  return BUDGET_ICONS.includes(icon) || /budget|dépense|depense|finances?\b/i.test(name);
+}
+
 const CATEGORY_CHECKS: Array<[string, (name: string, icon: string) => boolean]> = [
   ['sport', isSportHabit],
   ['steps', isStepsHabit],
@@ -84,6 +89,7 @@ const CATEGORY_CHECKS: Array<[string, (name: string, icon: string) => boolean]> 
   ['learning', isLearningHabit],
   ['podcast', isPodcastHabit],
   ['sleep', isSleepHabit],
+  ['budget', isBudgetHabit],
 ];
 
 // Every theme a habit belongs to — used to suggest new habits that fit
