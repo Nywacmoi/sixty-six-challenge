@@ -169,3 +169,77 @@ exports.generateWorkoutSession = onCall({ secrets: [anthropicApiKey], region: 'e
     return { exercises: [] };
   }
 });
+
+const MAX_PHOTO_BASE64_CHARS = 6_000_000; // ~4.5MB decoded — comfortably under Anthropic's per-image limit
+
+// Deliberately does NOT ask the model to assess the person's body,
+// silhouette, weight, or appearance — a progress photo is sensitive
+// content, and estimating body composition from a photo is both
+// unreliable and the kind of feedback that can genuinely hurt someone.
+// Instead the model looks at the photo just for general context (gym
+// setting, workout clothes, effort visible) and replies like a supportive
+// coach: a short encouragement plus one concrete, goal-linked tip for
+// today. Empty string = give up, same "client falls back locally" contract
+// as the other AI functions.
+exports.analyzeProgressPhoto = onCall({ secrets: [anthropicApiKey], region: 'europe-west1', cors: true }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Connecte-toi pour analyser ta photo.');
+  }
+
+  const imageBase64 = typeof request.data?.imageBase64 === 'string' ? request.data.imageBase64 : '';
+  const mimeType = typeof request.data?.mimeType === 'string' ? request.data.mimeType : 'image/jpeg';
+  const goal = typeof request.data?.goal === 'string' ? request.data.goal.slice(0, 40) : undefined;
+  const level = typeof request.data?.level === 'string' ? request.data.level.slice(0, 40) : undefined;
+
+  if (!imageBase64) {
+    throw new HttpsError('invalid-argument', 'Photo manquante.');
+  }
+  if (imageBase64.length > MAX_PHOTO_BASE64_CHARS) {
+    throw new HttpsError('invalid-argument', 'Photo trop lourde.');
+  }
+  if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(mimeType)) {
+    throw new HttpsError('invalid-argument', 'Format de photo non supporté.');
+  }
+
+  const client = new Anthropic({ apiKey: anthropicApiKey.value() });
+
+  try {
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 150,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mimeType, data: imageBase64 } },
+            {
+              type: 'text',
+              text: [
+                "Une personne vient d'ajouter une photo à son suivi de progression fitness dans l'app \"Défi 99\".",
+                goal ? `Son objectif : ${goal}.` : null,
+                level ? `Son niveau : ${level}.` : null,
+                "Regarde la photo uniquement pour son contexte général (tenue de sport, salle de sport, effort visible...). Ne commente JAMAIS l'apparence physique, la silhouette, le poids ou la composition corporelle de la personne — ce n'est ni fiable ni ton rôle.",
+                'Réponds en français, 2 phrases maximum, sur un ton de coach chaleureux : une phrase d\'encouragement, puis un conseil concret et actionnable pour aujourd\'hui en lien avec son objectif.',
+                "Si l'image ne montre pas une photo de progression fitness (pas de personne, pas de contexte sport), réponds uniquement par : \"Photo bien reçue ! Prends plutôt une photo de toi pour suivre ta progression.\"",
+                'Réponds UNIQUEMENT avec ce message, sans préambule, sans guillemets.',
+              ]
+                .filter(Boolean)
+                .join(' '),
+            },
+          ],
+        },
+      ],
+    });
+
+    const text = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('')
+      .trim();
+
+    return { advice: text };
+  } catch (error) {
+    console.error('analyzeProgressPhoto failed', error);
+    return { advice: '' };
+  }
+});

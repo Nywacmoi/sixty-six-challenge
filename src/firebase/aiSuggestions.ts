@@ -20,3 +20,14 @@ export async function generateWorkoutSession(args: { splitLabel: string; goal?: 
   const result = await call(args);
   return Array.isArray(result.data.exercises) ? result.data.exercises : [];
 }
+
+export async function analyzeProgressPhoto(args: {
+  imageBase64: string;
+  mimeType: string;
+  goal?: string;
+  level?: string;
+}): Promise<string> {
+  const call = httpsCallable<typeof args, { advice: string }>(functions, 'analyzeProgressPhoto');
+  const result = await call(args);
+  return result.data.advice;
+}

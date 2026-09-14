@@ -42,6 +42,7 @@ import { BudgetTracker } from '../components/BudgetTracker';
 import { JournalTracker } from '../components/JournalTracker';
 import { AiMealCard } from '../components/AiMealCard';
 import { AiWorkoutSession } from '../components/AiWorkoutSession';
+import { ProgressPhotoInsight } from '../components/ProgressPhotoInsight';
 import { PrimaryButton } from '../components/PrimaryButton';
 import {
   isSportHabit,
@@ -811,6 +812,14 @@ export default function HabitDetailScreen({ route, navigation }: any) {
             </View>
           )}
         </Pressable>
+        {isSportHabit(habit.name, habit.icon) && (
+          <ProgressPhotoInsight
+            habitId={habitId}
+            photoUri={photoUri}
+            goal={SPORT_GOALS.find((g) => g.id === (profile.sportGoal as SportGoal))?.label}
+            level={selectedSchedule === 'personal' ? personalSchedule?.level : WEEKLY_SCHEDULES.find((s) => s.id === selectedSchedule)?.level}
+          />
+        )}
       </ScrollView>
       {toast && <Toast icon={toast.icon} message={toast.message} accentColor={colors.accent} onDismiss={clearToast} />}
     </SafeAreaView>
