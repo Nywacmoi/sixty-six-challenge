@@ -76,3 +76,14 @@ export type JournalEntry = {
   prompt: string;
   text: string;
 };
+
+export type RunPoint = { lat: number; lng: number; t: number };
+
+export type RunActivity = {
+  id: string;
+  habitId: string;
+  date: string;
+  durationSec: number;
+  distanceKm: number;
+  route: RunPoint[];
+};

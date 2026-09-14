@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
-import { Habit, HabitCompletion, Profile, MetricEntry, JournalEntry } from '../types';
+import { Habit, HabitCompletion, Profile, MetricEntry, JournalEntry, RunActivity } from '../types';
 import { storage } from '../storage/storage';
 import { todayKey, daysBetween, addDays } from '../utils/date';
 import { ACHIEVEMENTS } from '../data/achievements';
@@ -44,6 +44,9 @@ type AppContextValue = {
   saveJournalEntry: (habitId: string, prompt: string, text: string) => Promise<void>;
   getJournalEntries: (habitId: string) => JournalEntry[];
   getTodayJournalEntry: (habitId: string) => JournalEntry | undefined;
+  runs: RunActivity[];
+  saveRunActivity: (activity: RunActivity) => Promise<void>;
+  getRunActivities: (habitId: string) => RunActivity[];
   isCompleted: (habitId: string, dateKey?: string) => boolean;
   getStreak: (habitId: string) => number;
   getLongestStreak: (habitId: string) => number;
@@ -89,16 +92,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<ToastState>(null);
   const [metrics, setMetrics] = useState<MetricEntry[]>([]);
   const [journal, setJournal] = useState<JournalEntry[]>([]);
+  const [runs, setRuns] = useState<RunActivity[]>([]);
 
   useEffect(() => {
     (async () => {
-      const [h, c, p, a, m, j] = await Promise.all([
+      const [h, c, p, a, m, j, r] = await Promise.all([
         storage.getHabits(),
         storage.getCompletions(),
         storage.getProfile(),
         storage.getUnlockedAchievements(),
         storage.getMetrics(),
         storage.getJournal(),
+        storage.getRuns(),
       ]);
       // Generated once on first launch and kept stable — the avatar's base
       // look (whatever the seed randomizes when no wardrobe item overrides
@@ -123,6 +128,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUnlockedAchievements(a);
       setMetrics(m);
       setJournal(j);
+      setRuns(r);
       setLoading(false);
     })();
   }, []);
@@ -428,6 +434,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [journal]
   );
 
+  // One row per completed run, newest first — unlike metrics/journal this
+  // never overwrites an existing same-day entry, since someone can run more
+  // than once in a day and each run is its own recorded activity.
+  const saveRunActivity = useCallback(
+    async (activity: RunActivity) => {
+      const next = [activity, ...runs];
+      setRuns(next);
+      await storage.setRuns(next);
+    },
+    [runs]
+  );
+
+  const getRunActivities = useCallback((habitId: string) => runs.filter((r) => r.habitId === habitId), [runs]);
+
   const canUseStreakFreeze = useCallback(
     (habitId: string) => {
       if (profile.streakFreezes <= 0) return false;
@@ -481,13 +501,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const importData = useCallback(async (json: string) => {
     await storage.importAll(json);
-    const [h, c, p, a, m, j] = await Promise.all([
+    const [h, c, p, a, m, j, r] = await Promise.all([
       storage.getHabits(),
       storage.getCompletions(),
       storage.getProfile(),
       storage.getUnlockedAchievements(),
       storage.getMetrics(),
       storage.getJournal(),
+      storage.getRuns(),
     ]);
     setHabits(h);
     setCompletions(c);
@@ -495,6 +516,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setUnlockedAchievements(a);
     setMetrics(m);
     setJournal(j);
+    setRuns(r);
   }, []);
 
   const clearNewlyUnlocked = useCallback(() => setNewlyUnlocked(null), []);
@@ -596,6 +618,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     saveJournalEntry,
     getJournalEntries,
     getTodayJournalEntry,
+    runs,
+    saveRunActivity,
+    getRunActivities,
     isCompleted,
     getStreak,
     getLongestStreak,

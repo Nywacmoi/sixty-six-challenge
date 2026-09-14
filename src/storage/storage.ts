@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Habit, HabitCompletion, Profile, MetricEntry, JournalEntry } from '../types';
+import { Habit, HabitCompletion, Profile, MetricEntry, JournalEntry, RunActivity } from '../types';
 
 const KEYS = {
   habits: '66c:habits',
@@ -12,6 +12,7 @@ const KEYS = {
   groupNotificationsEnabled: '66c:groupNotifs',
   dmReads: '66c:dmReads',
   journal: '66c:journal',
+  runs: '66c:runs',
 };
 
 async function readJson<T>(key: string, fallback: T): Promise<T> {
@@ -79,6 +80,9 @@ export const storage = {
   getJournal: () => readJson<JournalEntry[]>(KEYS.journal, []),
   setJournal: (v: JournalEntry[]) => writeJson(KEYS.journal, v),
 
+  getRuns: () => readJson<RunActivity[]>(KEYS.runs, []),
+  setRuns: (v: RunActivity[]) => writeJson(KEYS.runs, v),
+
   // Generic one-entry-per-key cache for AI-generated content (today's meal
   // idea, today's workout session — see src/firebase/aiSuggestions.ts) so a
   // screen re-mount doesn't re-call the Cloud Function for something that
@@ -101,7 +105,7 @@ export const storage = {
   setDmReads: (v: Record<string, number>) => writeJson(KEYS.dmReads, v),
 
   exportAll: async (): Promise<string> => {
-    const [habits, completions, profile, unlockedAchievements, metrics, themeMode, journal] = await Promise.all([
+    const [habits, completions, profile, unlockedAchievements, metrics, themeMode, journal, runs] = await Promise.all([
       readJson<Habit[]>(KEYS.habits, []),
       readJson<HabitCompletion[]>(KEYS.completions, []),
       readJson<Partial<Profile>>(KEYS.profile, {}),
@@ -109,9 +113,10 @@ export const storage = {
       readJson<MetricEntry[]>(KEYS.metrics, []),
       readJson<'light' | 'dark'>(KEYS.themeMode, 'light'),
       readJson<JournalEntry[]>(KEYS.journal, []),
+      readJson<RunActivity[]>(KEYS.runs, []),
     ]);
     return JSON.stringify(
-      { version: 1, exportedAt: new Date().toISOString(), habits, completions, profile, unlockedAchievements, metrics, themeMode, journal },
+      { version: 1, exportedAt: new Date().toISOString(), habits, completions, profile, unlockedAchievements, metrics, themeMode, journal, runs },
       null,
       2
     );
@@ -133,5 +138,6 @@ export const storage = {
     if (Array.isArray(data.metrics)) await writeJson(KEYS.metrics, data.metrics);
     if (data.themeMode === 'light' || data.themeMode === 'dark') await writeJson(KEYS.themeMode, data.themeMode);
     if (Array.isArray(data.journal)) await writeJson(KEYS.journal, data.journal);
+    if (Array.isArray(data.runs)) await writeJson(KEYS.runs, data.runs);
   },
 };

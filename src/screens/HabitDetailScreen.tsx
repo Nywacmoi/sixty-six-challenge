@@ -47,6 +47,7 @@ import { ProgressPhotoInsight } from '../components/ProgressPhotoInsight';
 import { AiJawlineSession } from '../components/AiJawlineSession';
 import { JawlinePhotoInsight } from '../components/JawlinePhotoInsight';
 import { AiRunningSession } from '../components/AiRunningSession';
+import { RunHistory } from '../components/RunHistory';
 import { PrimaryButton } from '../components/PrimaryButton';
 import {
   isSportHabit,
@@ -705,6 +706,18 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
         {isRunningHabit(habit.name, habit.icon) && (
           <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Mes courses</Text>
+            <Pressable
+              onPress={() => navigation.navigate('RunTracker', { habitId, habitColor: habit.color })}
+              style={[styles.trackRunBtn, { backgroundColor: habit.color }]}
+              accessibilityRole="button"
+              accessibilityLabel="Démarrer une course avec suivi GPS"
+            >
+              <Ionicons name="play" size={18} color="#fff" />
+              <Text style={styles.trackRunBtnText}>Démarrer une course</Text>
+            </Pressable>
+            <RunHistory habitId={habitId} color={habit.color} />
+
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Programme course à pied</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
               {RUNNING_PROGRAMS.map((program) => {
@@ -885,6 +898,15 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       paddingVertical: 8,
       paddingHorizontal: spacing.md,
     },
+    trackRunBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.sm,
+      borderRadius: radius.pill,
+      paddingVertical: spacing.md,
+    },
+    trackRunBtnText: { color: '#fff', fontFamily: typography.bodyBold.fontFamily, fontSize: 16 },
     splitCard: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,
