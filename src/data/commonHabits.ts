@@ -16,6 +16,7 @@ export type CommonHabit = { name: string; icon: string; color: string };
 export const COMMON_HABITS: CommonHabit[] = [
   { name: "Boire de l'eau", icon: 'water', color: '#4E9BFF' },
   { name: 'Faire du sport', icon: 'barbell', color: '#FF5A2E' },
+  { name: 'Aller courir', icon: 'flame', color: '#FF7A2E' },
   { name: '10 000 pas', icon: 'walk', color: '#2EC4B6' },
   { name: 'Méditer', icon: 'leaf', color: '#B15AFF' },
   { name: 'Lire 20 pages', icon: 'book', color: '#4E9BFF' },

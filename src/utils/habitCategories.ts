@@ -17,6 +17,11 @@ export function isStepsHabit(name: string, icon: string) {
   return STEPS_ICONS.includes(icon) || /\d[\s .,]?\d{2,3}\s*pas\b|nombre de pas|compteur de pas/i.test(name);
 }
 
+const RUNNING_ICONS = ['flame'];
+export function isRunningHabit(name: string, icon: string) {
+  return RUNNING_ICONS.includes(icon) || /courir|running|footing|jogging|course à pied|course a pied|marathon|10km|semi-marathon/i.test(name);
+}
+
 const MEDITATION_ICONS = ['leaf'];
 export function isMeditationHabit(name: string, icon: string) {
   return MEDITATION_ICONS.includes(icon) || /médit|relax|respiration|calme|mental|yoga/i.test(name);
@@ -85,6 +90,7 @@ export function isJournalingHabit(name: string, icon: string) {
 const CATEGORY_CHECKS: Array<[string, (name: string, icon: string) => boolean]> = [
   ['sport', isSportHabit],
   ['steps', isStepsHabit],
+  ['running', isRunningHabit],
   ['meditation', isMeditationHabit],
   ['nutrition', isNutritionHabit],
   ['reading', isReadingHabit],

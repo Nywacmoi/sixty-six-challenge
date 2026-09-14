@@ -34,6 +34,7 @@ import { PODCAST_CATEGORIES, BOOK_CATEGORIES } from '../data/discoveryCategories
 import { ResourceLinks } from '../components/ResourceLinks';
 import { RecommendationFinder } from '../components/RecommendationFinder';
 import { JAWLINE_SESSIONS } from '../data/jawlineProgram';
+import { RUNNING_PROGRAMS } from '../data/runningPrograms';
 import { SLEEP_TIPS } from '../data/sleepTips';
 import { MeasurementTracker } from '../components/MeasurementTracker';
 import { SavingsCounter } from '../components/SavingsCounter';
@@ -45,6 +46,7 @@ import { AiWorkoutSession } from '../components/AiWorkoutSession';
 import { ProgressPhotoInsight } from '../components/ProgressPhotoInsight';
 import { AiJawlineSession } from '../components/AiJawlineSession';
 import { JawlinePhotoInsight } from '../components/JawlinePhotoInsight';
+import { AiRunningSession } from '../components/AiRunningSession';
 import { PrimaryButton } from '../components/PrimaryButton';
 import {
   isSportHabit,
@@ -53,6 +55,7 @@ import {
   isNutritionHabit,
   isReadingHabit,
   isJawlineHabit,
+  isRunningHabit,
   isMoneySavingHabit,
   isScreenTimeHabit,
   isLearningHabit,
@@ -173,6 +176,8 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   const activeReading = READING_GOALS.find((s) => s.id === selectedSession);
   const activeJawline = JAWLINE_SESSIONS.find((s) => s.id === selectedSession);
   const activeLearning = LEARNING_GOALS.find((s) => s.id === selectedSession);
+  const activeRunning = RUNNING_PROGRAMS.find((s) => s.id === selectedSession);
+  const runningSegments = activeRunning ? activeRunning.variants[dailyIndex(activeRunning.variants.length, activeRunning.id)] : undefined;
 
   const saveGoals = async () => {
     let height = parseFloat(heightDraft.replace(',', '.'));
@@ -694,6 +699,30 @@ export default function HabitDetailScreen({ route, navigation }: any) {
             </ScrollView>
             {activeJawline && (
               <AiJawlineSession sessionId={activeJawline.id} sessionLabel={activeJawline.label} fallbackExercises={activeJawline.exercises} />
+            )}
+          </>
+        )}
+
+        {isRunningHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Programme course à pied</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+              {RUNNING_PROGRAMS.map((program) => {
+                const active = selectedSession === program.id;
+                return (
+                  <Pressable
+                    key={program.id}
+                    onPress={() => handleSelectSession(program.id)}
+                    style={[styles.splitChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
+                  >
+                    <Ionicons name={program.emoji as any} size={16} color={active ? colors.accent : colors.textSecondary} />
+                    <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{program.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            {activeRunning && runningSegments && (
+              <AiRunningSession programId={activeRunning.id} programLabel={activeRunning.label} fallbackSegments={runningSegments} />
             )}
           </>
         )}

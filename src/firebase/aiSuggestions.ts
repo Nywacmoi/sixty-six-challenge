@@ -40,6 +40,14 @@ export async function analyzeProgressPhoto(args: {
   return result.data.advice;
 }
 
+export type AiRunningSegment = { name: string; duration: string; pace?: string; tip?: string };
+
+export async function generateRunningSession(args: { programLabel: string }): Promise<AiRunningSegment[]> {
+  const call = httpsCallable<typeof args, { segments: AiRunningSegment[] }>(functions, 'generateRunningSession');
+  const result = await call(args);
+  return Array.isArray(result.data.segments) ? result.data.segments : [];
+}
+
 export type JawlinePhotoResult = { score: number | null; advice: string };
 
 export async function analyzeJawlinePhoto(args: { imageBase64: string; mimeType: string }): Promise<JawlinePhotoResult> {

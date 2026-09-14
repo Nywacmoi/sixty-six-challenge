@@ -232,6 +232,66 @@ exports.generateJawlineRoutine = onCall({ secrets: [anthropicApiKey], region: 'e
   }
 });
 
+// Same contract again, this time for running — segments carry a duration
+// and pace instead of a rep count, matching data/runningPrograms.ts's
+// static fallback shape.
+exports.generateRunningSession = onCall({ secrets: [anthropicApiKey], region: 'europe-west1', cors: true }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Connecte-toi pour obtenir une séance personnalisée.');
+  }
+
+  const programLabel = typeof request.data?.programLabel === 'string' ? request.data.programLabel.slice(0, 60) : 'Endurance';
+
+  const client = new Anthropic({ apiKey: anthropicApiKey.value() });
+
+  try {
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 700,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            `Génère une séance de course à pied en français pour la catégorie "${programLabel}" (inclut l'échauffement et le retour au calme).`,
+            'Réponds UNIQUEMENT avec un tableau JSON de EXACTEMENT 3 segments (pas plus), sans aucun texte avant ou après, sans balises markdown. Chaque élément au format exact {"name": "Nom du segment", "duration": "10 min", "pace": "Allure confortable", "tip": "Conseil court en une phrase"} — "pace" et "tip" sont optionnels. Reste concis : chaque champ tient en moins de 15 mots.',
+          ].join(' '),
+        },
+      ],
+    });
+
+    const text = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('')
+      .trim();
+
+    const jsonText = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+
+    let segments = [];
+    try {
+      const parsed = JSON.parse(jsonText);
+      if (Array.isArray(parsed)) {
+        segments = parsed
+          .filter((e) => e && typeof e.name === 'string' && typeof e.duration === 'string')
+          .slice(0, 6)
+          .map((e) => ({
+            name: e.name.slice(0, 60),
+            duration: e.duration.slice(0, 20),
+            pace: typeof e.pace === 'string' ? e.pace.slice(0, 40) : undefined,
+            tip: typeof e.tip === 'string' ? e.tip.slice(0, 160) : undefined,
+          }));
+      }
+    } catch (parseError) {
+      console.error('generateRunningSession: could not parse JSON', text);
+    }
+
+    return { segments };
+  } catch (error) {
+    console.error('generateRunningSession failed', error);
+    return { segments: [] };
+  }
+});
+
 const MAX_PHOTO_BASE64_CHARS = 6_000_000; // ~4.5MB decoded — comfortably under Anthropic's per-image limit
 
 // Deliberately does NOT ask the model to assess the person's body,
