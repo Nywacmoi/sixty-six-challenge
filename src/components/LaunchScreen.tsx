@@ -20,11 +20,11 @@ import { progressColor } from '../utils/progressColor';
 // It also means this screen isn't the same for everyone — day 3 is blue and
 // nearly empty, day 90 is green and dense. Your app stops looking like mine.
 //
-// Everything is decided once, at REVEAL_MS, rather than as data arrives: the
-// store resolves within a few dozen milliseconds, and swapping the layout
-// underneath someone mid-fade reads as a glitch. Until then only the mark
-// shows, so both variants arrive as a reveal rather than a substitution.
-const REVEAL_MS = 340;
+// The variant is decided straight from the loaded state rather than latched
+// behind a timer. The store resolves in a few dozen milliseconds, well inside
+// the mark's own fade-in, so nobody sees the switch — and the earlier timer
+// bought nothing while forcing the layout to change shape at 340ms.
+const BODY_DELAY_MS = 260;
 // Below this the grid is a nearly empty box and the number is unimpressive —
 // exactly the people you least want to underwhelm. They get the tagline, and
 // the screen grows into the personal version with them.
@@ -45,13 +45,7 @@ export function LaunchScreen({ duration = 1400 }: { duration?: number }) {
   const bodyOpacity = useRef(new Animated.Value(0)).current;
   const bodyTranslate = useRef(new Animated.Value(10)).current;
 
-  const [revealed, setRevealed] = useState<{ day: number; values: number[] } | null>(null);
-  const [revealDone, setRevealDone] = useState(false);
-
-  // Read at reveal time rather than captured in the effect's closure, which
-  // would freeze the loading-state defaults.
-  const latest = useRef({ loading, day, dayValues });
-  latest.current = { loading, day, dayValues };
+  const personal = !loading && day >= MIN_DAY_FOR_GRID;
 
   useEffect(() => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -59,28 +53,16 @@ export function LaunchScreen({ duration = 1400 }: { duration?: number }) {
     Animated.parallel([
       Animated.timing(markOpacity, { toValue: 1, duration: 420, easing: Easing.out(Easing.ease), useNativeDriver: true }),
       Animated.timing(markScale, { toValue: 1, duration: 420, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+      Animated.timing(bodyOpacity, { toValue: 1, duration: 380, delay: BODY_DELAY_MS, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+      Animated.timing(bodyTranslate, { toValue: 0, duration: 380, delay: BODY_DELAY_MS, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
     ]).start();
-
-    const timer = setTimeout(() => {
-      const { loading: busy, day: currentDayNow, dayValues: values } = latest.current;
-      if (!busy && currentDayNow >= MIN_DAY_FOR_GRID) {
-        setRevealed({ day: currentDayNow, values });
-      }
-      setRevealDone(true);
-      Animated.parallel([
-        Animated.timing(bodyOpacity, { toValue: 1, duration: 380, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-        Animated.timing(bodyTranslate, { toValue: 0, duration: 380, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      ]).start();
-    }, REVEAL_MS);
-
-    return () => clearTimeout(timer);
   }, []);
 
-  const accent = revealed ? progressColor(Math.min(revealed.day / TOTAL_DAYS, 1)) : colors.accent;
+  const accent = personal ? progressColor(Math.min(day / TOTAL_DAYS, 1)) : colors.accent;
 
   return (
     <View style={styles.container}>
-      {revealed && <AmbientBackdrop color={accent} />}
+      <AmbientBackdrop color={accent} />
 
       <Animated.Image
         source={require('../../assets/logo.png')}
@@ -92,28 +74,22 @@ export function LaunchScreen({ duration = 1400 }: { duration?: number }) {
         tintColor={colors.text}
       />
 
-      {revealDone && (
-        <Animated.View
-          style={[styles.body, { opacity: bodyOpacity, transform: [{ translateY: bodyTranslate }] }]}
-        >
-          {revealed ? (
-            <>
-              <Text style={styles.kicker}>JOUR</Text>
-              <Text style={styles.day}>{revealed.day}</Text>
-            </>
-          ) : (
-            <Text style={styles.tagline}>99 jours pour construire ta discipline</Text>
-          )}
-        </Animated.View>
-      )}
+      <Animated.View
+        style={[styles.body, { opacity: bodyOpacity, transform: [{ translateY: bodyTranslate }] }]}
+      >
+        {personal ? (
+          <>
+            <Text style={styles.kicker}>JOUR</Text>
+            <Text style={styles.day}>{day}</Text>
+          </>
+        ) : (
+          <Text style={styles.tagline}>99 jours pour construire ta discipline</Text>
+        )}
+      </Animated.View>
 
-      {revealed && (
+      {personal && (
         <View style={styles.gridWrap}>
-          <DayGrid
-            values={revealed.values}
-            currentDay={revealed.day}
-            width={screenWidth - spacing.lg * 2}
-          />
+          <DayGrid values={dayValues} currentDay={day} width={screenWidth - spacing.lg * 2} />
         </View>
       )}
     </View>
@@ -122,10 +98,23 @@ export function LaunchScreen({ duration = 1400 }: { duration?: number }) {
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    container: { flex: 1, alignItems: 'center', backgroundColor: colors.background, paddingHorizontal: spacing.lg },
+    // Centred as one column, both variants. The previous version anchored the
+    // mark near the top and let an auto margin push the grid to the bottom,
+    // which only held together when there was a grid: on day 1 the tagline
+    // variant left the logo stranded under the status bar above an empty
+    // screen. And the top anchor was `marginTop: '18%'`, which resolves
+    // against the parent's WIDTH, not its height — so it was never the 18% of
+    // the screen it looked like.
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.background,
+      paddingHorizontal: spacing.lg,
+    },
     // Mark-only logo (no wordmark baked in).
-    mark: { marginTop: '18%', width: 104, height: 104 * (428 / 1107) },
-    body: { alignItems: 'center', marginTop: spacing.xxl },
+    mark: { width: 104, height: 104 * (428 / 1107) },
+    body: { alignItems: 'center', marginTop: spacing.xl },
     kicker: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 3, color: colors.textTertiary },
     day: {
       fontFamily: fonts.display,
@@ -136,12 +125,6 @@ function createStyles(colors: ThemeColors) {
       marginTop: 6,
     },
     tagline: { fontFamily: fonts.semiBold, fontSize: 13, letterSpacing: 0.3, color: colors.textSecondary },
-    // Normal flow pushed down with auto margin, and stretched explicitly.
-    // Absolutely positioned between left and right looked equivalent but
-    // wasn't: the container centres its children, so Yoga sized this box to
-    // its content instead of the gap — and the content is a grid whose cells
-    // are computed from the box's own measured width. Nothing resolved: zero
-    // width, so zero cells, so zero width.
-    gridWrap: { alignSelf: 'stretch', marginTop: 'auto', marginBottom: 88 },
+    gridWrap: { alignSelf: 'stretch', marginTop: spacing.xxl },
   });
 }
