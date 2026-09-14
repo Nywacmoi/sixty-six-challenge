@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { fonts, spacing, radius, ThemeColors } from '../theme/theme';
 import { RingProgress } from './RingProgress';
-import { ProgressGlow } from './ProgressGlow';
 import { StatStrip } from './StatStrip';
 import { progressColor, progressStatusLabel } from '../utils/progressColor';
 import { LevelInfo } from '../utils/gamification';
@@ -31,7 +30,6 @@ function pad(n: number) {
 // number is the object and the ring is its outline.
 const RING_SIZE = 228;
 const RING_STROKE = 5;
-const GLOW_SIZE = 340;
 
 // The day's readout, built around one focal point instead of a stack of
 // equally-weighted widgets in a box. The ring carries the whole state —
@@ -99,7 +97,6 @@ export function TodayDashboard({
   return (
     <View style={styles.wrap}>
       <View style={styles.hero}>
-        <ProgressGlow color={color} size={GLOW_SIZE} />
         <RingProgress progress={displayed} size={RING_SIZE} strokeWidth={RING_STROKE} color={color}>
           <Text style={styles.pct}>
             {Math.round(displayed * 100)}
@@ -166,12 +163,15 @@ function createStyles(colors: ThemeColors) {
     status: { fontFamily: fonts.bold, fontSize: 10.5, letterSpacing: 1.4, marginTop: 3 },
     countLine: {
       fontFamily: fonts.medium,
-      fontSize: 12.5,
+      fontSize: 14,
       color: colors.textTertiary,
       textAlign: 'center',
-      marginTop: spacing.xs,
+      marginTop: spacing.sm,
     },
-    countValue: { fontFamily: fonts.bold, color: colors.textSecondary, fontVariant: ['tabular-nums'] },
+    // The one thing on this screen that moves on its own. At 12.5 it was
+    // dwarfed by an 86px number and read as a footnote; tabular figures stop
+    // the seconds from jittering the whole line every tick.
+    countValue: { fontFamily: fonts.bold, fontSize: 17, color: colors.text, fontVariant: ['tabular-nums'] },
     xpLine: { marginHorizontal: spacing.lg, marginTop: spacing.md - 3 },
     xpTop: { flexDirection: 'row', justifyContent: 'space-between' },
     xpNext: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 0.6, color: colors.textTertiary },

@@ -60,7 +60,7 @@ export default function TodayScreen({ navigation }: any) {
   const header = (
     <View style={[styles.header, { paddingTop: topInset + spacing.sm }]}>
       <View>
-        <Text style={typography.caption}>JOUR {Math.max(currentDay, activeHabits.length ? 1 : 0)} SUR {TOTAL_DAYS}</Text>
+        <Text style={typography.kicker}>JOUR {Math.max(currentDay, activeHabits.length ? 1 : 0)} SUR {TOTAL_DAYS}</Text>
         <Text style={typography.display}>Aujourd'hui</Text>
       </View>
       <Pressable

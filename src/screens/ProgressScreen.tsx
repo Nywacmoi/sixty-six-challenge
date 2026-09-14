@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { fonts, spacing, TOTAL_DAYS, radius, ThemeColors, Typography } from '../theme/theme';
-import { ProgressGlow } from '../components/ProgressGlow';
+import { AmbientBackdrop } from '../components/AmbientBackdrop';
 import { DayGrid } from '../components/DayGrid';
 import { StatStrip } from '../components/StatStrip';
 import { SectionLabel } from '../components/SectionLabel';
@@ -17,8 +17,6 @@ import { progressColor } from '../utils/progressColor';
 import { useDayValues } from '../hooks/useDayValues';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
-
-const GLOW_SIZE = 340;
 
 export default function ProgressScreen({ navigation }: any) {
   const { habits, currentDay, getStreak, getLongestStreak, getTotalCompletions, profile } = useApp();
@@ -69,9 +67,10 @@ export default function ProgressScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      <AmbientBackdrop color={color} />
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxl + tabBarClearance }}>
         <View style={[styles.header, { paddingTop: topInset + spacing.sm }]}>
-          <Text style={typography.caption}>DEPUIS LE DÉBUT</Text>
+          <Text style={typography.kicker}>DEPUIS LE DÉBUT</Text>
           <Text style={typography.display}>Progression</Text>
         </View>
 
@@ -80,7 +79,6 @@ export default function ProgressScreen({ navigation }: any) {
             are but how you got there. What's left is the number itself, at a
             size that can carry the screen on its own. */}
         <View style={styles.hero}>
-          <ProgressGlow color={color} size={GLOW_SIZE} />
           <View style={{ alignItems: 'center' }}>
             <Text style={styles.day}>{Math.round(displayed * TOTAL_DAYS)}</Text>
             <Text style={styles.daySub}>

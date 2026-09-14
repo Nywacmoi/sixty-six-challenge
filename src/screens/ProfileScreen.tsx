@@ -65,7 +65,7 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxl + tabBarClearance }}>
         <View style={[styles.header, { paddingTop: topInset + spacing.sm }]}>
-          <Text style={typography.caption}>NIVEAU {levelInfo.level}</Text>
+          <Text style={typography.kicker}>NIVEAU {levelInfo.level}</Text>
           <Text style={typography.display}>Profil</Text>
         </View>
 

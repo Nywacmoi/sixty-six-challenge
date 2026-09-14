@@ -47,7 +47,7 @@ import { ProgressPhotoInsight } from '../components/ProgressPhotoInsight';
 import { AiJawlineSession } from '../components/AiJawlineSession';
 import { JawlinePhotoInsight } from '../components/JawlinePhotoInsight';
 import { downscaleImage } from '../utils/image';
-import { ProgressGlow } from '../components/ProgressGlow';
+import { AmbientBackdrop } from '../components/AmbientBackdrop';
 import { DayGrid } from '../components/DayGrid';
 import { AiRunningSession } from '../components/AiRunningSession';
 import { RunHistory } from '../components/RunHistory';
@@ -244,7 +244,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
           place instead of another row in a list. Sits outside the ScrollView so
           it stays put while the content moves under it. */}
       <Animated.View pointerEvents="none" style={[styles.wash, { opacity: enter }]}>
-        <ProgressGlow color={habit.color} size={520} />
+        <AmbientBackdrop color={habit.color} intensity={0.9} />
       </Animated.View>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl + tabBarClearance }}>
         <View style={styles.headerRow}>
@@ -896,7 +896,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
-    wash: { position: 'absolute', top: -190, left: -80, width: 520, height: 520 },
+    wash: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
     headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.lg },
     iconWrap: { width: 52, height: 52, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },

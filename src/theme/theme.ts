@@ -67,6 +67,11 @@ export function getTypography(colors: ThemeColors) {
     body: { fontSize: 15, fontFamily: fonts.regular, color: colors.text },
     bodyBold: { fontSize: 15, fontFamily: fonts.semiBold, color: colors.text },
     caption: { fontSize: 12, fontFamily: fonts.semiBold, color: colors.textSecondary, letterSpacing: 0.4 },
+    // The line that sits above a screen title. It was `caption` — a paragraph
+    // style pressed into service as a label, which read as leftover text once
+    // the titles below it grew. Wide tracking and the tertiary colour make it
+    // deliberate, and match the small-caps labels used everywhere else.
+    kicker: { fontSize: 11, fontFamily: fonts.bold, color: colors.textTertiary, letterSpacing: 1.9 },
     small: { fontSize: 11, fontFamily: fonts.bold, color: colors.textTertiary, letterSpacing: 0.3 },
   };
 }
