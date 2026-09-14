@@ -13,6 +13,7 @@ import { ProgressBar } from '../components/ProgressBar';
 import { BackupSettings } from '../components/BackupSettings';
 import { AccountSettings } from '../components/AccountSettings';
 import { AvatarDisplay } from '../components/AvatarDisplay';
+import { AvatarProgress } from '../components/AvatarProgress';
 import { AvatarWardrobe } from '../components/AvatarWardrobe';
 
 const REMINDER_TIMES = [
@@ -65,21 +66,23 @@ export default function ProfileScreen() {
         <Text style={typography.display}>Profil</Text>
 
         <View style={styles.profileCard}>
-          <View style={[styles.avatar, { backgroundColor: profile.avatarColor + '1F' }]}>
-            <AvatarDisplay
-              color={profile.avatarColor}
-              seed={profile.avatarSeed}
-              gender={profile.avatarGender}
-              hair={profile.avatarHair}
-              accessory={profile.avatarAccessory}
-              facialHair={profile.avatarFacialHair}
-              expression={profile.avatarExpression}
-              hasAura={currentDay >= 75}
-              hasStar={currentDay >= 99}
-              size={118}
-            />
-          </View>
-          <View style={styles.genderRow}>
+          <AvatarProgress currentDay={currentDay} totalDays={TOTAL_DAYS}>
+            <View style={[styles.avatar, { backgroundColor: profile.avatarColor + '1F' }]}>
+              <AvatarDisplay
+                color={profile.avatarColor}
+                seed={profile.avatarSeed}
+                gender={profile.avatarGender}
+                hair={profile.avatarHair}
+                accessory={profile.avatarAccessory}
+                facialHair={profile.avatarFacialHair}
+                expression={profile.avatarExpression}
+                hasAura={currentDay >= 75}
+                hasStar={currentDay >= 99}
+                size={118}
+              />
+            </View>
+          </AvatarProgress>
+          <View style={[styles.genderRow, { marginTop: spacing.lg }]}>
             <Pressable
               onPress={() => updateProfile({ avatarGender: 'homme' })}
               style={[styles.genderChip, profile.avatarGender === 'homme' && { borderColor: colors.accent, backgroundColor: colors.accent + '1A' }]}
@@ -114,7 +117,6 @@ export default function ProfileScreen() {
               <Ionicons name="pencil" size={16} color={colors.textSecondary} />
             </Pressable>
           )}
-          <Text style={typography.caption}>Jour {currentDay} sur {TOTAL_DAYS}</Text>
         </View>
 
         <View style={styles.levelCard}>
@@ -225,7 +227,7 @@ function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     profileCard: { alignItems: 'center', marginTop: spacing.xl, gap: 6 },
-    avatar: { width: 132, height: 132, borderRadius: 66, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
+    avatar: { width: 132, height: 132, borderRadius: 66, alignItems: 'center', justifyContent: 'center' },
     genderRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
     genderChip: {
       paddingVertical: 6,

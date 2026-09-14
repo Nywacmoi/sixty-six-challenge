@@ -49,3 +49,21 @@ export const AVATAR_ITEMS: AvatarItem[] = [
   { id: 'birthmark', name: 'Grain de beauté', icon: 'person', slot: 'facialHair', unlockDay: 99 },
   { id: 'star', name: 'Étoile légendaire', icon: 'star', slot: 'special', unlockDay: 99 },
 ];
+
+export type Milestone = { day: number; caption: string };
+
+// Day 1 is just the starting line (nothing unlocks there) — every other day
+// matches an AVATAR_ITEMS unlockDay above, so the milestone strip in
+// AvatarProgress.tsx always lines up with a real wardrobe reward instead of
+// promising a "level up" that has nothing behind it.
+export const AVATAR_MILESTONES: Milestone[] = [
+  { day: 1, caption: 'Le début.' },
+  { day: 3, caption: 'Tu passes à l’action.' },
+  { day: 7, caption: 'Tu lances la machine.' },
+  { day: 14, caption: 'Tu prends le rythme.' },
+  { day: 21, caption: 'Tu construis.' },
+  { day: 33, caption: 'Tu tiens bon.' },
+  { day: 50, caption: 'Tu deviens une autre version de toi.' },
+  { day: 75, caption: 'Presque là.' },
+  { day: 99, caption: 'Discipline. Résultats.' },
+];
