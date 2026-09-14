@@ -1,25 +1,25 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { fonts, spacing, TOTAL_DAYS, radius, ThemeColors, Typography } from '../theme/theme';
-import { RingProgress } from '../components/RingProgress';
 import { ProgressGlow } from '../components/ProgressGlow';
+import { DayGrid } from '../components/DayGrid';
 import { StatStrip } from '../components/StatStrip';
 import { SectionLabel } from '../components/SectionLabel';
 import { JourneyPath } from '../components/JourneyPath';
 import { AvatarDisplay } from '../components/AvatarDisplay';
 import { progressColor } from '../utils/progressColor';
+import { todayKey, addDays } from '../utils/date';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 
-const RING_SIZE = 212;
-const GLOW_SIZE = 320;
+const GLOW_SIZE = 340;
 
 export default function ProgressScreen({ navigation }: any) {
-  const { habits, currentDay, getStreak, getLongestStreak, getTotalCompletions, profile } = useApp();
+  const { habits, completions, currentDay, isCompleted, getStreak, getLongestStreak, getTotalCompletions, profile } = useApp();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const activeHabits = habits.filter((h) => !h.archived);
@@ -40,7 +40,22 @@ export default function ProgressScreen({ navigation }: any) {
   const maxPossibleCompletions = activeHabits.length * Math.max(currentDay, 1);
   const completionRate = maxPossibleCompletions > 0 ? getTotalCompletions() / maxPossibleCompletions : 0;
 
-  // Same single animated value behind the ring, the number and the colour as
+  // How much of each day got done, across every active habit — the grid's
+  // whole input. A day where three of four habits were ticked is a paler cell
+  // than a perfect one, so the block shows the texture of the challenge rather
+  // than a binary done/not-done.
+  const startDate = profile.challengeStartDate ?? todayKey();
+  const dayValues = useMemo(() => {
+    return Array.from({ length: TOTAL_DAYS }, (_, i) => {
+      if (activeHabits.length === 0) return 0;
+      const date = addDays(startDate, i);
+      const done = activeHabits.filter((h) => isCompleted(h.id, date)).length;
+      return done / activeHabits.length;
+    });
+    // `completions` is what actually changes underneath isCompleted.
+  }, [startDate, habits, completions, isCompleted]);
+
+  // Same single animated value behind the number and the colour as
   // on Aujourd'hui, so the two screens move the same way. 99 days is a slow
   // number to watch tick up, so this one runs a touch longer.
   const anim = useRef(new Animated.Value(0)).current;
@@ -71,24 +86,26 @@ export default function ProgressScreen({ navigation }: any) {
           <Text style={typography.display}>Progression</Text>
         </View>
 
+        {/* No ring here any more. It and the grid below said the same thing,
+            and the grid says it better: it shows not just how far along you
+            are but how you got there. What's left is the number itself, at a
+            size that can carry the screen on its own. */}
         <View style={styles.hero}>
           <ProgressGlow color={color} size={GLOW_SIZE} />
-          <RingProgress progress={displayed} size={RING_SIZE} strokeWidth={7} color={color}>
+          <View style={{ alignItems: 'center' }}>
             <Text style={styles.day}>{Math.round(displayed * TOTAL_DAYS)}</Text>
-            <Text style={styles.daySub}>sur {TOTAL_DAYS} jours</Text>
+            <Text style={styles.daySub}>
+              sur {TOTAL_DAYS} jours
+              {daysLeft > 0 ? ` · il reste ${daysLeft} jour${daysLeft > 1 ? 's' : ''}` : ' · défi terminé'}
+            </Text>
             <Text style={[styles.status, { color }]}>{Math.round(displayed * 100)}% DU DÉFI</Text>
-          </RingProgress>
+          </View>
         </View>
 
-        <Text style={styles.countLine}>
-          {daysLeft > 0 ? (
-            <>
-              il reste <Text style={styles.countValue}>{daysLeft} jour{daysLeft > 1 ? 's' : ''}</Text>
-            </>
-          ) : (
-            'défi terminé · 99 jours au compteur'
-          )}
-        </Text>
+        <SectionLabel style={styles.sectionLabel}>TON PARCOURS</SectionLabel>
+        <View style={{ paddingHorizontal: spacing.lg }}>
+          <DayGrid values={dayValues} currentDay={day} />
+        </View>
 
         <StatStrip
           style={{ marginHorizontal: spacing.lg, marginTop: spacing.lg }}
@@ -110,7 +127,7 @@ export default function ProgressScreen({ navigation }: any) {
           <Ionicons name="chevron-forward" size={17} color={colors.textTertiary} />
         </Pressable>
 
-        <SectionLabel style={styles.sectionLabel}>TON CHEMIN</SectionLabel>
+        <SectionLabel style={styles.sectionLabel}>TES JALONS</SectionLabel>
         <View style={{ paddingHorizontal: spacing.lg }}>
           <JourneyPath
             currentDay={day}
@@ -180,9 +197,9 @@ function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     header: { paddingHorizontal: spacing.lg },
-    hero: { alignItems: 'center', justifyContent: 'center', height: RING_SIZE + spacing.lg },
-    day: { fontFamily: fonts.display, fontSize: 52, color: colors.text, letterSpacing: -2.5, lineHeight: 58 },
-    daySub: { fontFamily: fonts.medium, fontSize: 12, color: colors.textSecondary, marginTop: 4 },
+    hero: { alignItems: 'center', justifyContent: 'center', height: 190, marginTop: spacing.sm },
+    day: { fontFamily: fonts.display, fontSize: 104, color: colors.text, letterSpacing: -5.5, lineHeight: 106 },
+    daySub: { fontFamily: fonts.medium, fontSize: 12, color: colors.textSecondary, marginTop: 10 },
     status: { fontFamily: fonts.bold, fontSize: 10.5, letterSpacing: 1.4, marginTop: 3 },
     countLine: {
       fontFamily: fonts.medium,

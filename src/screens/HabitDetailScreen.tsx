@@ -6,7 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, TOTAL_DAYS, ThemeColors, Typography } from '../theme/theme';
-import { addDays, todayKey, formatDayLabel, dailyIndex } from '../utils/date';
+import { addDays, todayKey, formatDayLabel, dailyIndex, toSafeDateKey } from '../utils/date';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
@@ -47,6 +47,8 @@ import { ProgressPhotoInsight } from '../components/ProgressPhotoInsight';
 import { AiJawlineSession } from '../components/AiJawlineSession';
 import { JawlinePhotoInsight } from '../components/JawlinePhotoInsight';
 import { downscaleImage } from '../utils/image';
+import { ProgressGlow } from '../components/ProgressGlow';
+import { DayGrid } from '../components/DayGrid';
 import { AiRunningSession } from '../components/AiRunningSession';
 import { RunHistory } from '../components/RunHistory';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -116,7 +118,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   const [heightDraft, setHeightDraft] = useState(profile.heightCm ? String(profile.heightCm) : '');
   const [goalWeightDraft, setGoalWeightDraft] = useState(profile.goalWeightKg ? String(profile.goalWeightKg) : '');
 
-  const startDate = profile.challengeStartDate ?? habit?.createdAt ?? todayKey();
+  const startDate = toSafeDateKey(profile.challengeStartDate ?? habit?.createdAt);
 
   const days = useMemo(() => {
     return Array.from({ length: TOTAL_DAYS }, (_, i) => {
@@ -218,6 +220,12 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      {/* The habit's own colour bleeding down behind its title. Every habit
+          already carries a colour and it was only ever used on a 42px icon;
+          spending it on the whole screen is what turns each habit into its own
+          place instead of another row in a list. Sits outside the ScrollView so
+          it stays put while the content moves under it. */}
+      <ProgressGlow color={habit.color} size={520} style={styles.wash} />
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl + tabBarClearance }}>
         <View style={styles.headerRow}>
           <Pressable onPress={() => navigation.goBack()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Retour">
@@ -265,13 +273,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Ionicons name="flame" size={20} color={colors.accent} />
-            <Text style={typography.h1}>{getStreak(habitId)}</Text>
+            <Ionicons name="flame" size={20} color={habit.color} />
+            <Text style={[typography.h1, { color: habit.color }]}>{getStreak(habitId)}</Text>
             <Text style={typography.caption}>Série actuelle</Text>
           </View>
           <View style={styles.statCard}>
-            <Ionicons name="trophy" size={20} color={colors.gold} />
-            <Text style={typography.h1}>{getLongestStreak(habitId)}</Text>
+            <Ionicons name="trophy" size={20} color={habit.color} />
+            <Text style={[typography.h1, { color: habit.color }]}>{getLongestStreak(habitId)}</Text>
             <Text style={typography.caption}>Meilleure série</Text>
           </View>
         </View>
@@ -715,12 +723,12 @@ export default function HabitDetailScreen({ route, navigation }: any) {
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Mes courses</Text>
             <Pressable
               onPress={() => navigation.navigate('RunTracker', { habitId })}
-              style={[styles.trackRunBtn, { backgroundColor: colors.accent }]}
+              style={[styles.trackRunBtn, { backgroundColor: habit.color }]}
               accessibilityRole="button"
               accessibilityLabel="Démarrer une course avec suivi GPS"
             >
-              <Ionicons name="play" size={18} color="#fff" />
-              <Text style={styles.trackRunBtnText}>Démarrer une course</Text>
+              <Ionicons name="play" size={18} color={colors.background} />
+              <Text style={[styles.trackRunBtnText, { color: colors.background }]}>Démarrer une course</Text>
             </Pressable>
             <RunHistory habitId={habitId} />
 
@@ -814,18 +822,11 @@ export default function HabitDetailScreen({ route, navigation }: any) {
         )}
 
         <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Parcours de {TOTAL_DAYS} jours</Text>
-        <View style={styles.grid}>
-          {days.map((d) => (
-            <View
-              key={d.date}
-              style={[
-                styles.dayCell,
-                d.done && { backgroundColor: habit.color },
-                d.date === todayKey() && styles.dayCellToday,
-              ]}
-            />
-          ))}
-        </View>
+        <DayGrid
+          values={days.map((d) => (d.done ? 1 : 0))}
+          currentDay={days.findIndex((d) => d.date === todayKey()) + 1}
+          tint={habit.color}
+        />
 
         <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Photo de progression</Text>
         <Pressable
@@ -861,6 +862,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
+    wash: { top: -190, left: -80 },
     headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.lg },
     iconWrap: { width: 52, height: 52, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },

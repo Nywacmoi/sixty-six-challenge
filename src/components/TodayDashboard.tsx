@@ -24,8 +24,14 @@ function pad(n: number) {
   return n.toString().padStart(2, '0');
 }
 
-const RING_SIZE = 212;
-const GLOW_SIZE = 320;
+// The ring got bigger and much thinner at the same time, and the number inside
+// it roughly doubled. That inversion is the point: at a 7px stroke the ring
+// competed with the figure it was supposed to frame, and a 52px number on a
+// 212px ring left a hole in the middle of the screen's one focal point. Now the
+// number is the object and the ring is its outline.
+const RING_SIZE = 228;
+const RING_STROKE = 5;
+const GLOW_SIZE = 340;
 
 // The day's readout, built around one focal point instead of a stack of
 // equally-weighted widgets in a box. The ring carries the whole state —
@@ -94,8 +100,11 @@ export function TodayDashboard({
     <View style={styles.wrap}>
       <View style={styles.hero}>
         <ProgressGlow color={color} size={GLOW_SIZE} />
-        <RingProgress progress={displayed} size={RING_SIZE} strokeWidth={7} color={color}>
-          <Text style={styles.pct}>{Math.round(displayed * 100)}%</Text>
+        <RingProgress progress={displayed} size={RING_SIZE} strokeWidth={RING_STROKE} color={color}>
+          <Text style={styles.pct}>
+            {Math.round(displayed * 100)}
+            <Text style={styles.pctSign}>%</Text>
+          </Text>
           <Text style={styles.pctSub}>
             {doneCount} sur {totalCount} habitude{totalCount > 1 ? 's' : ''}
           </Text>
@@ -151,8 +160,9 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     wrap: { marginTop: spacing.xs },
     hero: { alignItems: 'center', justifyContent: 'center', height: RING_SIZE + spacing.lg },
-    pct: { fontFamily: fonts.display, fontSize: 52, color: colors.text, letterSpacing: -2.5, lineHeight: 58 },
-    pctSub: { fontFamily: fonts.medium, fontSize: 12, color: colors.textSecondary, marginTop: 4 },
+    pct: { fontFamily: fonts.display, fontSize: 86, color: colors.text, letterSpacing: -4.5, lineHeight: 90 },
+    pctSign: { fontFamily: fonts.display, fontSize: 40, color: colors.text, letterSpacing: -2 },
+    pctSub: { fontFamily: fonts.medium, fontSize: 12, color: colors.textSecondary, marginTop: 8 },
     status: { fontFamily: fonts.bold, fontSize: 10.5, letterSpacing: 1.4, marginTop: 3 },
     countLine: {
       fontFamily: fonts.medium,

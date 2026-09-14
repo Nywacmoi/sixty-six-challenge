@@ -24,8 +24,18 @@ export function addDays(dateKey: string, amount: number): string {
   return toDateKey(date);
 }
 
+// Habits created by older versions of the app stored a full ISO timestamp
+// where a date key belongs. Everything downstream splits on "-" and does
+// arithmetic on the pieces, so one of those doesn't just render as "Invalid
+// Date" — fed in as a challenge start date it throws the whole 99-day grid off.
+// Trimming to the first ten characters normalises both shapes.
+export function toSafeDateKey(value: string | null | undefined): string {
+  if (!value) return todayKey();
+  return value.slice(0, 10);
+}
+
 export function formatDayLabel(dateKey: string): string {
-  const [y, m, d] = dateKey.split('-').map(Number);
+  const [y, m, d] = toSafeDateKey(dateKey).split('-').map(Number);
   const date = new Date(y, m - 1, d);
   return date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
 }
