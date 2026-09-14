@@ -46,6 +46,7 @@ import { AiWorkoutSession } from '../components/AiWorkoutSession';
 import { ProgressPhotoInsight } from '../components/ProgressPhotoInsight';
 import { AiJawlineSession } from '../components/AiJawlineSession';
 import { JawlinePhotoInsight } from '../components/JawlinePhotoInsight';
+import { downscaleImage } from '../utils/image';
 import { AiRunningSession } from '../components/AiRunningSession';
 import { RunHistory } from '../components/RunHistory';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -134,8 +135,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
     }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7, allowsEditing: true });
     if (!result.canceled && result.assets[0]) {
-      setPhotoUri(result.assets[0].uri);
-      await setPhotoForToday(habitId, result.assets[0].uri);
+      // Shrink before storing, never after: on web the picker's `blob:` URL
+      // dies with the document, so what gets saved has to be the bytes
+      // themselves — and they have to be small enough to share a ~5 MB
+      // localStorage with everything else. See downscaleImage.
+      const stored = await downscaleImage(result.assets[0].uri);
+      setPhotoUri(stored);
+      await setPhotoForToday(habitId, stored);
     }
   };
 
