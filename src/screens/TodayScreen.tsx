@@ -20,6 +20,7 @@ import { progressColor } from '../utils/progressColor';
 import { isCheckInDue } from '../utils/checkIn';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
+import { AppIcon } from '../components/AppIcon';
 
 export default function TodayScreen({ navigation }: any) {
   const { loading, habits, currentDay, todayProgress, isCompleted, getStreak, getLongestStreak, profile, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast, levelInfo } = useApp();
@@ -87,7 +88,7 @@ export default function TodayScreen({ navigation }: any) {
         <>
           {header}
           <View style={styles.empty}>
-            <Ionicons name="flame-outline" size={48} color={colors.textTertiary} />
+            <AppIcon name="flame-outline" size={48} color={colors.textTertiary} />
             <Text style={[typography.h2, { marginTop: spacing.md, textAlign: 'center' }]}>Construis de la discipline, pas des habitudes</Text>
             <Text style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs }]}>
               Ajoute ta première habitude et commence ta transformation de {TOTAL_DAYS} jours.

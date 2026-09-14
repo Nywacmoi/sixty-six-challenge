@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { DiscoveryCategory } from '../data/discoveryCategories';
+import { AppIcon } from './AppIcon';
 
 type SearchTarget = { label: string; icon: keyof typeof Ionicons.glyphMap; buildUrl: (query: string) => string };
 
@@ -48,7 +49,7 @@ export function RecommendationFinder({
               onPress={() => setSelected(c)}
               style={[styles.chip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
             >
-              <Ionicons name={c.emoji as any} size={16} color={active ? colors.accent : colors.textSecondary} />
+              <AppIcon name={c.emoji} size={16} color={active ? colors.accent : colors.textSecondary} />
               <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{c.label}</Text>
             </Pressable>
           );

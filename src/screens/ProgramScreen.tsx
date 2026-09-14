@@ -9,6 +9,7 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { ROUTINE_TEMPLATES } from '../data/templates';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
+import { AppIcon } from '../components/AppIcon';
 
 export default function ProgramScreen({ navigation, route }: any) {
   const { templateId } = route.params;
@@ -44,7 +45,7 @@ export default function ProgramScreen({ navigation, route }: any) {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}>
-        <Ionicons name={template.emoji as any} size={40} color={colors.accent} style={{ marginBottom: spacing.xs }} />
+        <AppIcon name={template.emoji} size={40} color={colors.accent} style={{ marginBottom: spacing.xs }} />
         <Text style={typography.display}>{template.title}</Text>
         <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.xs }]}>{program.subtitle}</Text>
 

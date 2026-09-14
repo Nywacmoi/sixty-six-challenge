@@ -10,12 +10,13 @@ import { todayKey, dailyIndex } from '../utils/date';
 import { COMMON_HABITS } from '../data/commonHabits';
 import { getHabitCategories } from '../utils/habitCategories';
 import { PrimaryButton } from './PrimaryButton';
+import { AppIcon } from './AppIcon';
 
 const GREETINGS = ['Salut {name}', 'Hey {name} !', 'Bonjour {name}', '{name}, prêt(e) pour aujourd\'hui ?'];
 
 const MOODS = [
   { icon: 'bed', label: 'Fatigué' },
-  { icon: 'remove', label: 'Moyen' },
+  { icon: 'neutral', label: 'Moyen' },
   { icon: 'happy', label: 'Bien' },
   { icon: 'flame', label: 'En feu' },
 ];
@@ -56,7 +57,7 @@ const MOOD_REACTIONS: Record<string, string[]> = {
 
 const SLEEPS = [
   { icon: 'sad', label: 'Mal dormi' },
-  { icon: 'remove', label: 'Sommeil moyen' },
+  { icon: 'neutral', label: 'Sommeil moyen' },
   { icon: 'happy', label: 'Bien dormi' },
   { icon: 'star', label: 'Nuit parfaite' },
 ];
@@ -178,7 +179,7 @@ function OptionCard({ icon, label, onPress, index }: { icon: string; label: stri
             justifyContent: 'center',
           }}
         >
-          <Ionicons name={icon as any} size={26} color={colors.accent} />
+          <AppIcon name={icon} size={26} color={colors.accent} />
         </View>
         <Text style={{ fontFamily: fonts.semiBold, fontSize: 14, color: colors.text }}>{label}</Text>
       </Pressable>
@@ -240,7 +241,7 @@ function RoutineRow({
     >
       <Pressable onPress={onPress} style={styles.row}>
         <View style={[styles.iconWrap, { backgroundColor: habit.color + '26' }]}>
-          <Ionicons name={habit.icon as any} size={18} color={habit.color} />
+          <AppIcon name={habit.icon} size={18} color={habit.color} />
         </View>
         <Text style={[typography.body, { flex: 1 }]}>{habit.name}</Text>
         <Ionicons name={active ? 'checkbox' : 'square-outline'} size={22} color={active ? colors.accent : colors.textTertiary} />

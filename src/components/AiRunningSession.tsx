@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { generateRunningSession, AiRunningSegment } from '../firebase/aiSuggestions';
 import { storage } from '../storage/storage';
 import { todayKey } from '../utils/date';
 import { RunningSegment } from '../data/runningPrograms';
+import { AppIcon } from './AppIcon';
 
 // Same "AI first, cached daily, static fallback on any failure" pattern as
 // AiWorkoutSession/AiJawlineSession — see those for the reasoning. No
@@ -67,7 +67,7 @@ export function AiRunningSession({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.badge}>
-          <Ionicons name="sparkles" size={11} color={colors.accent} />
+          <AppIcon name="sparkles" size={11} color={colors.accent} />
           <Text style={[typography.small, { color: colors.accent }]}>SÉANCE DU JOUR</Text>
         </View>
       </View>

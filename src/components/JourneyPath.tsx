@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { AVATAR_MILESTONES } from '../data/avatarItems';
+import { AppIcon } from './AppIcon';
 
 // A Duolingo-style winding lesson path, built from the same milestone data
 // as AvatarProgress (so a node here always matches a real wardrobe unlock).
@@ -77,7 +78,7 @@ function MilestoneNode({
     >
       {state === 'current' && <View style={styles.glow} pointerEvents="none" />}
       <View style={[styles.node, { backgroundColor: bg }, state === 'locked' && styles.nodeLocked]}>
-        <Ionicons name={icon as any} size={state === 'locked' ? 18 : 22} color={iconColor} />
+        <AppIcon name={icon} size={state === 'locked' ? 18 : 22} color={iconColor} />
       </View>
       <Text style={[styles.nodeDay, state === 'locked' && { color: colors.textTertiary }]}>J{day}</Text>
       {state === 'current' && (

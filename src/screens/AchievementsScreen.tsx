@@ -8,6 +8,7 @@ import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { ACHIEVEMENTS } from '../data/achievements';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
+import { AppIcon } from '../components/AppIcon';
 
 export default function AchievementsScreen() {
   const { unlockedAchievements } = useApp();
@@ -35,7 +36,7 @@ export default function AchievementsScreen() {
           return (
             <View style={[styles.card, !unlocked && styles.cardLocked]}>
               <View style={[styles.badge, unlocked && styles.badgeUnlocked]}>
-                <Ionicons name={item.icon as any} size={26} color={unlocked ? colors.gold : colors.textTertiary} />
+                <AppIcon name={item.icon} size={26} color={unlocked ? colors.gold : colors.textTertiary} />
               </View>
               <Text style={[typography.bodyBold, { textAlign: 'center', marginTop: spacing.sm }]}>{item.title}</Text>
               <Text style={[typography.small, { textAlign: 'center', marginTop: 4 }]}>{item.description}</Text>

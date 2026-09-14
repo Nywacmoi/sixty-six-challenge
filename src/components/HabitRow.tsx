@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { Habit } from '../types';
 import { SwipeableRow } from './SwipeableRow';
+import { AppIcon } from './AppIcon';
 import { XP_PER_COMPLETION } from '../utils/gamification';
 
 export function HabitRow({
@@ -74,13 +75,16 @@ export function HabitRow({
         />
         <View style={[styles.colorBar, { backgroundColor: habit.color }]} />
         <View style={[styles.iconWrap, { backgroundColor: habit.color + (completed ? '2E' : '26') }]}>
-          <Ionicons name={habit.icon as any} size={20} color={habit.color} />
+          <AppIcon name={habit.icon} size={20} color={habit.color} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[typography.bodyBold, completed && { color: colors.textSecondary }]}>{habit.name}</Text>
           {streak > 0 ? (
             <View style={styles.streakRow}>
-              <Ionicons name="flame" size={13} color={completed ? habit.color : colors.accent} />
+              {/* The set's own flame, not Ionicons' filled one: a row whose
+                  habit icon is already a flame would otherwise show two
+                  different flames, six pixels apart. */}
+              <AppIcon name="flame" size={14} color={completed ? habit.color : colors.accent} />
               <Text style={[styles.streakText, completed && { color: habit.color }]}>
                 {streak} jour{streak > 1 ? 's' : ''}
               </Text>

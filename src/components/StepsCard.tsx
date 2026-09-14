@@ -6,6 +6,7 @@ import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { RingProgress } from './RingProgress';
 import { useTodaySteps } from '../hooks/useTodaySteps';
 import { parseStepGoal } from '../utils/stepGoal';
+import { AppIcon } from './AppIcon';
 
 export function StepsCard({ habitName }: { habitName: string }) {
   const { colors, typography } = useTheme();
@@ -16,7 +17,7 @@ export function StepsCard({ habitName }: { habitName: string }) {
   if (Platform.OS !== 'ios') {
     return (
       <View style={styles.card}>
-        <Ionicons name="walk-outline" size={20} color={colors.textTertiary} />
+        <AppIcon name="walk-outline" size={20} color={colors.textTertiary} />
         <Text style={[typography.caption, { marginTop: spacing.xs }]}>
           Le comptage de pas en direct n'est disponible que dans l'app iOS pour l'instant.
         </Text>
@@ -27,7 +28,7 @@ export function StepsCard({ habitName }: { habitName: string }) {
   if (!available) {
     return (
       <View style={styles.card}>
-        <Ionicons name="walk-outline" size={20} color={colors.textTertiary} />
+        <AppIcon name="walk-outline" size={20} color={colors.textTertiary} />
         <Text style={[typography.caption, { marginTop: spacing.xs }]}>
           Ton appareil ne propose pas de capteur de pas (normal sur le simulateur).
         </Text>
@@ -38,7 +39,7 @@ export function StepsCard({ habitName }: { habitName: string }) {
   if (permissionDenied) {
     return (
       <View style={styles.card}>
-        <Ionicons name="walk-outline" size={20} color={colors.textTertiary} />
+        <AppIcon name="walk-outline" size={20} color={colors.textTertiary} />
         <Text style={[typography.caption, { marginTop: spacing.xs }]}>
           Autorise l'accès Motion & Fitness dans Réglages pour voir tes pas du jour ici.
         </Text>

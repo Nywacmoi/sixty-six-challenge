@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { analyzeJawlinePhoto, JawlinePhotoResult } from '../firebase/aiSuggestions';
 import { uriToBase64 } from '../utils/image';
 import { storage } from '../storage/storage';
 import { todayKey } from '../utils/date';
+import { AppIcon } from './AppIcon';
 
 // Same opt-in-per-tap pattern as ProgressPhotoInsight (never fires on
 // mount) — but here the AI is explicitly asked for a 1-10 score, since a
@@ -42,7 +42,7 @@ export function JawlinePhotoInsight({ habitId, photoUri }: { habitId: string; ph
     return (
       <View style={styles.card}>
         <View style={styles.row}>
-          <Ionicons name="sparkles-outline" size={16} color={colors.textTertiary} />
+          <AppIcon name="sparkles-outline" size={16} color={colors.textTertiary} />
           <Text style={[typography.small, { color: colors.textTertiary, flex: 1 }]}>
             Ajoute ta photo du jour pour un score de l'IA sur ta mâchoire.
           </Text>
@@ -98,7 +98,7 @@ export function JawlinePhotoInsight({ habitId, photoUri }: { habitId: string; ph
             {loading ? (
               <ActivityIndicator size="small" color={colors.accent} />
             ) : (
-              <Ionicons name="sparkles-outline" size={16} color={colors.accent} />
+              <AppIcon name="sparkles-outline" size={16} color={colors.accent} />
             )}
             <Text style={[typography.bodyBold, { color: colors.accent, flex: 1 }]}>
               {loading ? 'Analyse de la photo…' : (error ?? "Demander un score à l'IA")}

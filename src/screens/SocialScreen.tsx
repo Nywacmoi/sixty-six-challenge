@@ -11,6 +11,7 @@ import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { SocialGroup, getProfile, PublicProfile, directThreadId } from '../firebase/social';
 import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
+import { AppIcon } from '../components/AppIcon';
 
 const GROUP_EMOJIS = ['flame', 'fitness', 'leaf', 'book', 'walk', 'locate'];
 const GROUP_EMOJI_NAMES: Record<string, string> = {
@@ -143,7 +144,7 @@ function FriendsTab({ colors, typography, navigation }: { colors: ThemeColors; t
               <Text style={typography.caption}>Jour {item.currentDay} · Niveau {item.level}</Text>
             </View>
             <View style={styles.streakBadge}>
-              <Ionicons name="flame" size={14} color={colors.accent} />
+              <AppIcon name="flame" size={14} color={colors.accent} />
               <Text style={[typography.bodyBold, { color: colors.accent }]}>{item.currentStreak}</Text>
             </View>
             <Pressable
@@ -249,7 +250,7 @@ function GroupCard({
       accessibilityLabel={`${group.name} — ${expanded ? 'masquer les membres' : 'afficher les membres'}`}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        <Ionicons name={group.emoji as any} size={22} color={colors.accent} />
+        <AppIcon name={group.emoji} size={22} color={colors.accent} />
         <View style={{ flex: 1 }}>
           <Text style={typography.bodyBold}>{group.name}</Text>
           <Text style={typography.caption}>
@@ -275,7 +276,7 @@ function GroupCard({
               <Text style={[typography.small, { width: 18 }]}>{i + 1}</Text>
               <Avatar name={m.username} color={m.avatarColor} size={28} />
               <Text style={[typography.body, { flex: 1, marginLeft: spacing.sm }]}>{m.username}</Text>
-              <Ionicons name="flame" size={13} color={colors.accent} />
+              <AppIcon name="flame" size={13} color={colors.accent} />
               <Text style={[typography.caption, { color: colors.accent }]}>{m.currentStreak}</Text>
             </View>
           ))}
@@ -400,7 +401,7 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
                   accessibilityState={{ selected: e === emoji }}
                   accessibilityLabel={`Icône ${GROUP_EMOJI_NAMES[e] ?? e}`}
                 >
-                  <Ionicons name={e as any} size={18} color={e === emoji ? colors.accent : colors.textSecondary} />
+                  <AppIcon name={e} size={18} color={e === emoji ? colors.accent : colors.textSecondary} />
                 </Pressable>
               ))}
             </View>
@@ -468,7 +469,7 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
                 )}
                 {publicGroups.map((g) => (
                   <View key={g.id} style={styles.discoverRow}>
-                    <Ionicons name={g.emoji as any} size={18} color={colors.accent} />
+                    <AppIcon name={g.emoji} size={18} color={colors.accent} />
                     <View style={{ flex: 1 }}>
                       <Text style={typography.bodyBold}>{g.name}</Text>
                       <Text style={typography.caption}>

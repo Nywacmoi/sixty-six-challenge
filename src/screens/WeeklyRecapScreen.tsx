@@ -10,6 +10,7 @@ import { useConfirm } from '../context/ConfirmContext';
 import { spacing, radius, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
 import { RingProgress } from '../components/RingProgress';
+import { AppIcon } from '../components/AppIcon';
 import { ShareCard, CARD_WIDTH, CARD_HEIGHT } from '../components/ShareCard';
 import { addDays, todayKey, formatDayLabel } from '../utils/date';
 import { useDayValues } from '../hooks/useDayValues';
@@ -131,7 +132,7 @@ export default function WeeklyRecapScreen({ navigation }: any) {
         </View>
 
         <View style={styles.insightCard}>
-          <Ionicons name="sparkles" size={18} color={colors.accent} />
+          <AppIcon name="sparkles" size={18} color={colors.accent} />
           <Text style={[typography.body, { flex: 1 }]}>{insight}</Text>
         </View>
 
@@ -146,7 +147,7 @@ export default function WeeklyRecapScreen({ navigation }: any) {
           </View>
           <View style={styles.summaryCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Ionicons name="flame" size={18} color={colors.accent} />
+              <AppIcon name="flame" size={18} color={colors.accent} />
               <Text style={typography.h1}>{stats.bestStreak}</Text>
             </View>
             <Text style={typography.caption}>Meilleure série</Text>
@@ -191,7 +192,7 @@ export default function WeeklyRecapScreen({ navigation }: any) {
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Habitude la plus régulière</Text>
             <View style={styles.habitCard}>
               <View style={[styles.iconWrap, { backgroundColor: stats.best.habit.color + '26' }]}>
-                <Ionicons name={stats.best.habit.icon as any} size={18} color={stats.best.habit.color} />
+                <AppIcon name={stats.best.habit.icon} size={18} color={stats.best.habit.color} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={typography.bodyBold}>{stats.best.habit.name}</Text>
@@ -209,7 +210,7 @@ export default function WeeklyRecapScreen({ navigation }: any) {
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>À travailler la semaine prochaine</Text>
             <View style={styles.habitCard}>
               <View style={[styles.iconWrap, { backgroundColor: stats.weakest.habit.color + '26' }]}>
-                <Ionicons name={stats.weakest.habit.icon as any} size={18} color={stats.weakest.habit.color} />
+                <AppIcon name={stats.weakest.habit.icon} size={18} color={stats.weakest.habit.color} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={typography.bodyBold}>{stats.weakest.habit.name}</Text>

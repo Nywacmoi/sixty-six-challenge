@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { RouteMap } from './RouteMap';
 import { formatPace, formatDuration } from '../utils/geo';
 import { formatDayLabel, todayKey, addDays } from '../utils/date';
+import { AppIcon } from './AppIcon';
 
 const MAX_SHOWN = 5;
 
@@ -47,7 +47,7 @@ export function RunHistory({ habitId }: { habitId: string }) {
         <View key={run.id} style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={[styles.iconWrap, { backgroundColor: color + '26' }]}>
-              <Ionicons name="flame" size={16} color={color} />
+              <AppIcon name="flame" size={16} color={color} />
             </View>
             <Text style={[typography.bodyBold, { flex: 1 }]}>{formatDayLabel(run.date)}</Text>
           </View>

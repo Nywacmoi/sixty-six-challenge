@@ -16,6 +16,7 @@ import { AccountSettings } from '../components/AccountSettings';
 import { AvatarDisplay } from '../components/AvatarDisplay';
 import { AvatarProgress } from '../components/AvatarProgress';
 import { AvatarWardrobe } from '../components/AvatarWardrobe';
+import { AppIcon } from '../components/AppIcon';
 
 const REMINDER_TIMES = [
   { label: '7h', hour: 7, minute: 0 },
@@ -109,7 +110,7 @@ export default function ProfileScreen() {
               accessibilityLabel="Modifier ton prénom"
             >
               <Text style={styles.name}>{profile.name}</Text>
-              <Ionicons name="pencil" size={15} color={colors.textTertiary} />
+              <AppIcon name="pencil" size={15} color={colors.textTertiary} />
             </Pressable>
           )}
 

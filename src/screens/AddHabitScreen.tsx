@@ -7,41 +7,53 @@ import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { AppIcon, HABIT_ICON_NAMES } from '../components/AppIcon';
 import { ROUTINE_TEMPLATES } from '../data/templates';
 import { COMMON_HABITS } from '../data/commonHabits';
 import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 
-const ICONS = [
-  'flame', 'fitness', 'walk', 'barbell', 'bicycle', 'leaf', 'nutrition', 'water', 'restaurant',
-  'wine', 'book', 'pencil', 'color-palette', 'musical-notes', 'laptop', 'bulb',
-  'bed', 'moon', 'phone-portrait', 'cash', 'locate', 'accessibility',
-];
+// Taken straight from the icon set rather than kept as a second list here:
+// the two drifted apart before — the picker offered twenty-two while the
+// suggested habits used eight more — and the mismatch is invisible until a
+// habit shows up wearing a different icon family from its neighbours.
+const ICONS = HABIT_ICON_NAMES;
 
 const ICON_NAMES: Record<string, string> = {
   flame: 'Flamme',
   fitness: 'Fitness',
-  walk: 'Marche',
   barbell: 'Haltères',
+  walk: 'Marche',
   bicycle: 'Vélo',
   leaf: 'Feuille',
+  flower: 'Fleur',
   nutrition: 'Nutrition',
   water: 'Eau',
+  snow: 'Froid',
   restaurant: 'Repas',
   wine: 'Vin',
+  ban: 'Interdit',
   book: 'Livre',
   pencil: 'Crayon',
+  school: 'Études',
+  language: 'Langue',
   'color-palette': 'Palette de couleurs',
   'musical-notes': 'Musique',
+  headset: 'Casque audio',
   laptop: 'Ordinateur',
   bulb: 'Ampoule',
   bed: 'Lit',
   moon: 'Lune',
+  'partly-sunny': 'Matin',
   'phone-portrait': 'Téléphone',
+  airplane: 'Avion',
   cash: 'Argent',
   locate: 'Cible',
   accessibility: 'Étirement',
+  body: 'Silhouette',
+  calendar: 'Calendrier',
+  'bar-chart': 'Graphique',
 };
 
 const COLORS = ['#005FFE', '#3ECF5B', '#FF5A2E', '#FFC542', '#B15AFF', '#FF4D8D', '#2EC4B6'];
@@ -170,7 +182,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
                   disabled={alreadyAdded}
                   style={[styles.checkRow, checked && { borderColor: h.color, backgroundColor: h.color + '14' }, alreadyAdded && { opacity: 0.4 }]}
                 >
-                  <Ionicons name={h.icon as any} size={18} color={checked ? h.color : colors.textSecondary} />
+                  <AppIcon name={h.icon} size={18} color={checked ? h.color : colors.textSecondary} />
                   <Text style={[typography.bodyBold, { flex: 1 }]}>{h.name}</Text>
                   {alreadyAdded ? (
                     <Text style={typography.small}>déjà ajoutée</Text>
@@ -221,7 +233,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
                     accessibilityState={{ selected: icon === i }}
                     accessibilityLabel={`Icône ${ICON_NAMES[i] ?? i}`}
                   >
-                    <Ionicons name={i as any} size={22} color={icon === i ? color : colors.textSecondary} />
+                    <AppIcon name={i} size={22} color={icon === i ? color : colors.textSecondary} />
                   </Pressable>
                 ))}
               </View>
@@ -258,7 +270,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
               >
                 <View style={styles.templateHeader}>
                   <View style={styles.templateEmoji}>
-                    <Ionicons name={template.emoji as any} size={26} color={colors.accent} />
+                    <AppIcon name={template.emoji} size={26} color={colors.accent} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={typography.bodyBold}>{template.title}</Text>
@@ -268,7 +280,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
                 <View style={styles.chipsRow}>
                   {template.habits.map((h) => (
                     <View key={h.name} style={[styles.chip, { backgroundColor: h.color + '1F' }]}>
-                      <Ionicons name={h.icon as any} size={14} color={h.color} />
+                      <AppIcon name={h.icon} size={14} color={h.color} />
                       <Text style={[typography.small, { color: colors.text }]}>{h.name}</Text>
                     </View>
                   ))}
@@ -278,7 +290,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
                     onPress={() => navigation.navigate('Program', { templateId: template.id })}
                     style={styles.programLink}
                   >
-                    <Ionicons name="calendar-outline" size={15} color={colors.accent} />
+                    <AppIcon name="calendar-outline" size={15} color={colors.accent} />
                     <Text style={[typography.bodyBold, { color: colors.accent }]}>Voir le programme</Text>
                     <Ionicons name="chevron-forward" size={15} color={colors.accent} />
                   </Pressable>

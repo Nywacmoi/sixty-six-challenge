@@ -7,6 +7,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { spacing, radius, ThemeColors, Typography } from '../../theme/theme';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { StepDots } from '../../components/StepDots';
+import { AppIcon } from '../../components/AppIcon';
 
 const GOALS = [
   { id: 'sport', icon: 'walk', label: 'Être plus sportif' },
@@ -53,7 +54,7 @@ export default function GoalScreen({ navigation, route }: any) {
                 onPress={() => setGoal(g.id)}
                 style={[styles.goalCard, selected && { borderColor: colors.accent, backgroundColor: colors.accent + '14' }]}
               >
-                <Ionicons name={g.icon as any} size={22} color={selected ? colors.accent : colors.text} />
+                <AppIcon name={g.icon} size={22} color={selected ? colors.accent : colors.text} />
                 <Text style={typography.bodyBold}>{g.label}</Text>
                 {selected && <Ionicons name="checkmark-circle" size={20} color={colors.accent} style={{ marginLeft: 'auto' }} />}
               </Pressable>

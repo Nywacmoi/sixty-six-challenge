@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
@@ -8,6 +7,7 @@ import { Habit } from '../types';
 import { generateJournalPrompt } from '../firebase/journal';
 import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 import { formatDayLabel } from '../utils/date';
+import { AppIcon } from './AppIcon';
 
 // Same list as the Cloud Function's own fallback (functions/index.js) — used
 // here when the call itself fails (offline, not signed in, function not
@@ -63,7 +63,7 @@ export function JournalTracker({ habit }: { habit: Habit }) {
   return (
     <View style={styles.card}>
       <View style={styles.promptRow}>
-        <Ionicons name="sparkles" size={16} color={colors.accent} />
+        <AppIcon name="sparkles" size={16} color={colors.accent} />
         {loadingPrompt ? (
           <ActivityIndicator size="small" color={colors.accent} />
         ) : (

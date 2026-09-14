@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
+import { AppIcon } from './AppIcon';
 
 // Clears the tallest header this toast can appear under (TodayScreen's
 // two-line "JOUR X SUR 99 / Aujourd'hui") so the toast never overlaps the
@@ -38,7 +39,7 @@ export function Toast({
   return (
     <Animated.View style={[styles.toast, { top: topInset + spacing.sm + HEADER_CLEARANCE, transform: [{ translateY }] }]}>
       <Pressable style={[styles.inner, { borderColor: accent + '55' }]} onPress={onDismiss}>
-        <Ionicons name={icon as any} size={20} color={accent} />
+        <AppIcon name={icon} size={20} color={accent} />
         <Text style={typography.bodyBold} numberOfLines={2}>
           {message}
         </Text>

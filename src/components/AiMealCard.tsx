@@ -6,6 +6,7 @@ import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { generateMealIdea } from '../firebase/aiSuggestions';
 import { storage } from '../storage/storage';
 import { todayKey } from '../utils/date';
+import { AppIcon } from './AppIcon';
 
 function openSearch(query: string) {
   Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
@@ -62,7 +63,7 @@ export function AiMealCard({ mealType, diet, fallbackText }: { mealType: string;
   return (
     <View style={styles.card}>
       <View style={styles.row}>
-        <Ionicons name="sparkles" size={16} color={colors.accent} />
+        <AppIcon name="sparkles" size={16} color={colors.accent} />
         {loading ? (
           <ActivityIndicator size="small" color={colors.accent} />
         ) : (

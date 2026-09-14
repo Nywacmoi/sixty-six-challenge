@@ -7,6 +7,7 @@ import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { Habit } from '../types';
 import { PrimaryButton } from './PrimaryButton';
 import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
+import { AppIcon } from './AppIcon';
 
 function formatMinutes(totalMinutes: number) {
   const hours = Math.floor(totalMinutes / 60);
@@ -69,7 +70,7 @@ export function SavingsCounter({
     <Pressable style={styles.card} onPress={() => setEditing(true)}>
       <View style={styles.headerRow}>
         <Text style={typography.caption}>{label}</Text>
-        <Ionicons name="pencil" size={13} color={colors.textTertiary} />
+        <AppIcon name="pencil" size={13} color={colors.textTertiary} />
       </View>
       <Text style={[styles.bigNumber, { color: colors.accent }]}>{formattedTotal}</Text>
       <Text style={typography.caption}>

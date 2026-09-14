@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { fonts, spacing, TOTAL_DAYS, radius, ThemeColors, Typography } from '../theme/theme';
 import { AmbientBackdrop } from '../components/AmbientBackdrop';
 import { DayGrid } from '../components/DayGrid';
+import { AppIcon } from '../components/AppIcon';
 import { StatStrip } from '../components/StatStrip';
 import { SectionLabel } from '../components/SectionLabel';
 import { StaggeredEntrance } from '../components/StaggeredEntrance';
@@ -104,7 +105,7 @@ export default function ProgressScreen({ navigation }: any) {
         />
 
         <Pressable style={styles.recapRow} onPress={() => navigation.navigate('WeeklyRecap')}>
-          <Ionicons name="sparkles-outline" size={17} color={colors.accent} />
+          <AppIcon name="sparkles-outline" size={17} color={colors.accent} />
           <View style={{ flex: 1 }}>
             <Text style={typography.bodyBold}>Ton récap de la semaine</Text>
             <Text style={styles.recapSub} numberOfLines={1}>
@@ -154,7 +155,7 @@ export default function ProgressScreen({ navigation }: any) {
                 <View style={[styles.colorBar, { backgroundColor: h.color }]} />
                 <View style={styles.habitTop}>
                   <View style={[styles.iconWrap, { backgroundColor: h.color + '26' }]}>
-                    <Ionicons name={h.icon as any} size={18} color={h.color} />
+                    <AppIcon name={h.icon} size={18} color={h.color} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={typography.bodyBold}>{h.name}</Text>

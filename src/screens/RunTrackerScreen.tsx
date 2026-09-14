@@ -12,6 +12,7 @@ import { RouteMap } from '../components/RouteMap';
 import { routeDistanceKm, formatPace, formatDuration } from '../utils/geo';
 import { todayKey } from '../utils/date';
 import { RunActivity, RunPoint } from '../types';
+import { AppIcon } from '../components/AppIcon';
 
 type Phase = 'idle' | 'denied' | 'noSignal' | 'tracking' | 'summary';
 
@@ -157,7 +158,7 @@ export default function RunTrackerScreen({ navigation, route }: any) {
         {phase === 'idle' && (
           <View style={styles.centerFill}>
             <View style={[styles.startIconWrap, { backgroundColor: accent + '1A' }]}>
-              <Ionicons name="flame" size={40} color={accent} />
+              <AppIcon name="flame" size={40} color={accent} />
             </View>
             <Text style={[typography.h2, { marginTop: spacing.lg, textAlign: 'center' }]}>Prêt à courir ?</Text>
             <Text style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs, maxWidth: 260 }]}>

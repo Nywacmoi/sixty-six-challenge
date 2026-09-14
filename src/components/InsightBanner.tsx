@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
+import { AppIcon } from './AppIcon';
 
 export function InsightBanner({ text }: { text: string }) {
   const { colors, typography } = useTheme();
@@ -10,7 +10,7 @@ export function InsightBanner({ text }: { text: string }) {
 
   return (
     <View style={styles.banner}>
-      <Ionicons name="flame" size={18} color={colors.success} />
+      <AppIcon name="flame" size={18} color={colors.success} />
       <Text style={styles.text}>{text}</Text>
     </View>
   );

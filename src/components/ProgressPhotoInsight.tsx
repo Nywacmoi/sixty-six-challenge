@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { analyzeProgressPhoto } from '../firebase/aiSuggestions';
 import { uriToBase64 } from '../utils/image';
 import { storage } from '../storage/storage';
 import { todayKey } from '../utils/date';
+import { AppIcon } from './AppIcon';
 
 // Unlike AiMealCard/AiWorkoutSession, this never fires on mount — sending a
 // personal body photo to the AI is opt-in via an explicit tap each time,
@@ -53,7 +53,7 @@ export function ProgressPhotoInsight({
     return (
       <View style={styles.card}>
         <View style={styles.row}>
-          <Ionicons name="sparkles-outline" size={16} color={colors.textTertiary} />
+          <AppIcon name="sparkles-outline" size={16} color={colors.textTertiary} />
           <Text style={[typography.small, { color: colors.textTertiary, flex: 1 }]}>
             Ajoute ta photo du jour pour un conseil de l'IA sur ta progression.
           </Text>
@@ -92,7 +92,7 @@ export function ProgressPhotoInsight({
     <View style={styles.card}>
       {advice ? (
         <View style={styles.row}>
-          <Ionicons name="sparkles" size={16} color={colors.accent} />
+          <AppIcon name="sparkles" size={16} color={colors.accent} />
           <Text style={[typography.body, { flex: 1 }]}>{advice}</Text>
         </View>
       ) : (
@@ -101,7 +101,7 @@ export function ProgressPhotoInsight({
             {loading ? (
               <ActivityIndicator size="small" color={colors.accent} />
             ) : (
-              <Ionicons name="sparkles-outline" size={16} color={colors.accent} />
+              <AppIcon name="sparkles-outline" size={16} color={colors.accent} />
             )}
             <Text style={[typography.bodyBold, { color: colors.accent, flex: 1 }]}>
               {loading ? 'Analyse de la photo…' : (error ?? "Demander un conseil à l'IA")}

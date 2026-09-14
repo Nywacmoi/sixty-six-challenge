@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
+import { AppIcon } from './AppIcon';
 
 const CONFETTI_COLORS = ['#FFC542', '#58B7FF', '#3ECF5B', '#FFFFFF', '#FF8A5C'];
 const PIECE_COUNT = 16;
@@ -96,7 +96,7 @@ export function PerfectDayCelebration({ visible, day }: { visible: boolean; day:
           },
         ]}
       >
-        <Ionicons name="sparkles" size={22} color="#05050a" />
+        <AppIcon name="sparkles" size={22} color="#05050a" />
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>Jour parfait !</Text>
           <Text style={styles.subtitle}>Toutes les habitudes cochées — jour {day}</Text>

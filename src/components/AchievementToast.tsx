@@ -6,6 +6,7 @@ import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
 import { ACHIEVEMENTS } from '../data/achievements';
 import { AVATAR_ITEMS } from '../data/avatarItems';
+import { AppIcon } from './AppIcon';
 
 // Same header-clearance fix as Toast.tsx — see .claude/journal.md.
 const HEADER_CLEARANCE = 80;
@@ -43,7 +44,7 @@ export function AchievementToast({
   return (
     <Animated.View style={[styles.toast, { top: topInset + spacing.sm + HEADER_CLEARANCE, transform: [{ translateY }] }]}>
       <Pressable style={styles.inner} onPress={onDismiss}>
-        <Ionicons name={achievement.icon as any} size={22} color={colors.gold} />
+        <AppIcon name={achievement.icon} size={22} color={colors.gold} />
         <View style={{ flex: 1 }}>
           <Text style={typography.bodyBold} numberOfLines={1}>
             Succès débloqué : {achievement.title}
@@ -53,7 +54,7 @@ export function AchievementToast({
               <Text style={typography.caption} numberOfLines={1}>
                 + tenue débloquée :
               </Text>
-              <Ionicons name={outfit.icon as any} size={13} color={colors.textSecondary} />
+              <AppIcon name={outfit.icon} size={13} color={colors.textSecondary} />
               <Text style={typography.caption} numberOfLines={1}>
                 {outfit.name}
               </Text>

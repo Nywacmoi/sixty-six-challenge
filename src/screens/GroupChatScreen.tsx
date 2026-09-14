@@ -9,6 +9,7 @@ import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
 import { subscribeToGroupMessages, sendGroupMessage, GroupMessage } from '../firebase/social';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
+import { AppIcon } from '../components/AppIcon';
 
 function formatTime(ms: number | null) {
   if (!ms) return '';
@@ -63,7 +64,7 @@ export default function GroupChatScreen({ route, navigation }: any) {
         <Pressable onPress={() => navigation.goBack()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Retour">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </Pressable>
-        <Ionicons name={groupEmoji as any} size={20} color={colors.accent} />
+        <AppIcon name={groupEmoji} size={20} color={colors.accent} />
         <Text style={[typography.h2, { flex: 1 }]} numberOfLines={1}>
           {groupName}
         </Text>

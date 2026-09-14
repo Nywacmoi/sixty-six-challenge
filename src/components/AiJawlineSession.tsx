@@ -7,6 +7,7 @@ import { generateJawlineRoutine, AiJawlineExercise } from '../firebase/aiSuggest
 import { storage } from '../storage/storage';
 import { todayKey } from '../utils/date';
 import { JawlineExercise } from '../data/jawlineProgram';
+import { AppIcon } from './AppIcon';
 
 function openSearch(query: string) {
   Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
@@ -71,7 +72,7 @@ export function AiJawlineSession({
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.badge}>
-          <Ionicons name="sparkles" size={11} color={colors.accent} />
+          <AppIcon name="sparkles" size={11} color={colors.accent} />
           <Text style={[typography.small, { color: colors.accent }]}>PROGRAMME DU JOUR</Text>
         </View>
       </View>

@@ -8,6 +8,7 @@ import { generateWorkoutSession, AiExercise } from '../firebase/aiSuggestions';
 import { storage } from '../storage/storage';
 import { todayKey } from '../utils/date';
 import { Exercise } from '../data/workoutSplits';
+import { AppIcon } from './AppIcon';
 
 function openSearch(query: string) {
   Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
@@ -95,7 +96,7 @@ export function AiWorkoutSession({
     <View style={styles.card}>
       <View style={[styles.headerRow]}>
         <View style={styles.badge}>
-          <Ionicons name="sparkles" size={11} color={colors.accent} />
+          <AppIcon name="sparkles" size={11} color={colors.accent} />
           <Text style={[typography.small, { color: colors.accent }]}>SÉANCE DU JOUR</Text>
         </View>
       </View>
