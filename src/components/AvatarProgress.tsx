@@ -28,7 +28,7 @@ export function AvatarProgress({
   const ringColor = currentDay >= 99 ? colors.gold : colors.accent;
 
   return (
-    <View style={{ alignItems: 'center' }}>
+    <View style={{ alignItems: 'center', width: '100%' }}>
       <RingProgress progress={totalDays > 0 ? currentDay / totalDays : 0} size={148} strokeWidth={6} color={ringColor}>
         {children}
       </RingProgress>
@@ -73,7 +73,7 @@ export function AvatarProgress({
 
 function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
-    timelineScroll: { marginTop: spacing.lg, alignSelf: 'stretch' },
+    timelineScroll: { marginTop: spacing.lg, width: '100%' },
     timelineRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, gap: 2 },
     dot: {
       width: 28,

@@ -226,7 +226,7 @@ export default function ProfileScreen() {
 function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
-    profileCard: { alignItems: 'center', marginTop: spacing.xl, gap: 6 },
+    profileCard: { alignItems: 'center', marginTop: spacing.xl, gap: 6, width: '100%' },
     avatar: { width: 132, height: 132, borderRadius: 66, alignItems: 'center', justifyContent: 'center' },
     genderRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
     genderChip: {
