@@ -150,9 +150,14 @@ exports.generateWorkoutSession = onCall({ secrets: [anthropicApiKey], region: 'e
       .join('')
       .trim();
 
+    // Claude sometimes wraps the JSON in a ```json ... ``` fence despite
+    // being told not to — strip that before parsing rather than trusting
+    // the instruction to always be followed.
+    const jsonText = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+
     let exercises = [];
     try {
-      const parsed = JSON.parse(text);
+      const parsed = JSON.parse(jsonText);
       if (Array.isArray(parsed)) {
         exercises = parsed
           .filter((e) => e && typeof e.name === 'string' && typeof e.reps === 'string')
