@@ -21,6 +21,14 @@ export async function generateWorkoutSession(args: { splitLabel: string; goal?: 
   return Array.isArray(result.data.exercises) ? result.data.exercises : [];
 }
 
+export type AiJawlineExercise = { name: string; reps: string; tip: string };
+
+export async function generateJawlineRoutine(args: { sessionLabel: string }): Promise<AiJawlineExercise[]> {
+  const call = httpsCallable<typeof args, { exercises: AiJawlineExercise[] }>(functions, 'generateJawlineRoutine');
+  const result = await call(args);
+  return Array.isArray(result.data.exercises) ? result.data.exercises : [];
+}
+
 export async function analyzeProgressPhoto(args: {
   imageBase64: string;
   mimeType: string;

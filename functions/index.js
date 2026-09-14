@@ -175,6 +175,63 @@ exports.generateWorkoutSession = onCall({ secrets: [anthropicApiKey], region: 'e
   }
 });
 
+// Same contract as generateWorkoutSession (empty array = client falls back
+// to its own JAWLINE_SESSIONS variant), just a different exercise shape —
+// jawline routines carry a short technique "tip" instead of a rep count
+// driving an animation, since these are mostly isometric holds/posture
+// cues rather than reps.
+exports.generateJawlineRoutine = onCall({ secrets: [anthropicApiKey], region: 'europe-west1', cors: true }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Connecte-toi pour obtenir une routine personnalisée.');
+  }
+
+  const sessionLabel = typeof request.data?.sessionLabel === 'string' ? request.data.sessionLabel.slice(0, 60) : 'Mewing & posture';
+
+  const client = new Anthropic({ apiKey: anthropicApiKey.value() });
+
+  try {
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 400,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            `Génère une routine d'exercices de jawline (musculation faciale/mâchoire, posture linguale, mewing) en français pour la catégorie "${sessionLabel}".`,
+            'Réponds UNIQUEMENT avec un tableau JSON de 3 exercices, sans aucun texte avant ou après, sans balises markdown. Chaque élément au format exact {"name": "Nom de l\'exercice", "reps": "3x20", "tip": "Consigne technique courte en une phrase"} — "reps" peut aussi être une durée ("Toute la journée", "3x20s") pour les exercices de posture.',
+          ].join(' '),
+        },
+      ],
+    });
+
+    const text = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('')
+      .trim();
+
+    const jsonText = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+
+    let exercises = [];
+    try {
+      const parsed = JSON.parse(jsonText);
+      if (Array.isArray(parsed)) {
+        exercises = parsed
+          .filter((e) => e && typeof e.name === 'string' && typeof e.reps === 'string' && typeof e.tip === 'string')
+          .slice(0, 4)
+          .map((e) => ({ name: e.name.slice(0, 60), reps: e.reps.slice(0, 20), tip: e.tip.slice(0, 160) }));
+      }
+    } catch (parseError) {
+      console.error('generateJawlineRoutine: could not parse JSON', text);
+    }
+
+    return { exercises };
+  } catch (error) {
+    console.error('generateJawlineRoutine failed', error);
+    return { exercises: [] };
+  }
+});
+
 const MAX_PHOTO_BASE64_CHARS = 6_000_000; // ~4.5MB decoded — comfortably under Anthropic's per-image limit
 
 // Deliberately does NOT ask the model to assess the person's body,

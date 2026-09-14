@@ -43,6 +43,7 @@ import { JournalTracker } from '../components/JournalTracker';
 import { AiMealCard } from '../components/AiMealCard';
 import { AiWorkoutSession } from '../components/AiWorkoutSession';
 import { ProgressPhotoInsight } from '../components/ProgressPhotoInsight';
+import { AiJawlineSession } from '../components/AiJawlineSession';
 import { PrimaryButton } from '../components/PrimaryButton';
 import {
   isSportHabit,
@@ -691,26 +692,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
               })}
             </ScrollView>
             {activeJawline && (
-              <View style={styles.splitCard}>
-                {activeJawline.exercises.map((ex) => (
-                  <View key={ex.name} style={styles.exerciseRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={typography.bodyBold}>{ex.name}</Text>
-                      <Text style={typography.caption}>{ex.reps}</Text>
-                      <Text style={[typography.small, { marginTop: 4 }]}>{ex.tip}</Text>
-                    </View>
-                    <Pressable
-                      onPress={() => openSearch(`${ex.name} exercice jawline`)}
-                      hitSlop={8}
-                      style={styles.videoBtn}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Voir une vidéo de démonstration : ${ex.name}`}
-                    >
-                      <Ionicons name="logo-youtube" size={22} color={colors.danger} />
-                    </Pressable>
-                  </View>
-                ))}
-              </View>
+              <AiJawlineSession sessionId={activeJawline.id} sessionLabel={activeJawline.label} fallbackExercises={activeJawline.exercises} />
             )}
           </>
         )}
