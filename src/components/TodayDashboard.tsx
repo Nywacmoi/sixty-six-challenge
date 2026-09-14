@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { fonts, spacing, radius, ThemeColors } from '../theme/theme';
 import { RingProgress } from './RingProgress';
 import { ProgressGlow } from './ProgressGlow';
+import { StatStrip } from './StatStrip';
 import { progressColor, progressStatusLabel } from '../utils/progressColor';
 import { LevelInfo } from '../utils/gamification';
 
@@ -113,20 +114,14 @@ export function TodayDashboard({
         </Text>
       )}
 
-      <View style={styles.strip}>
-        <View style={styles.cell}>
-          <Text style={styles.cellValue}>{currentStreak}</Text>
-          <Text style={styles.cellLabel}>SÉRIE</Text>
-        </View>
-        <View style={[styles.cell, styles.cellDivided]}>
-          <Text style={styles.cellValue}>{bestStreak}</Text>
-          <Text style={styles.cellLabel}>RECORD</Text>
-        </View>
-        <View style={[styles.cell, styles.cellDivided]}>
-          <Text style={styles.cellValue}>{levelInfo.level}</Text>
-          <Text style={styles.cellLabel}>NIVEAU</Text>
-        </View>
-      </View>
+      <StatStrip
+        style={{ marginHorizontal: spacing.lg, marginTop: spacing.lg }}
+        items={[
+          { value: currentStreak, label: 'SÉRIE' },
+          { value: bestStreak, label: 'RECORD' },
+          { value: levelInfo.level, label: 'NIVEAU' },
+        ]}
+      />
 
       <View style={styles.xpLine}>
         <View style={styles.xpTop}>
@@ -167,19 +162,6 @@ function createStyles(colors: ThemeColors) {
       marginTop: spacing.xs,
     },
     countValue: { fontFamily: fonts.bold, color: colors.textSecondary, fontVariant: ['tabular-nums'] },
-    strip: {
-      flexDirection: 'row',
-      marginHorizontal: spacing.lg,
-      marginTop: spacing.lg,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
-      paddingVertical: spacing.md - 3,
-    },
-    cell: { flex: 1, alignItems: 'center' },
-    cellDivided: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: colors.border },
-    cellValue: { fontFamily: fonts.bold, fontSize: 19, color: colors.text },
-    cellLabel: { fontFamily: fonts.bold, fontSize: 9, letterSpacing: 1.1, color: colors.textTertiary, marginTop: 3 },
     xpLine: { marginHorizontal: spacing.lg, marginTop: spacing.md - 3 },
     xpTop: { flexDirection: 'row', justifyContent: 'space-between' },
     xpNext: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 0.6, color: colors.textTertiary },

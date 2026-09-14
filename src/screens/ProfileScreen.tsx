@@ -9,7 +9,8 @@ import { useConfirm } from '../context/ConfirmContext';
 import { useTopInset } from '../hooks/useTopInset';
 import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
-import { ProgressBar } from '../components/ProgressBar';
+import { StatStrip } from '../components/StatStrip';
+import { SectionLabel } from '../components/SectionLabel';
 import { BackupSettings } from '../components/BackupSettings';
 import { AccountSettings } from '../components/AccountSettings';
 import { AvatarDisplay } from '../components/AvatarDisplay';
@@ -62,10 +63,17 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl + tabBarClearance }}>
-        <Text style={typography.display}>Profil</Text>
+      <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxl + tabBarClearance }}>
+        <View style={[styles.header, { paddingTop: topInset + spacing.sm }]}>
+          <Text style={typography.caption}>NIVEAU {levelInfo.level}</Text>
+          <Text style={typography.display}>Profil</Text>
+        </View>
 
-        <View style={styles.profileCard}>
+        {/* The avatar is this screen's one focal point, the way the ring is on
+            Aujourd'hui — so it stands on the background rather than inside a
+            card, and the name sits directly under it instead of being one more
+            row in a box. */}
+        <View style={styles.hero}>
           <AvatarProgress currentDay={currentDay} totalDays={TOTAL_DAYS}>
             <View style={[styles.avatar, { backgroundColor: profile.avatarColor + '1F' }]}>
               <AvatarDisplay
@@ -82,20 +90,7 @@ export default function ProfileScreen() {
               />
             </View>
           </AvatarProgress>
-          <View style={[styles.genderRow, { marginTop: spacing.lg }]}>
-            <Pressable
-              onPress={() => updateProfile({ avatarGender: 'homme' })}
-              style={[styles.genderChip, profile.avatarGender === 'homme' && { borderColor: colors.accent, backgroundColor: colors.accent + '1A' }]}
-            >
-              <Text style={[typography.bodyBold, profile.avatarGender === 'homme' && { color: colors.accent }]}>Homme</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => updateProfile({ avatarGender: 'femme' })}
-              style={[styles.genderChip, profile.avatarGender === 'femme' && { borderColor: colors.accent, backgroundColor: colors.accent + '1A' }]}
-            >
-              <Text style={[typography.bodyBold, profile.avatarGender === 'femme' && { color: colors.accent }]}>Femme</Text>
-            </Pressable>
-          </View>
+
           {editingName ? (
             <TextInput
               value={nameDraft}
@@ -109,115 +104,133 @@ export default function ProfileScreen() {
           ) : (
             <Pressable
               onPress={() => setEditingName(true)}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              style={styles.nameRow}
               accessibilityRole="button"
               accessibilityLabel="Modifier ton prénom"
             >
-              <Text style={typography.h1}>{profile.name}</Text>
-              <Ionicons name="pencil" size={16} color={colors.textSecondary} />
+              <Text style={styles.name}>{profile.name}</Text>
+              <Ionicons name="pencil" size={15} color={colors.textTertiary} />
             </Pressable>
           )}
+
+          <View style={styles.genderRow}>
+            {(['homme', 'femme'] as const).map((g) => {
+              const active = profile.avatarGender === g;
+              return (
+                <Pressable
+                  key={g}
+                  onPress={() => updateProfile({ avatarGender: g })}
+                  style={[styles.genderChip, active && { borderColor: colors.accent, backgroundColor: colors.accent + '14' }]}
+                >
+                  <Text style={[styles.genderText, active && { color: colors.accent }]}>
+                    {g === 'homme' ? 'Homme' : 'Femme'}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
-        <View style={styles.levelCard}>
-          <View style={styles.levelHeader}>
-            <View style={styles.levelBadge}>
-              <Ionicons name="star" size={16} color={colors.gold} />
-              <Text style={[typography.bodyBold, { color: colors.gold }]}>Niveau {levelInfo.level}</Text>
-            </View>
-            <Text style={typography.caption}>
+        <View style={styles.xpLine}>
+          <View style={styles.xpTop}>
+            <SectionLabel>{`NIVEAU ${levelInfo.level + 1}`}</SectionLabel>
+            <Text style={styles.xpValue}>
               {levelInfo.xpIntoLevel} / {levelInfo.xpForNextLevel} XP
             </Text>
           </View>
-          <ProgressBar progress={levelInfo.progress} height={8} />
-        </View>
-
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={typography.h1}>{habits.length}</Text>
-            <Text style={typography.caption}>Habitudes</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={typography.h1}>{getTotalCompletions()}</Text>
-            <Text style={typography.caption}>Check-ins</Text>
-          </View>
-          <View style={styles.statCard}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Ionicons name="snow" size={20} color={colors.accent} />
-              <Text style={typography.h1}>{profile.streakFreezes}</Text>
-            </View>
-            <Text style={typography.caption}>Freezes</Text>
+          <View style={styles.xpTrack}>
+            <View style={[styles.xpFill, { width: `${Math.round(levelInfo.progress * 100)}%` }]} />
           </View>
         </View>
 
-        <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.xs }]}>Garde-robe</Text>
-        <Text style={[typography.caption, { marginBottom: spacing.sm }]}>Débloque des tenues en avançant dans ton défi</Text>
-        <AvatarWardrobe />
+        <StatStrip
+          style={{ marginHorizontal: spacing.lg, marginTop: spacing.lg }}
+          items={[
+            { value: habits.length, label: 'HABITUDES' },
+            { value: getTotalCompletions(), label: 'CHECK-INS' },
+            { value: profile.streakFreezes, label: 'BOUCLIERS' },
+          ]}
+        />
 
-        <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Compte</Text>
-        <AccountSettings />
-
-        <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Réglages</Text>
-
-        <View style={styles.settingRow}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <Ionicons name={mode === 'dark' ? 'moon' : 'sunny'} size={20} color={colors.text} />
-            <Text style={typography.body}>Mode sombre</Text>
-          </View>
-          <Switch
-            value={mode === 'dark'}
-            onValueChange={toggleTheme}
-            trackColor={{ true: colors.accent }}
-            accessibilityLabel="Mode sombre"
-          />
+        <SectionLabel style={styles.sectionLabel}>GARDE-ROBE</SectionLabel>
+        <Text style={styles.sectionSub}>Débloque des tenues en avançant dans ton défi</Text>
+        <View style={{ paddingHorizontal: spacing.lg }}>
+          <AvatarWardrobe />
         </View>
 
-        <View style={[styles.settingRow, { flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm }]}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <Ionicons name="notifications-outline" size={20} color={colors.text} />
-              <Text style={typography.body}>Rappels quotidiens</Text>
+        <SectionLabel style={styles.sectionLabel}>COMPTE</SectionLabel>
+        <View style={{ paddingHorizontal: spacing.lg }}>
+          <AccountSettings />
+        </View>
+
+        <SectionLabel style={styles.sectionLabel}>RÉGLAGES</SectionLabel>
+        {/* One bordered list with hairlines between rows, not four separate
+            rounded boxes: settings are a single group of related switches, and
+            stacking them as individual cards made each one look like its own
+            feature. */}
+        <View style={styles.list}>
+          <View style={styles.listRow}>
+            <View style={styles.listLeft}>
+              <Ionicons name={mode === 'dark' ? 'moon-outline' : 'sunny-outline'} size={18} color={colors.textSecondary} />
+              <Text style={typography.body}>Mode sombre</Text>
             </View>
             <Switch
-              value={profile.reminderEnabled}
-              onValueChange={toggleReminders}
+              value={mode === 'dark'}
+              onValueChange={toggleTheme}
               trackColor={{ true: colors.accent }}
-              accessibilityLabel="Rappels quotidiens"
+              accessibilityLabel="Mode sombre"
             />
           </View>
-          {profile.reminderEnabled && (
-            <>
-              <Text style={typography.caption}>
-                Un rappel s'affiche dans l'appli si tes habitudes du jour ne sont pas encore cochées après :
-              </Text>
-              <View style={styles.timeRow}>
-                {REMINDER_TIMES.map((t) => {
-                  const active = profile.reminderHour === t.hour && profile.reminderMinute === t.minute;
-                  return (
-                    <Pressable
-                      key={t.label}
-                      onPress={() => setReminderTime(t.hour, t.minute)}
-                      style={[styles.timeChip, active && { backgroundColor: colors.accent + '1F', borderColor: colors.accent }]}
-                    >
-                      <Text style={[typography.bodyBold, active && { color: colors.accent }]}>{t.label}</Text>
-                    </Pressable>
-                  );
-                })}
+
+          <View style={[styles.listRow, styles.listRowDivided, { flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm }]}>
+            <View style={styles.listRowInner}>
+              <View style={styles.listLeft}>
+                <Ionicons name="notifications-outline" size={18} color={colors.textSecondary} />
+                <Text style={typography.body}>Rappels quotidiens</Text>
               </View>
-            </>
-          )}
+              <Switch
+                value={profile.reminderEnabled}
+                onValueChange={toggleReminders}
+                trackColor={{ true: colors.accent }}
+                accessibilityLabel="Rappels quotidiens"
+              />
+            </View>
+            {profile.reminderEnabled && (
+              <>
+                <Text style={styles.listHint}>
+                  Un rappel s'affiche dans l'appli si tes habitudes du jour ne sont pas encore cochées après :
+                </Text>
+                <View style={styles.timeRow}>
+                  {REMINDER_TIMES.map((t) => {
+                    const active = profile.reminderHour === t.hour && profile.reminderMinute === t.minute;
+                    return (
+                      <Pressable
+                        key={t.label}
+                        onPress={() => setReminderTime(t.hour, t.minute)}
+                        style={[styles.timeChip, active && { backgroundColor: colors.accent + '14', borderColor: colors.accent }]}
+                      >
+                        <Text style={[styles.timeText, active && { color: colors.accent }]}>{t.label}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </>
+            )}
+          </View>
+
+          <Pressable style={[styles.listRow, styles.listRowDivided]} onPress={resetChallenge}>
+            <View style={styles.listLeft}>
+              <Ionicons name="refresh-outline" size={18} color={colors.textSecondary} />
+              <Text style={typography.body}>Redémarrer le défi</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={17} color={colors.textTertiary} />
+          </Pressable>
         </View>
 
-        <Pressable style={styles.settingRow} onPress={resetChallenge}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <Ionicons name="refresh-outline" size={20} color={colors.text} />
-            <Text style={typography.body}>Redémarrer le défi</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-        </Pressable>
-
-        <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.sm }]}>Sauvegarde</Text>
-        <BackupSettings />
+        <SectionLabel style={styles.sectionLabel}>SAUVEGARDE</SectionLabel>
+        <View style={{ paddingHorizontal: spacing.lg }}>
+          <BackupSettings />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -226,59 +239,77 @@ export default function ProfileScreen() {
 function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
-    profileCard: { alignItems: 'center', marginTop: spacing.xl, gap: 6, width: '100%' },
+    header: { paddingHorizontal: spacing.lg },
+    hero: { alignItems: 'center', marginTop: spacing.lg },
     avatar: { width: 132, height: 132, borderRadius: 66, alignItems: 'center', justifyContent: 'center' },
-    genderRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-    genderChip: {
-      paddingVertical: 6,
-      paddingHorizontal: spacing.md,
-      borderRadius: radius.pill,
-      borderWidth: 1.5,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
+    nameRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: spacing.md },
+    name: { fontFamily: fonts.display, fontSize: 26, color: colors.text, letterSpacing: -0.5 },
     nameInput: {
-      ...typography.h1,
+      fontFamily: fonts.display,
+      fontSize: 26,
+      color: colors.text,
+      letterSpacing: -0.5,
+      marginTop: spacing.md,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
       minWidth: 140,
       textAlign: 'center',
     },
-    levelCard: {
+    genderRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+    genderChip: {
+      paddingVertical: 5,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.pill,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    genderText: { fontFamily: fonts.bold, fontSize: 12, color: colors.textSecondary, letterSpacing: 0.3 },
+    xpLine: { marginHorizontal: spacing.lg, marginTop: spacing.xl },
+    xpTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    xpValue: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 0.6, color: colors.gold },
+    xpTrack: {
+      height: 3,
+      backgroundColor: colors.surfaceElevated,
+      borderRadius: radius.pill,
+      marginTop: 6,
+      overflow: 'hidden',
+    },
+    xpFill: { height: '100%', backgroundColor: colors.gold, borderRadius: radius.pill },
+    sectionLabel: { marginTop: spacing.xl, marginBottom: spacing.sm + 2, marginHorizontal: spacing.lg },
+    sectionSub: {
+      ...typography.small,
+      color: colors.textTertiary,
+      marginTop: -spacing.xs,
+      marginBottom: spacing.sm + 2,
+      marginHorizontal: spacing.lg,
+    },
+    list: {
+      marginHorizontal: spacing.lg,
       backgroundColor: colors.surface,
       borderRadius: radius.md,
-      padding: spacing.md,
-      marginTop: spacing.xl,
-      gap: spacing.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
     },
-    levelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    levelBadge: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    statsRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-    statCard: {
-      flex: 1,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      alignItems: 'center',
-      gap: 4,
-    },
-    settingRow: {
+    listRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      marginBottom: spacing.sm,
+      paddingVertical: spacing.sm + 4,
+      paddingHorizontal: spacing.md,
     },
+    listRowInner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    listRowDivided: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+    listLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    listHint: { ...typography.small, color: colors.textTertiary, lineHeight: 15 },
     timeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
     timeChip: {
-      borderWidth: 1.5,
+      borderWidth: 1,
       borderColor: colors.border,
       borderRadius: radius.pill,
-      paddingVertical: 6,
-      paddingHorizontal: spacing.md,
-      backgroundColor: colors.surfaceElevated,
+      paddingVertical: 5,
+      paddingHorizontal: spacing.md - 2,
     },
+    timeText: { fontFamily: fonts.bold, fontSize: 12, color: colors.textSecondary, letterSpacing: 0.3 },
   });
 }

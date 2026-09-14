@@ -10,6 +10,7 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { AchievementToast } from '../components/AchievementToast';
 import { Toast } from '../components/Toast';
 import { TodayDashboard } from '../components/TodayDashboard';
+import { SectionLabel } from '../components/SectionLabel';
 import { ShareDayCta } from '../components/ShareDayCta';
 import { InsightBanner } from '../components/InsightBanner';
 import { PerfectDayCelebration } from '../components/PerfectDayCelebration';
@@ -110,7 +111,7 @@ export default function TodayScreen({ navigation }: any) {
               <ShareDayCta day={Math.max(currentDay, 1)} onPress={() => navigation.navigate('WeeklyRecap')} />
             </View>
           )}
-          <Text style={styles.sectionLabel}>TES HABITUDES</Text>
+          <SectionLabel style={styles.sectionLabel}>TES HABITUDES</SectionLabel>
           <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, gap: spacing.sm }}>
             {activeHabits.map((item) => (
               <HabitRow
@@ -153,10 +154,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       justifyContent: 'center',
     },
     sectionLabel: {
-      fontFamily: typography.small.fontFamily,
-      fontSize: 9.5,
-      letterSpacing: 1.6,
-      color: colors.textTertiary,
       marginTop: spacing.lg,
       marginBottom: spacing.sm + 2,
       marginHorizontal: spacing.lg,
