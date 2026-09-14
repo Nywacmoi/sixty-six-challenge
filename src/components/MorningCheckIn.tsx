@@ -1,19 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Animated, ScrollView, Platform, UIManager, LayoutAnimation } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Animated, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { fonts, radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
-import { todayKey } from '../utils/date';
+import { todayKey, dailyIndex } from '../utils/date';
 import { COMMON_HABITS } from '../data/commonHabits';
 import { getHabitCategories } from '../utils/habitCategories';
 import { PrimaryButton } from './PrimaryButton';
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 const GREETINGS = ['Salut {name}', 'Hey {name} !', 'Bonjour {name}', '{name}, prêt(e) pour aujourd\'hui ?'];
 
@@ -24,11 +20,38 @@ const MOODS = [
   { icon: 'flame', label: 'En feu' },
 ];
 
-const MOOD_REACTIONS: Record<string, string> = {
-  Fatigué: 'Pas de souci, on y va doucement — un petit pas suffit à garder la série.',
-  Moyen: 'Ça arrive à tout le monde, une habitude cochée et ça ira déjà mieux.',
-  Bien: "Top, autant en profiter aujourd'hui.",
-  'En feu': "J'adore cette énergie. Direction le prochain jour du défi.",
+// Several phrasings per question/reaction, picked once a day via dailyIndex
+// (utils/date.ts — stable all day, different tomorrow) so the check-in
+// reads like an actual conversation instead of the same four sentences on
+// repeat every single morning.
+const MOOD_QUESTIONS = [
+  "Comment tu te sens aujourd'hui ?",
+  'Ça va comment, ce matin ?',
+  'Quelle énergie pour cette journée ?',
+  'Et toi, tu démarres comment ?',
+];
+
+const MOOD_REACTIONS: Record<string, string[]> = {
+  Fatigué: [
+    'Pas de souci, on y va doucement — un petit pas suffit à garder la série.',
+    'Ok, journée tranquille alors. L’essentiel, c’est de ne pas casser la série.',
+    'Compris, on garde ça simple aujourd’hui.',
+  ],
+  Moyen: [
+    'Ça arrive à tout le monde, une habitude cochée et ça ira déjà mieux.',
+    'Journée normale, ça se travaille — une case cochée et c’est déjà une victoire.',
+    'Pas grave, on avance quand même.',
+  ],
+  Bien: [
+    "Top, autant en profiter aujourd'hui.",
+    'Belle énergie — parfait pour avancer sur le défi.',
+    'Content de l’entendre, ça va aider aujourd’hui.',
+  ],
+  'En feu': [
+    "J'adore cette énergie. Direction le prochain jour du défi.",
+    'Là on parle ! Autant en profiter à fond aujourd’hui.',
+    'Cette énergie-là, faut la garder toute la journée.',
+  ],
 };
 
 const SLEEPS = [
@@ -38,12 +61,43 @@ const SLEEPS = [
   { icon: 'star', label: 'Nuit parfaite' },
 ];
 
-const SLEEP_REACTIONS: Record<string, string> = {
-  'Mal dormi': 'Pense à toi ce soir — une bonne nuit, ça change tout.',
-  'Sommeil moyen': 'Correct, on fait avec !',
-  'Bien dormi': 'Parfait pour attaquer la journée.',
-  'Nuit parfaite': "Un vrai carburant pour aujourd'hui.",
+const SLEEP_QUESTIONS = [
+  'Et cette nuit, tu as bien dormi ?',
+  'Ta nuit, elle était comment ?',
+  'Côté sommeil, ça a donné quoi ?',
+  'Tu as récupéré cette nuit ?',
+];
+
+const SLEEP_REACTIONS: Record<string, string[]> = {
+  'Mal dormi': [
+    'Pense à toi ce soir — une bonne nuit, ça change tout.',
+    'Note-le, et essaie de te coucher un peu plus tôt ce soir.',
+    'Ça se rattrape ce soir — une bonne nuit et il n’y paraîtra plus.',
+  ],
+  'Sommeil moyen': [
+    'Correct, on fait avec !',
+    'Ni top ni terrible — de quoi tenir la journée.',
+    'Ça passe, on continue sur cette lancée.',
+  ],
+  'Bien dormi': [
+    'Parfait pour attaquer la journée.',
+    'Bonne base pour aujourd’hui.',
+    'Ça se sent, tu pars sur de bonnes bases.',
+  ],
+  'Nuit parfaite': [
+    "Un vrai carburant pour aujourd'hui.",
+    'Avec ça, rien ne peut t’arrêter aujourd’hui.',
+    'Nuit parfaite, journée parfaite — à toi de jouer.',
+  ],
 };
+
+// {day} is filled in with the current challenge day at render time.
+const ROUTINE_QUESTIONS = [
+  (day: number) => `Jour ${day} sur 99 — une routine à ajouter aujourd'hui ?`,
+  (day: number) => `On est au jour ${day}. Une nouvelle habitude à tenter ?`,
+  (day: number) => `Jour ${day} sur 99 — envie d’ajouter quelque chose à ta journée ?`,
+  (day: number) => `Jour ${day}/99 — un petit ajout à ta routine ?`,
+];
 
 // A few common habits not already on the list — offered as "want to add one
 // today?" rather than the full catalogue, to keep this quick.
@@ -54,16 +108,17 @@ const STEP_ORDER: Step[] = ['mood', 'sleep', 'routine'];
 
 type HistoryEntry = { bot: string; answer: string };
 
-const TYPEWRITER_SPEED = 18;
-
 // Reveals `text` a few characters at a time — the "AI is typing" feel from
 // the reference, reinterpreted with this app's own colors instead of a
-// fixed dark palette (kept theme-aware, not copied verbatim).
-function useTypewriter(text: string, speed = TYPEWRITER_SPEED) {
+// fixed dark palette (kept theme-aware, not copied verbatim). Speed adapts
+// to length so a long reaction+question sentence still lands in under a
+// second instead of dragging on character by character.
+function useTypewriter(text: string) {
   const [shown, setShown] = useState('');
   useEffect(() => {
     setShown('');
     let i = 0;
+    const speed = Math.max(10, Math.min(22, Math.round(900 / Math.max(text.length, 1))));
     const interval = setInterval(() => {
       i += 1;
       setShown(text.slice(0, i));
@@ -131,6 +186,69 @@ function OptionCard({ icon, label, onPress, index }: { icon: string; label: stri
   );
 }
 
+// Each past exchange gets its own small entrance instead of snapping into
+// place — mirrors OptionCard's staggered-in treatment so the whole flow
+// shares one motion language instead of mixing animated and static blocks.
+function HistoryItem({ bot, answer, styles, colors }: HistoryEntry & { styles: ReturnType<typeof createStyles>; colors: ThemeColors }) {
+  const enter = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(enter, { toValue: 1, duration: 260, useNativeDriver: true }).start();
+  }, []);
+  return (
+    <Animated.View
+      style={[
+        styles.historyBlock,
+        {
+          opacity: enter.interpolate({ inputRange: [0, 1], outputRange: [0, 0.5] }),
+          transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
+        },
+      ]}
+    >
+      <Text style={[styles.historyBot, { color: colors.textTertiary }]}>{bot}</Text>
+      <View style={styles.answerRow}>
+        <View style={[styles.answerChip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+          <Text style={[styles.answerChipText, { color: colors.text }]}>{answer}</Text>
+        </View>
+      </View>
+    </Animated.View>
+  );
+}
+
+// Same staggered fade-in as the mood/sleep option cards, applied to the
+// routine suggestion rows so the whole check-in shares one motion language.
+function RoutineRow({
+  habit,
+  active,
+  onPress,
+  index,
+  styles,
+}: {
+  habit: { name: string; icon: string; color: string };
+  active: boolean;
+  onPress: () => void;
+  index: number;
+  styles: ReturnType<typeof createStyles>;
+}) {
+  const { colors, typography } = useTheme();
+  const enter = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(enter, { toValue: 1, duration: 280, delay: index * 60, useNativeDriver: true }).start();
+  }, []);
+  return (
+    <Animated.View
+      style={{ opacity: enter, transform: [{ translateX: enter.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }] }}
+    >
+      <Pressable onPress={onPress} style={styles.row}>
+        <View style={[styles.iconWrap, { backgroundColor: habit.color + '26' }]}>
+          <Ionicons name={habit.icon as any} size={18} color={habit.color} />
+        </View>
+        <Text style={[typography.body, { flex: 1 }]}>{habit.name}</Text>
+        <Ionicons name={active ? 'checkbox' : 'square-outline'} size={22} color={active ? colors.accent : colors.textTertiary} />
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 export function MorningCheckIn() {
   const { profile, habits, currentDay, addHabitsBulk, updateProfile } = useApp();
   const { colors, typography, mode } = useTheme();
@@ -180,34 +298,51 @@ export function MorningCheckIn() {
   const greetingTemplate = GREETINGS[Math.max(0, currentDay) % GREETINGS.length];
   const greeting = greetingTemplate.replace('{name}', firstName);
 
-  const moodQuestion = "Comment tu te sens aujourd'hui ?";
-  const sleepQuestion = 'Et cette nuit, tu as bien dormi ?';
-  const routineQuestion = `Jour ${currentDay} sur 99 — une routine à ajouter aujourd'hui ?`;
+  const moodQuestion = MOOD_QUESTIONS[dailyIndex(MOOD_QUESTIONS.length, 'checkin:mood-q')];
+  const sleepQuestion = SLEEP_QUESTIONS[dailyIndex(SLEEP_QUESTIONS.length, 'checkin:sleep-q')];
+  const routineQuestion = ROUTINE_QUESTIONS[dailyIndex(ROUTINE_QUESTIONS.length, 'checkin:routine-q')](currentDay);
+
+  const moodReactionPool = MOOD_REACTIONS[mood ?? ''] ?? [''];
+  const moodReaction = moodReactionPool[dailyIndex(moodReactionPool.length, `checkin:mood-r:${mood ?? ''}`)];
+  const sleepReactionPool = SLEEP_REACTIONS[sleep ?? ''] ?? [''];
+  const sleepReaction = sleepReactionPool[dailyIndex(sleepReactionPool.length, `checkin:sleep-r:${sleep ?? ''}`)];
 
   const currentBotText =
     step === 'mood'
       ? moodQuestion
       : step === 'sleep'
-        ? `${MOOD_REACTIONS[mood ?? ''] ?? ''} ${sleepQuestion}`
-        : `${SLEEP_REACTIONS[sleep ?? ''] ?? ''} ${routineQuestion}`;
+        ? `${moodReaction} ${sleepQuestion}`
+        : `${sleepReaction} ${routineQuestion}`;
   const revealedText = useTypewriter(currentBotText);
 
   const finish = async () => {
     await updateProfile({ lastCheckInDate: todayKey() });
   };
 
+  // Fade the current question+options out, then swap state and let the
+  // [step] effect below fade the next block in — an explicit Animated
+  // crossfade instead of LayoutAnimation, which react-native-web silently
+  // no-ops (this app also ships as a web PWA, where the old code produced
+  // an instant jump-cut between steps rather than any transition at all).
+  const transition = (nextStep: Step | null, apply: () => void) => {
+    Animated.timing(blockIn, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+      apply();
+      if (nextStep) setStep(nextStep);
+    });
+  };
+
   const pickMood = (label: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setHistory((h) => [...h, { bot: moodQuestion, answer: label }]);
-    setMood(label);
-    setStep('sleep');
+    transition('sleep', () => {
+      setHistory((h) => [...h, { bot: moodQuestion, answer: label }]);
+      setMood(label);
+    });
   };
 
   const pickSleep = (label: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setHistory((h) => [...h, { bot: `${MOOD_REACTIONS[mood ?? ''] ?? ''} ${sleepQuestion}`, answer: label }]);
-    setSleep(label);
-    setStep('routine');
+    transition('routine', () => {
+      setHistory((h) => [...h, { bot: `${moodReaction} ${sleepQuestion}`, answer: label }]);
+      setSleep(label);
+    });
   };
 
   // One step back at a time, like the reference's back chevron — pop the
@@ -215,15 +350,12 @@ export function MorningCheckIn() {
   // chips for that step are re-selectable.
   const goBack = () => {
     if (step === 'mood') return;
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setHistory((h) => h.slice(0, -1));
-    if (step === 'sleep') {
-      setMood(null);
-      setStep('mood');
-    } else if (step === 'routine') {
-      setSleep(null);
-      setStep('sleep');
-    }
+    const prevStep = step === 'sleep' ? 'mood' : 'sleep';
+    transition(prevStep, () => {
+      setHistory((h) => h.slice(0, -1));
+      if (step === 'sleep') setMood(null);
+      else if (step === 'routine') setSleep(null);
+    });
   };
 
   const toggle = (name: string) => {
@@ -280,20 +412,16 @@ export function MorningCheckIn() {
           onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
         >
           {history.map((entry, i) => (
-            <View key={i} style={styles.historyBlock}>
-              <Text style={[styles.historyBot, { color: colors.textTertiary }]}>{entry.bot}</Text>
-              <View style={styles.answerRow}>
-                <View style={[styles.answerChip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
-                  <Text style={[styles.answerChipText, { color: colors.text }]}>{entry.answer}</Text>
-                </View>
-              </View>
-            </View>
+            <HistoryItem key={i} bot={entry.bot} answer={entry.answer} styles={styles} colors={colors} />
           ))}
 
           <Animated.View
             style={{
               opacity: blockIn,
-              transform: [{ translateY: blockIn.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+              transform: [
+                { translateY: blockIn.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) },
+                { scale: blockIn.interpolate({ inputRange: [0, 1], outputRange: [0.97, 1] }) },
+              ],
             }}
           >
             {step === 'mood' && <Text style={[styles.greeting, { color: colors.textSecondary }]}>{greeting}</Text>}
@@ -319,18 +447,9 @@ export function MorningCheckIn() {
               <>
                 {suggestions.length > 0 ? (
                   <View style={styles.list}>
-                    {suggestions.map((h) => {
-                      const active = checked.has(h.name);
-                      return (
-                        <Pressable key={h.name} onPress={() => toggle(h.name)} style={styles.row}>
-                          <View style={[styles.iconWrap, { backgroundColor: h.color + '26' }]}>
-                            <Ionicons name={h.icon as any} size={18} color={h.color} />
-                          </View>
-                          <Text style={[typography.body, { flex: 1 }]}>{h.name}</Text>
-                          <Ionicons name={active ? 'checkbox' : 'square-outline'} size={22} color={active ? colors.accent : colors.textTertiary} />
-                        </Pressable>
-                      );
-                    })}
+                    {suggestions.map((h, i) => (
+                      <RoutineRow key={h.name} habit={h} active={checked.has(h.name)} onPress={() => toggle(h.name)} index={i} styles={styles} />
+                    ))}
                   </View>
                 ) : (
                   <Text style={[typography.caption, { marginTop: spacing.lg }]}>
@@ -393,7 +512,7 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       shadowOffset: { width: 0, height: 0 },
     },
     scrollContent: { flexGrow: 1, justifyContent: 'center', paddingBottom: spacing.xxl },
-    historyBlock: { marginBottom: spacing.lg, opacity: 0.5 },
+    historyBlock: { marginBottom: spacing.lg },
     historyBot: { fontFamily: typography.body.fontFamily, fontSize: 15, lineHeight: 20 },
     answerRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: spacing.sm },
     answerChip: {
