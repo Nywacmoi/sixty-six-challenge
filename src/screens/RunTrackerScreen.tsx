@@ -13,7 +13,15 @@ import { routeDistanceKm, formatPace, formatDuration } from '../utils/geo';
 import { todayKey } from '../utils/date';
 import { RunActivity, RunPoint } from '../types';
 
-type Phase = 'idle' | 'denied' | 'tracking' | 'summary';
+type Phase = 'idle' | 'denied' | 'noSignal' | 'tracking' | 'summary';
+
+// If the browser's own location prompt gets denied (or blocked, or never
+// answered), expo-location's web watcher has no way to report that — it
+// just never calls back, forever, with no error. Without this, the screen
+// would sit on "tracking" showing an empty map and 0.00 km with zero
+// feedback. If no fix arrives within this window, treat it as a dead end
+// and tell the person instead of leaving them guessing.
+const NO_SIGNAL_TIMEOUT_MS = 12000;
 
 export default function RunTrackerScreen({ navigation, route }: any) {
   const { habitId } = route.params ?? {};
@@ -32,10 +40,19 @@ export default function RunTrackerScreen({ navigation, route }: any) {
   const startTimeRef = useRef<number | null>(null);
   const subscriptionRef = useRef<Location.LocationSubscription | null>(null);
   const pointsRef = useRef<RunPoint[]>([]);
+  const noSignalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearNoSignalTimer = () => {
+    if (noSignalTimerRef.current) {
+      clearTimeout(noSignalTimerRef.current);
+      noSignalTimerRef.current = null;
+    }
+  };
 
   useEffect(() => {
     return () => {
       subscriptionRef.current?.remove();
+      clearNoSignalTimer();
     };
   }, []);
 
@@ -48,27 +65,55 @@ export default function RunTrackerScreen({ navigation, route }: any) {
   }, [phase]);
 
   const start = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      setPhase('denied');
-      return;
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setPhase('denied');
+        return;
+      }
+    } catch {
+      // Some mobile browsers (older iOS Safari in particular) don't
+      // implement the Permissions API expo-location's web shim needs for
+      // this pre-check — it throws there instead of resolving, which used
+      // to leave the screen silently stuck on "idle" with no map, no
+      // error, nothing. watchPositionAsync below doesn't need that API: it
+      // goes straight to the browser's own native location prompt, so we
+      // just fall through and let it handle permission itself.
     }
+
     pointsRef.current = [];
     setPoints([]);
     setElapsedSec(0);
     startTimeRef.current = Date.now();
     setPhase('tracking');
-    subscriptionRef.current = await Location.watchPositionAsync(
-      { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 3000, distanceInterval: 5 },
-      (loc) => {
-        const next = [...pointsRef.current, { lat: loc.coords.latitude, lng: loc.coords.longitude, t: loc.timestamp }];
-        pointsRef.current = next;
-        setPoints(next);
+
+    clearNoSignalTimer();
+    noSignalTimerRef.current = setTimeout(() => {
+      if (pointsRef.current.length === 0) {
+        subscriptionRef.current?.remove();
+        subscriptionRef.current = null;
+        setPhase('noSignal');
       }
-    );
+    }, NO_SIGNAL_TIMEOUT_MS);
+
+    try {
+      subscriptionRef.current = await Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 3000, distanceInterval: 5 },
+        (loc) => {
+          clearNoSignalTimer();
+          const next = [...pointsRef.current, { lat: loc.coords.latitude, lng: loc.coords.longitude, t: loc.timestamp }];
+          pointsRef.current = next;
+          setPoints(next);
+        }
+      );
+    } catch {
+      clearNoSignalTimer();
+      setPhase('denied');
+    }
   };
 
   const stop = async () => {
+    clearNoSignalTimer();
     subscriptionRef.current?.remove();
     subscriptionRef.current = null;
     const durationSec = startTimeRef.current ? Math.round((Date.now() - startTimeRef.current) / 1000) : 0;
@@ -88,6 +133,7 @@ export default function RunTrackerScreen({ navigation, route }: any) {
   const requestClose = () => {
     if (phase === 'tracking') {
       confirmAction('Abandonner la course ?', 'Le trajet en cours ne sera pas enregistré.', 'Abandonner', () => {
+        clearNoSignalTimer();
         subscriptionRef.current?.remove();
         navigation.goBack();
       });
@@ -130,6 +176,20 @@ export default function RunTrackerScreen({ navigation, route }: any) {
             <Text style={[typography.h2, { marginTop: spacing.lg, textAlign: 'center' }]}>Localisation refusée</Text>
             <Text style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs, maxWidth: 260 }]}>
               Autorise l'accès à ta position dans les réglages pour suivre tes courses.
+            </Text>
+            <Pressable onPress={start} style={[styles.startBtn, { backgroundColor: accent }]}>
+              <Text style={styles.startBtnText}>Réessayer</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {phase === 'noSignal' && (
+          <View style={styles.centerFill}>
+            <Ionicons name="navigate-outline" size={40} color={colors.textTertiary} />
+            <Text style={[typography.h2, { marginTop: spacing.lg, textAlign: 'center' }]}>Signal GPS introuvable</Text>
+            <Text style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs, maxWidth: 280 }]}>
+              Vérifie que la localisation est activée pour ton navigateur dans les réglages de ton téléphone (Réglages
+              → Confidentialité → Service de localisation), puis réessaie à l'extérieur ou près d'une fenêtre.
             </Text>
             <Pressable onPress={start} style={[styles.startBtn, { backgroundColor: accent }]}>
               <Text style={styles.startBtnText}>Réessayer</Text>

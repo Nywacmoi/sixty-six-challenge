@@ -18,7 +18,7 @@ export function RouteMap({ route, height = 160, color }: { route: RunPoint[]; he
 
   const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
 
-  if (route.length < 2) {
+  if (route.length === 0) {
     return (
       <View
         onLayout={onLayout}
