@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,14 +12,15 @@ import { SectionLabel } from '../components/SectionLabel';
 import { JourneyPath } from '../components/JourneyPath';
 import { AvatarDisplay } from '../components/AvatarDisplay';
 import { progressColor } from '../utils/progressColor';
-import { todayKey, addDays } from '../utils/date';
+
+import { useDayValues } from '../hooks/useDayValues';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 
 const GLOW_SIZE = 340;
 
 export default function ProgressScreen({ navigation }: any) {
-  const { habits, completions, currentDay, isCompleted, getStreak, getLongestStreak, getTotalCompletions, profile } = useApp();
+  const { habits, currentDay, getStreak, getLongestStreak, getTotalCompletions, profile } = useApp();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const activeHabits = habits.filter((h) => !h.archived);
@@ -40,20 +41,7 @@ export default function ProgressScreen({ navigation }: any) {
   const maxPossibleCompletions = activeHabits.length * Math.max(currentDay, 1);
   const completionRate = maxPossibleCompletions > 0 ? getTotalCompletions() / maxPossibleCompletions : 0;
 
-  // How much of each day got done, across every active habit — the grid's
-  // whole input. A day where three of four habits were ticked is a paler cell
-  // than a perfect one, so the block shows the texture of the challenge rather
-  // than a binary done/not-done.
-  const startDate = profile.challengeStartDate ?? todayKey();
-  const dayValues = useMemo(() => {
-    return Array.from({ length: TOTAL_DAYS }, (_, i) => {
-      if (activeHabits.length === 0) return 0;
-      const date = addDays(startDate, i);
-      const done = activeHabits.filter((h) => isCompleted(h.id, date)).length;
-      return done / activeHabits.length;
-    });
-    // `completions` is what actually changes underneath isCompleted.
-  }, [startDate, habits, completions, isCompleted]);
+  const dayValues = useDayValues();
 
   // Same single animated value behind the number and the colour as
   // on Aujourd'hui, so the two screens move the same way. 99 days is a slow

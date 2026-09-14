@@ -12,6 +12,7 @@ import { useTopInset } from '../hooks/useTopInset';
 import { RingProgress } from '../components/RingProgress';
 import { ShareCard, CARD_WIDTH, CARD_HEIGHT } from '../components/ShareCard';
 import { addDays, todayKey, formatDayLabel } from '../utils/date';
+import { useDayValues } from '../hooks/useDayValues';
 
 function last7Ending(dateKey: string): string[] {
   return Array.from({ length: 7 }, (_, i) => addDays(dateKey, -(6 - i)));
@@ -25,6 +26,7 @@ export default function WeeklyRecapScreen({ navigation }: any) {
   const topInset = useTopInset();
   const activeHabits = useMemo(() => habits.filter((h) => !h.archived), [habits]);
   const cardRef = useRef<View>(null);
+  const dayValues = useDayValues();
   const [sharing, setSharing] = useState(false);
 
   const stats = useMemo(() => {
@@ -158,11 +160,10 @@ export default function WeeklyRecapScreen({ navigation }: any) {
               ref={cardRef}
               profile={profile}
               currentDay={currentDay}
+              dayValues={dayValues}
               checkIns={stats.totalThisWeek}
               perfectDays={stats.perfectDays}
               bestStreak={stats.bestStreak}
-              colors={colors}
-              typography={typography}
             />
           </View>
           <Pressable onPress={handleShare} disabled={sharing} style={[styles.shareBtn, sharing && { opacity: 0.6 }]}>

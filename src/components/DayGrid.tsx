@@ -29,6 +29,9 @@ export function DayGrid({
   gap = DEFAULT_GAP,
   radius = 4,
   style,
+  emptyColor,
+  missedColor,
+  todayBorderColor,
 }: {
   /** How much of each day was completed, 0 to 1. Index 0 is day 1. */
   values: number[];
@@ -40,6 +43,11 @@ export function DayGrid({
   gap?: number;
   radius?: number;
   style?: StyleProp<ViewStyle>;
+  /** For surfaces that don't follow the app theme — the share card is always
+   *  dark artwork, whichever theme the person is using. */
+  emptyColor?: string;
+  missedColor?: string;
+  todayBorderColor?: string;
 }) {
   const { colors } = useTheme();
   const [width, setWidth] = useState(0);
@@ -60,14 +68,14 @@ export function DayGrid({
           const base = { width: cell, height: cell, borderRadius: radius };
 
           if (day > currentDay) {
-            return <View key={index} style={[base, { backgroundColor: colors.surfaceElevated }]} />;
+            return <View key={index} style={[base, { backgroundColor: emptyColor ?? colors.surfaceElevated }]} />;
           }
           if (value <= 0) {
             // Clearly lighter than an untouched future day, because the two
             // mean opposite things: one is a day that came and went empty, the
             // other hasn't happened yet. Still muted — a gap in the fabric,
             // not an accusation.
-            return <View key={index} style={[base, { backgroundColor: colors.textTertiary + '70' }]} />;
+            return <View key={index} style={[base, { backgroundColor: missedColor ?? colors.textTertiary + '70' }]} />;
           }
 
           const color = tint ?? progressColor(index / Math.max(total - 1, 1));
@@ -78,7 +86,7 @@ export function DayGrid({
               style={[
                 base,
                 { backgroundColor: color, opacity: 0.4 + value * 0.6 },
-                isToday && { borderWidth: 1.5, borderColor: colors.text, opacity: 1 },
+                isToday && { borderWidth: 1.5, borderColor: todayBorderColor ?? colors.text, opacity: 1 },
               ]}
             />
           );

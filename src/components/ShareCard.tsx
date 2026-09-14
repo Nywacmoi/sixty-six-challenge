@@ -1,158 +1,148 @@
 import React, { forwardRef } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet } from 'react-native';
 import { AvatarDisplay } from './AvatarDisplay';
+import { DayGrid } from './DayGrid';
+import { ProgressGlow } from './ProgressGlow';
 import { Profile } from '../types';
-import { spacing, radius, ThemeColors, Typography } from '../theme/theme';
+import { fonts, spacing, radius, TOTAL_DAYS } from '../theme/theme';
+import { progressColor } from '../utils/progressColor';
 
 export const CARD_WIDTH = 320;
-export const CARD_HEIGHT = 568;
+export const CARD_HEIGHT = 530;
 
-// Purpose-built for export via react-native-view-shot — not a screenshot of
-// the recap screen itself, a separate, denser layout designed to read well
-// as a standalone image (Instagram Stories etc), with the app's own
-// branding baked in so it's recognizable wherever it lands.
+// Deliberately not themed. This is the only thing anyone else ever sees of the
+// app, so it looks the same whoever exports it — a black poster with one
+// accent, rather than a screenshot that happens to be white for half the
+// users. These are the dark palette's own values, hardcoded for that reason.
+const INK = '#000000';
+const TEXT = '#F5F5F0';
+const FAINT = '#5C5C60';
+const EMPTY_CELL = '#16161A';
+const MISSED_CELL = '#34343C';
+
+// Built for export via react-native-view-shot rather than being a screenshot of
+// the recap screen: a denser, self-contained layout that has to read at a
+// glance in someone else's feed. The 99-day grid carries it — it's the app's
+// most recognisable shape, and it says more about the person's run than any
+// number could.
 export const ShareCard = forwardRef<
   View,
   {
     profile: Profile;
     currentDay: number;
+    dayValues: number[];
     checkIns: number;
     perfectDays: number;
     bestStreak: number;
-    colors: ThemeColors;
-    typography: Typography;
   }
->(({ profile, currentDay, checkIns, perfectDays, bestStreak, colors, typography }, ref) => {
-  const styles = createStyles(colors, typography);
+>(({ profile, currentDay, dayValues, checkIns, perfectDays, bestStreak }, ref) => {
+  const day = Math.max(currentDay, 1);
+  const accent = progressColor(Math.min(day / TOTAL_DAYS, 1));
 
   return (
     <View ref={ref} style={styles.card} collapsable={false}>
-      <LinearGradient colors={[colors.accent, colors.gold]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      <View style={styles.overlay} />
+      <ProgressGlow color={accent} size={CARD_WIDTH * 1.5} style={styles.glow} />
 
-      <View style={styles.brandRow}>
-        <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
-        <Text style={styles.brandText}>DÉFI 99</Text>
-      </View>
+      <Text style={styles.wordmark}>DÉFI 99</Text>
 
-      <View style={styles.avatarWrap}>
-        <AvatarDisplay
-          color={profile.avatarColor}
-          seed={profile.avatarSeed}
-          gender={profile.avatarGender}
-          hair={profile.avatarHair}
-          accessory={profile.avatarAccessory}
-          facialHair={profile.avatarFacialHair}
-          expression={profile.avatarExpression}
-          hasAura={currentDay >= 75}
-          hasStar={currentDay >= 99}
-          size={104}
-        />
-      </View>
+      <Text style={styles.day}>{day}</Text>
+      <Text style={[styles.dayLabel, { color: accent }]}>SUR {TOTAL_DAYS} JOURS</Text>
 
-      <Text style={styles.name}>{profile.name}</Text>
-      <Text style={styles.day}>Jour {currentDay} sur 99</Text>
+      <DayGrid
+        values={dayValues}
+        currentDay={day}
+        gap={4}
+        radius={3}
+        style={styles.grid}
+        emptyColor={EMPTY_CELL}
+        missedColor={MISSED_CELL}
+        todayBorderColor={TEXT}
+      />
 
-      <View style={styles.statsRow}>
-        <View style={styles.stat}>
-          <Text style={styles.statValue}>{checkIns}</Text>
-          <Text style={styles.statLabel}>Check-ins</Text>
+      <View style={styles.footer}>
+        <View style={styles.stats}>
+          <Stat value={bestStreak} label="SÉRIE" />
+          <Stat value={checkIns} label="CHECK-INS" />
+          <Stat value={perfectDays} label="PARFAITS" />
         </View>
-        <View style={styles.stat}>
-          <Text style={styles.statValue}>{perfectDays}/7</Text>
-          <Text style={styles.statLabel}>Jours parfaits</Text>
-        </View>
-        <View style={styles.stat}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-            <Ionicons name="flame" size={16} color="#FFFFFF" />
-            <Text style={styles.statValue}>{bestStreak}</Text>
-          </View>
-          <Text style={styles.statLabel}>Meilleure série</Text>
+        <View style={[styles.avatar, { borderColor: accent + '80', backgroundColor: accent + '1A' }]}>
+          <AvatarDisplay
+            color={profile.avatarColor}
+            seed={profile.avatarSeed}
+            gender={profile.avatarGender}
+            hair={profile.avatarHair}
+            accessory={profile.avatarAccessory}
+            facialHair={profile.avatarFacialHair}
+            expression={profile.avatarExpression}
+            hasAura={day >= 75}
+            hasStar={day >= 99}
+            size={38}
+          />
         </View>
       </View>
 
+      <View style={styles.rule} />
       <Text style={styles.tagline}>99 jours pour construire ta discipline</Text>
     </View>
   );
 });
 
-function createStyles(colors: ThemeColors, typography: Typography) {
-  return StyleSheet.create({
-    card: {
-      width: CARD_WIDTH,
-      height: CARD_HEIGHT,
-      borderRadius: radius.lg,
-      overflow: 'hidden',
-      alignItems: 'center',
-      paddingTop: spacing.xl,
-      paddingBottom: spacing.xl,
-      paddingHorizontal: spacing.lg,
-    },
-    overlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: '#00000022',
-    },
-    brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' },
-    logo: { width: 36, height: 36 * (428 / 1107) },
-    brandText: {
-      fontFamily: typography.bodyBold.fontFamily,
-      fontSize: 13,
-      letterSpacing: 1,
-      color: '#FFFFFF',
-    },
-    avatarWrap: {
-      marginTop: spacing.xl,
-      width: 128,
-      height: 128,
-      borderRadius: 64,
-      backgroundColor: '#FFFFFF33',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    name: {
-      marginTop: spacing.lg,
-      fontFamily: typography.display.fontFamily,
-      fontSize: 24,
-      color: '#FFFFFF',
-    },
-    day: {
-      marginTop: 2,
-      fontFamily: typography.caption.fontFamily,
-      fontSize: 14,
-      color: '#FFFFFFCC',
-    },
-    statsRow: {
-      flexDirection: 'row',
-      marginTop: spacing.xxl,
-      backgroundColor: '#FFFFFF1F',
-      borderRadius: radius.md,
-      paddingVertical: spacing.md,
-      width: '100%',
-    },
-    stat: { flex: 1, alignItems: 'center', gap: 3 },
-    statValue: {
-      fontFamily: typography.h1.fontFamily,
-      fontSize: 20,
-      color: '#FFFFFF',
-    },
-    statLabel: {
-      fontFamily: typography.small.fontFamily,
-      fontSize: 10,
-      color: '#FFFFFFCC',
-      textAlign: 'center',
-    },
-    tagline: {
-      marginTop: 'auto',
-      fontFamily: typography.caption.fontFamily,
-      fontSize: 12,
-      color: '#FFFFFFCC',
-      textAlign: 'center',
-    },
-  });
+function Stat({ value, label }: { value: number; label: string }) {
+  return (
+    <View>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    backgroundColor: INK,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg + 4,
+    paddingBottom: spacing.lg,
+  },
+  glow: { top: -CARD_WIDTH * 0.55, left: -CARD_WIDTH * 0.25 },
+  wordmark: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 3.4, color: FAINT },
+  day: {
+    fontFamily: fonts.display,
+    fontSize: 104,
+    lineHeight: 108,
+    letterSpacing: -6,
+    color: TEXT,
+    marginTop: spacing.sm + 2,
+  },
+  dayLabel: { fontFamily: fonts.bold, fontSize: 11, letterSpacing: 2.6, marginTop: 6 },
+  grid: { marginTop: spacing.lg + 4 },
+  footer: {
+    marginTop: 'auto',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  stats: { flexDirection: 'row', gap: spacing.lg },
+  statValue: { fontFamily: fonts.bold, fontSize: 17, color: TEXT },
+  statLabel: { fontFamily: fonts.bold, fontSize: 8, letterSpacing: 1.3, color: FAINT, marginTop: 2 },
+  rule: { height: StyleSheet.hairlineWidth, backgroundColor: '#26262C', marginTop: spacing.md },
+  tagline: {
+    fontFamily: fonts.medium,
+    fontSize: 10.5,
+    letterSpacing: 0.3,
+    color: FAINT,
+    marginTop: spacing.sm + 2,
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+});
