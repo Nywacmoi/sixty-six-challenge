@@ -6,11 +6,13 @@ import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { spacing, TOTAL_DAYS, radius, ThemeColors, Typography } from '../theme/theme';
 import { RingProgress } from '../components/RingProgress';
+import { JourneyPath } from '../components/JourneyPath';
+import { AvatarDisplay } from '../components/AvatarDisplay';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 
 export default function ProgressScreen({ navigation }: any) {
-  const { habits, currentDay, getStreak, getLongestStreak, getTotalCompletions } = useApp();
+  const { habits, currentDay, getStreak, getLongestStreak, getTotalCompletions, profile } = useApp();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const activeHabits = habits.filter((h) => !h.archived);
@@ -50,7 +52,26 @@ export default function ProgressScreen({ navigation }: any) {
           </RingProgress>
         </View>
 
-        <View style={styles.summaryRow}>
+        <Text style={[typography.h2, { marginBottom: spacing.md }]}>Ton chemin</Text>
+        <JourneyPath
+          currentDay={currentDay}
+          avatar={
+            <AvatarDisplay
+              color={profile.avatarColor}
+              seed={profile.avatarSeed}
+              gender={profile.avatarGender}
+              hair={profile.avatarHair}
+              accessory={profile.avatarAccessory}
+              facialHair={profile.avatarFacialHair}
+              expression={profile.avatarExpression}
+              hasAura={currentDay >= 75}
+              hasStar={currentDay >= 99}
+              size={56}
+            />
+          }
+        />
+
+        <View style={[styles.summaryRow, { marginTop: spacing.xl }]}>
           <View style={styles.summaryCard}>
             <Text style={typography.h1}>{Math.round(completionRate * 100)}%</Text>
             <Text style={typography.caption}>Taux de réussite</Text>
