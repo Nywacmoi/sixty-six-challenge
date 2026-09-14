@@ -18,6 +18,7 @@ import { SocialProvider } from './src/context/SocialContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { LaunchScreen } from './src/components/LaunchScreen';
 import { MorningCheckIn } from './src/components/MorningCheckIn';
+import { StatusBarScrim } from './src/components/StatusBarScrim';
 import { todayKey } from './src/utils/date';
 
 const LAUNCH_DURATION = 2500;
@@ -63,6 +64,9 @@ function AppShell() {
       <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       <RootNavigator />
       {showCheckIn && <MorningCheckIn />}
+      {/* Last, so it masks the status bar for the navigator and any overlay
+          above it alike — see StatusBarScrim for why it's needed at all. */}
+      <StatusBarScrim />
     </>
   );
 }

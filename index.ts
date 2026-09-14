@@ -61,14 +61,50 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   // actually rendered on screen (accounting for on-screen toolbars/keyboard)
   // more reliably across devices, so prefer it when available and only fall
   // back to innerHeight where visualViewport doesn't exist.
+  //
+  // The catch: the on-screen keyboard also shrinks the visual viewport, by a
+  // lot (~370px of an 874px iPhone screen). Shrinking the shell with it is
+  // deliberate — it's what keeps a chat composer sitting on top of the
+  // keyboard — but if that collapsed height ever sticks after the keyboard
+  // goes away, the app is left stranded in a shell covering barely half the
+  // screen, with everything below it dead. The tab bar is position:fixed to
+  // the real viewport bottom, so it stays put while the content shrinks away
+  // from it, leaving a huge empty band in between. iOS does not reliably fire
+  // a final resize when the keyboard is dismissed by unmounting its input
+  // (e.g. switching tabs straight from a focused field), which is exactly how
+  // the app got stuck like that.
+  //
+  // So: a collapsed reading is only trusted while a text field actually holds
+  // focus. Any other time it's a stale value iOS never corrected, and the
+  // layout viewport is used instead. That makes the stuck state structurally
+  // impossible rather than dependent on an event that may never arrive.
+  const KEYBOARD_MIN_SHRINK = 120;
+
+  const isTextFieldFocused = () => {
+    const el = document.activeElement as HTMLElement | null;
+    if (!el || el === document.body) return false;
+    return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable;
+  };
+
   const setAppHeight = () => {
-    const height = window.visualViewport?.height ?? window.innerHeight;
+    const layoutHeight = window.innerHeight;
+    const visualHeight = window.visualViewport?.height ?? layoutHeight;
+    const collapsed = layoutHeight - visualHeight > KEYBOARD_MIN_SHRINK;
+    const height = collapsed && !isTextFieldFocused() ? layoutHeight : visualHeight;
     document.documentElement.style.setProperty('--app-height', `${height}px`);
   };
   setAppHeight();
   window.addEventListener('resize', setAppHeight);
   window.addEventListener('orientationchange', setAppHeight);
   window.visualViewport?.addEventListener('resize', setAppHeight);
+  // Losing focus is the moment the keyboard starts leaving, and it fires even
+  // when the field is torn out of the DOM rather than tapped away from. Once
+  // immediately so the guard above re-evaluates, once more after the keyboard
+  // has finished animating out and the viewport has settled at its real size.
+  document.addEventListener('focusout', () => {
+    setAppHeight();
+    setTimeout(setAppHeight, 300);
+  });
 
   // iOS Safari standalone (home-screen PWA) can keep serving an old cached
   // copy of the app well past a new deploy, forcing manual cache-clearing.
