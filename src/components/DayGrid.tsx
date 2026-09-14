@@ -122,6 +122,16 @@ export function DayGrid({
 
           if (day > currentDay) {
             background = emptyColor ?? colors.surfaceElevated;
+          } else if (day === currentDay) {
+            // Today is checked before the empty case on purpose. Falling into
+            // the "missed" branch first meant that every morning, before
+            // anything was ticked, the current day rendered as a grey hole —
+            // marked as failed while it was still being lived. It now always
+            // carries its own colour and outline, faint at zero and filling as
+            // the day goes.
+            background = tint ?? progressColor(index / Math.max(total - 1, 1));
+            targetOpacity = 0.25 + value * 0.75;
+            extra = { borderWidth: 1.5, borderColor: todayBorderColor ?? colors.text };
           } else if (value <= 0) {
             // Clearly lighter than an untouched future day, because the two
             // mean opposite things: one is a day that came and went empty, the
@@ -131,10 +141,6 @@ export function DayGrid({
           } else {
             background = tint ?? progressColor(index / Math.max(total - 1, 1));
             targetOpacity = 0.4 + value * 0.6;
-            if (day === currentDay) {
-              targetOpacity = 1;
-              extra = { borderWidth: 1.5, borderColor: todayBorderColor ?? colors.text };
-            }
           }
 
           const start = (index / Math.max(total - 1, 1)) * WAVE_SPREAD;

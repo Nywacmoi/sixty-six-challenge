@@ -25,10 +25,12 @@ import { progressColor } from '../utils/progressColor';
 // the mark's own fade-in, so nobody sees the switch — and the earlier timer
 // bought nothing while forcing the layout to change shape at 340ms.
 const BODY_DELAY_MS = 260;
-// Below this the grid is a nearly empty box and the number is unimpressive —
-// exactly the people you least want to underwhelm. They get the tagline, and
-// the screen grows into the personal version with them.
-const MIN_DAY_FOR_GRID = 4;
+// From the very first day, as soon as there's at least one habit to track.
+// An empty grid was the argument for holding it back, but that argument cut
+// the wrong way: day 1 is precisely when seeing ninety-nine empty days ahead
+// means something. Someone with no habits at all still gets the tagline —
+// a grid of nothing measures nothing.
+const MIN_DAY_FOR_GRID = 1;
 
 export function LaunchScreen({ duration = 1400 }: { duration?: number }) {
   const { colors } = useTheme();
