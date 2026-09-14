@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, LayoutChangeEvent, StyleProp, ViewStyle } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Animated, Easing, LayoutChangeEvent, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { TOTAL_DAYS } from '../theme/theme';
 import { progressColor } from '../utils/progressColor';
@@ -21,6 +21,15 @@ import { progressColor } from '../utils/progressColor';
 const DEFAULT_COLUMNS = 11;
 const DEFAULT_GAP = 5;
 
+// The cells arrive as a wave rather than all at once — ninety-nine squares
+// appearing simultaneously is a wall, the same squares sweeping in read as the
+// challenge being laid out day by day. One driving value feeds all of them,
+// each cell reading a different slice of it, because ninety-nine separate
+// animated values would be ninety-nine JS-driven timers on web.
+const WAVE_MS = 820;
+const WAVE_SPREAD = 0.55; // share of the timeline spent starting cells
+const WAVE_CELL = 0.45; // how long each individual cell takes, as a share
+
 export function DayGrid({
   values,
   currentDay,
@@ -32,6 +41,7 @@ export function DayGrid({
   emptyColor,
   missedColor,
   todayBorderColor,
+  animate = true,
 }: {
   /** How much of each day was completed, 0 to 1. Index 0 is day 1. */
   values: number[];
@@ -48,15 +58,43 @@ export function DayGrid({
   emptyColor?: string;
   missedColor?: string;
   todayBorderColor?: string;
+  /** Off for the share card: react-native-view-shot would otherwise capture
+   *  the grid mid-wave and export a half-drawn image. */
+  animate?: boolean;
 }) {
   const { colors } = useTheme();
   const [width, setWidth] = useState(0);
+  const wave = useRef(new Animated.Value(animate ? 0 : 1)).current;
+  const hasPlayed = useRef(!animate);
 
   const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
   // Measured rather than computed from percentages: percentage widths and gaps
   // disagree just enough across native and web to leave a ragged right edge on
   // a grid this dense.
   const cell = width > 0 ? (width - gap * (columns - 1)) / columns : 0;
+
+  const running = useRef<Animated.CompositeAnimation | null>(null);
+  useEffect(() => () => running.current?.stop(), []);
+
+  // Started on first measurement, not on mount — before the container has a
+  // width nothing is on screen to sweep, so the wave would play to an empty box.
+  //
+  // Note what this effect deliberately does NOT do: stop the animation on
+  // cleanup. onLayout fires more than once (fonts settling, a resize, the
+  // scroll view measuring again), and tearing the animation down on every
+  // width change killed the wave at zero while `hasPlayed` blocked the restart
+  // — leaving all ninety-nine cells permanently invisible. Only unmount stops it.
+  useEffect(() => {
+    if (width <= 0 || hasPlayed.current) return;
+    hasPlayed.current = true;
+    running.current = Animated.timing(wave, {
+      toValue: 1,
+      duration: WAVE_MS,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    });
+    running.current.start();
+  }, [width, wave]);
 
   const total = values.length || TOTAL_DAYS;
 
@@ -67,27 +105,43 @@ export function DayGrid({
           const day = index + 1;
           const base = { width: cell, height: cell, borderRadius: radius };
 
+          let background: string;
+          let targetOpacity = 1;
+          let extra: ViewStyle | undefined;
+
           if (day > currentDay) {
-            return <View key={index} style={[base, { backgroundColor: emptyColor ?? colors.surfaceElevated }]} />;
-          }
-          if (value <= 0) {
+            background = emptyColor ?? colors.surfaceElevated;
+          } else if (value <= 0) {
             // Clearly lighter than an untouched future day, because the two
             // mean opposite things: one is a day that came and went empty, the
             // other hasn't happened yet. Still muted — a gap in the fabric,
             // not an accusation.
-            return <View key={index} style={[base, { backgroundColor: missedColor ?? colors.textTertiary + '70' }]} />;
+            background = missedColor ?? colors.textTertiary + '70';
+          } else {
+            background = tint ?? progressColor(index / Math.max(total - 1, 1));
+            targetOpacity = 0.4 + value * 0.6;
+            if (day === currentDay) {
+              targetOpacity = 1;
+              extra = { borderWidth: 1.5, borderColor: todayBorderColor ?? colors.text };
+            }
           }
 
-          const color = tint ?? progressColor(index / Math.max(total - 1, 1));
-          const isToday = day === currentDay;
+          const start = (index / Math.max(total - 1, 1)) * WAVE_SPREAD;
+          const opacity = wave.interpolate({
+            inputRange: [start, Math.min(start + WAVE_CELL, 1)],
+            outputRange: [0, targetOpacity],
+            extrapolate: 'clamp',
+          });
+          const scale = wave.interpolate({
+            inputRange: [start, Math.min(start + WAVE_CELL, 1)],
+            outputRange: [0.55, 1],
+            extrapolate: 'clamp',
+          });
+
           return (
-            <View
+            <Animated.View
               key={index}
-              style={[
-                base,
-                { backgroundColor: color, opacity: 0.4 + value * 0.6 },
-                isToday && { borderWidth: 1.5, borderColor: todayBorderColor ?? colors.text, opacity: 1 },
-              ]}
+              style={[base, { backgroundColor: background }, extra, { opacity, transform: [{ scale }] }]}
             />
           );
         })}

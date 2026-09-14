@@ -51,6 +51,7 @@ export const ShareCard = forwardRef<
       <DayGrid
         values={dayValues}
         currentDay={day}
+        animate={false}
         gap={4}
         radius={3}
         style={styles.grid}

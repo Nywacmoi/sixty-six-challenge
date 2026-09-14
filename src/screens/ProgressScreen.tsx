@@ -9,6 +9,7 @@ import { ProgressGlow } from '../components/ProgressGlow';
 import { DayGrid } from '../components/DayGrid';
 import { StatStrip } from '../components/StatStrip';
 import { SectionLabel } from '../components/SectionLabel';
+import { StaggeredEntrance } from '../components/StaggeredEntrance';
 import { JourneyPath } from '../components/JourneyPath';
 import { AvatarDisplay } from '../components/AvatarDisplay';
 import { progressColor } from '../utils/progressColor';
@@ -141,7 +142,7 @@ export default function ProgressScreen({ navigation }: any) {
           {activeHabits.length === 0 && (
             <Text style={typography.caption}>Ajoute une habitude pour voir sa progression ici.</Text>
           )}
-          {activeHabits.map((h) => {
+          {activeHabits.map((h, habitIndex) => {
             const streak = getStreak(h.id);
             const record = getLongestStreak(h.id);
             // How close today's run is to this habit's own best. A bar that
@@ -150,7 +151,8 @@ export default function ProgressScreen({ navigation }: any) {
             // — that makes the comparison fair.
             const towardRecord = record > 0 ? Math.min(streak / record, 1) : 0;
             return (
-              <View key={h.id} style={styles.habitRow}>
+              <StaggeredEntrance key={h.id} index={habitIndex}>
+              <View style={styles.habitRow}>
                 <View style={[styles.colorBar, { backgroundColor: h.color }]} />
                 <View style={styles.habitTop}>
                   <View style={[styles.iconWrap, { backgroundColor: h.color + '26' }]}>
@@ -173,6 +175,7 @@ export default function ProgressScreen({ navigation }: any) {
                   />
                 </View>
               </View>
+              </StaggeredEntrance>
             );
           })}
         </View>

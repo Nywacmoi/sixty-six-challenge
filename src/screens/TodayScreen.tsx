@@ -11,6 +11,7 @@ import { AchievementToast } from '../components/AchievementToast';
 import { Toast } from '../components/Toast';
 import { TodayDashboard } from '../components/TodayDashboard';
 import { SectionLabel } from '../components/SectionLabel';
+import { StaggeredEntrance } from '../components/StaggeredEntrance';
 import { ShareDayCta } from '../components/ShareDayCta';
 import { InsightBanner } from '../components/InsightBanner';
 import { PerfectDayCelebration } from '../components/PerfectDayCelebration';
@@ -113,16 +114,17 @@ export default function TodayScreen({ navigation }: any) {
           )}
           <SectionLabel style={styles.sectionLabel}>TES HABITUDES</SectionLabel>
           <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, gap: spacing.sm }}>
-            {activeHabits.map((item) => (
-              <HabitRow
-                key={item.id}
-                habit={item}
-                completed={isCompleted(item.id)}
-                streak={getStreak(item.id)}
-                onToggle={() => toggleCompletion(item.id)}
-                onPress={() => navigation.navigate('HabitDetail', { habitId: item.id })}
-                onDelete={() => removeHabit(item.id)}
-              />
+            {activeHabits.map((item, index) => (
+              <StaggeredEntrance key={item.id} index={index}>
+                <HabitRow
+                  habit={item}
+                  completed={isCompleted(item.id)}
+                  streak={getStreak(item.id)}
+                  onToggle={() => toggleCompletion(item.id)}
+                  onPress={() => navigation.navigate('HabitDetail', { habitId: item.id })}
+                  onDelete={() => removeHabit(item.id)}
+                />
+              </StaggeredEntrance>
             ))}
           </View>
         </ScrollView>

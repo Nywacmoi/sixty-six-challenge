@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Pressable, Image, Linking } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, TextInput, StyleSheet, ScrollView, Pressable, Image, Linking, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -120,6 +120,24 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 
   const startDate = toSafeDateKey(profile.challengeStartDate ?? habit?.createdAt);
 
+  // A real shared-element transition — the row's icon flying into place — needs
+  // Reanimated's sharedTransitionTag, which has no web implementation, and web
+  // is the only platform this ships on. This is the honest substitute: the
+  // habit's colour washes in while its icon and name settle up into place, so
+  // arriving still reads as continuing from the row you tapped rather than as
+  // a new page appearing.
+  const enter = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const animation = Animated.timing(enter, {
+      toValue: 1,
+      duration: 420,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [enter]);
+
   const days = useMemo(() => {
     return Array.from({ length: TOTAL_DAYS }, (_, i) => {
       const date = addDays(startDate, i);
@@ -225,7 +243,9 @@ export default function HabitDetailScreen({ route, navigation }: any) {
           spending it on the whole screen is what turns each habit into its own
           place instead of another row in a list. Sits outside the ScrollView so
           it stays put while the content moves under it. */}
-      <ProgressGlow color={habit.color} size={520} style={styles.wash} />
+      <Animated.View pointerEvents="none" style={[styles.wash, { opacity: enter }]}>
+        <ProgressGlow color={habit.color} size={520} />
+      </Animated.View>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: topInset + spacing.sm, paddingBottom: spacing.xxl + tabBarClearance }}>
         <View style={styles.headerRow}>
           <Pressable onPress={() => navigation.goBack()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Retour">
@@ -236,10 +256,24 @@ export default function HabitDetailScreen({ route, navigation }: any) {
           </Pressable>
         </View>
 
-        <View style={styles.titleRow}>
-          <View style={[styles.iconWrap, { backgroundColor: habit.color + '26' }]}>
+        <Animated.View
+          style={[
+            styles.titleRow,
+            {
+              opacity: enter,
+              transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
+            },
+          ]}
+        >
+          <Animated.View
+            style={[
+              styles.iconWrap,
+              { backgroundColor: habit.color + '26' },
+              { transform: [{ scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.84, 1] }) }] },
+            ]}
+          >
             <Ionicons name={habit.icon as any} size={26} color={habit.color} />
-          </View>
+          </Animated.View>
           <View style={{ flex: 1 }}>
             {editingName ? (
               <TextInput
@@ -269,7 +303,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
             )}
             <Text style={typography.caption}>Débutée le {formatDayLabel(habit.createdAt)}</Text>
           </View>
-        </View>
+        </Animated.View>
 
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
@@ -862,7 +896,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
 function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
-    wash: { top: -190, left: -80 },
+    wash: { position: 'absolute', top: -190, left: -80, width: 520, height: 520 },
     headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.lg },
     iconWrap: { width: 52, height: 52, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
