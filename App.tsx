@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
@@ -19,7 +20,7 @@ import RootNavigator from './src/navigation/RootNavigator';
 import { LaunchScreen } from './src/components/LaunchScreen';
 import { MorningCheckIn } from './src/components/MorningCheckIn';
 import { StatusBarScrim } from './src/components/StatusBarScrim';
-import { todayKey } from './src/utils/date';
+import { isCheckInDue } from './src/utils/checkIn';
 
 // Long enough for the grid to sweep in and land, and not a millisecond more.
 // The previous 2500 was a hold on an app that had already finished loading —
@@ -50,17 +51,45 @@ function AppShell() {
     SpaceGrotesk_700Bold,
   });
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const ready = fontsLoaded && minTimeElapsed;
+
+  // The launch screen used to be swapped out with a bare `return`: everything
+  // before it was animated, everything after it was animated, and between the
+  // two the screen jumped. It now stays on top and dissolves while the app
+  // mounts underneath, so the ring starts filling and the rows start arriving
+  // inside the same movement rather than after a cut.
+  const [handingOff, setHandingOff] = useState(true);
+  const launchFade = useRef(new Animated.Value(1)).current;
+  const handoff = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setMinTimeElapsed(true), LAUNCH_DURATION);
     return () => clearTimeout(timer);
   }, []);
 
-  if (!fontsLoaded || !minTimeElapsed) {
+  useEffect(() => {
+    if (!ready) return;
+    // The short delay lets the app's own entrances get under way behind the
+    // cover, so what emerges is already in motion.
+    handoff.current = Animated.timing(launchFade, {
+      toValue: 0,
+      duration: 460,
+      delay: 90,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    });
+    handoff.current.start(({ finished }) => {
+      if (finished) setHandingOff(false);
+    });
+  }, [ready, launchFade]);
+
+  useEffect(() => () => handoff.current?.stop(), []);
+
+  if (!ready) {
     return <LaunchScreen duration={LAUNCH_DURATION} />;
   }
 
-  const showCheckIn = !loading && profile.onboardingCompleted && profile.lastCheckInDate !== todayKey();
+  const showCheckIn = isCheckInDue(profile, loading);
 
   return (
     <>
@@ -70,6 +99,20 @@ function AppShell() {
       {/* Last, so it masks the status bar for the navigator and any overlay
           above it alike — see StatusBarScrim for why it's needed at all. */}
       <StatusBarScrim />
+
+      {handingOff && (
+        <Animated.View
+          pointerEvents="none"
+          // Above the check-in overlay, which carries zIndex 200 and would
+          // otherwise paint over a later sibling that has none.
+          style={[StyleSheet.absoluteFill, { opacity: launchFade, zIndex: 300 }]}
+        >
+          {/* Frozen: this is the same screen the person is already looking at,
+              not a new one. Replaying its entrance while it dissolves would
+              read as a flicker. */}
+          <LaunchScreen duration={LAUNCH_DURATION} frozen />
+        </Animated.View>
+      )}
     </>
   );
 }

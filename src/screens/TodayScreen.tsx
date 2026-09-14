@@ -17,16 +17,20 @@ import { InsightBanner } from '../components/InsightBanner';
 import { PerfectDayCelebration } from '../components/PerfectDayCelebration';
 import { AmbientBackdrop } from '../components/AmbientBackdrop';
 import { progressColor } from '../utils/progressColor';
+import { isCheckInDue } from '../utils/checkIn';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 
 export default function TodayScreen({ navigation }: any) {
-  const { habits, currentDay, todayProgress, isCompleted, getStreak, getLongestStreak, profile, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast, levelInfo } = useApp();
+  const { loading, habits, currentDay, todayProgress, isCompleted, getStreak, getLongestStreak, profile, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast, levelInfo } = useApp();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const activeHabits = habits.filter((h) => !h.archived);
   const topInset = useTopInset();
   const tabBarClearance = useTabBarClearance();
+  // Same predicate the shell uses to decide whether to show the overlay, so
+  // this screen holds its entrances back for exactly as long as it is hidden.
+  const covered = isCheckInDue(profile, loading);
   const bestStreak = activeHabits.reduce((max, h) => Math.max(max, getLongestStreak(h.id)), 0);
   const currentStreak = activeHabits.reduce((max, h) => Math.max(max, getStreak(h.id)), 0);
 
@@ -110,6 +114,7 @@ export default function TodayScreen({ navigation }: any) {
             streakFreezes={profile.streakFreezes}
             done={todayProgress >= 1}
             levelInfo={levelInfo}
+            play={!covered}
           />
           {insightText && <InsightBanner text={insightText} />}
           {todayProgress >= 1 && (
@@ -120,7 +125,7 @@ export default function TodayScreen({ navigation }: any) {
           <SectionLabel style={styles.sectionLabel}>TES HABITUDES</SectionLabel>
           <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, gap: spacing.sm }}>
             {activeHabits.map((item, index) => (
-              <StaggeredEntrance key={item.id} index={index}>
+              <StaggeredEntrance key={item.id} index={index} play={!covered}>
                 <HabitRow
                   habit={item}
                   completed={isCompleted(item.id)}

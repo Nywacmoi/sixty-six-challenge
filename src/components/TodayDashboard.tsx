@@ -6,6 +6,7 @@ import { fonts, spacing, radius, ThemeColors } from '../theme/theme';
 import { RingProgress } from './RingProgress';
 import { StatStrip } from './StatStrip';
 import { progressColor, progressStatusLabel } from '../utils/progressColor';
+import { getMotivation } from '../data/motivation';
 import { LevelInfo } from '../utils/gamification';
 
 function getRemaining() {
@@ -45,6 +46,7 @@ export function TodayDashboard({
   streakFreezes,
   done,
   levelInfo,
+  play = true,
 }: {
   doneCount: number;
   totalCount: number;
@@ -53,6 +55,11 @@ export function TodayDashboard({
   streakFreezes: number;
   done: boolean;
   levelInfo: LevelInfo;
+  /** False while the morning check-in covers this screen: the ring would
+   *  otherwise fill, the number count up and the colour travel from blue to
+   *  green entirely behind an opaque overlay, leaving a finished, static
+   *  screen behind once it closes. */
+  play?: boolean;
 }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -80,6 +87,7 @@ export function TodayDashboard({
   }, [anim]);
 
   useEffect(() => {
+    if (!play) return;
     // Timing, not spring: a spring overshoots, and a ring that flashes
     // "104%" before settling looks broken rather than lively.
     Animated.timing(anim, {
@@ -88,11 +96,17 @@ export function TodayDashboard({
       easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
     }).start();
-  }, [score, anim]);
+  }, [score, anim, play]);
 
   const color = progressColor(displayed);
   const status = progressStatusLabel(doneCount, totalCount);
   const urgent = !done && remaining.hours < 2;
+  const motivation = getMotivation({
+    doneCount,
+    totalCount,
+    hoursLeft: remaining.hours,
+    streak: currentStreak,
+  });
 
   return (
     <View style={styles.wrap}>
@@ -119,6 +133,8 @@ export function TodayDashboard({
           </Text>
         </Text>
       )}
+
+      {motivation && <Text style={styles.motivation}>{motivation}</Text>}
 
       <StatStrip
         style={{ marginHorizontal: spacing.lg, marginTop: spacing.lg }}
@@ -172,6 +188,15 @@ function createStyles(colors: ThemeColors) {
     // dwarfed by an 86px number and read as a footnote; tabular figures stop
     // the seconds from jittering the whole line every tick.
     countValue: { fontFamily: fonts.bold, fontSize: 17, color: colors.text, fontVariant: ['tabular-nums'] },
+    motivation: {
+      fontFamily: fonts.medium,
+      fontSize: 13,
+      lineHeight: 18,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginTop: spacing.md,
+      marginHorizontal: spacing.xl,
+    },
     xpLine: { marginHorizontal: spacing.lg, marginTop: spacing.md - 3 },
     xpTop: { flexDirection: 'row', justifyContent: 'space-between' },
     xpNext: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 0.6, color: colors.textTertiary },

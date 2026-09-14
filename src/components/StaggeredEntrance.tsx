@@ -16,26 +16,37 @@ export function StaggeredEntrance({
   index,
   children,
   style,
+  play = true,
 }: {
   index: number;
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  /** Held false while something covers the screen — the morning check-in
+   *  mounts on top of Aujourd'hui, and a cascade nobody can see is a cascade
+   *  wasted on the one opening of the day that matters most. */
+  play?: boolean;
 }) {
   const anim = useRef(new Animated.Value(0)).current;
+  const hasPlayed = useRef(false);
+  const running = useRef<Animated.CompositeAnimation | null>(null);
+
+  useEffect(() => () => running.current?.stop(), []);
 
   useEffect(() => {
-    const animation = Animated.timing(anim, {
+    if (!play || hasPlayed.current) return;
+    hasPlayed.current = true;
+    running.current = Animated.timing(anim, {
       toValue: 1,
       duration: DURATION_MS,
       delay: Math.min(index, MAX_STEPS) * STEP_MS,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     });
-    animation.start();
-    return () => animation.stop();
-    // Deliberately mount-only: re-running this when the row's data changes
-    // would make ticking a habit re-play its entrance.
-  }, []);
+    running.current.start();
+    // No stop-on-cleanup here: `play` flipping would tear the animation down
+    // mid-flight while the played flag blocked the restart, leaving the row
+    // invisible for good. Only unmount stops it.
+  }, [play, anim, index]);
 
   return (
     <Animated.View

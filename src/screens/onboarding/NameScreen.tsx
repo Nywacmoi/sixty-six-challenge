@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
@@ -23,7 +23,17 @@ export default function NameScreen({ navigation, route }: any) {
         </Pressable>
       </View>
 
-      <View style={styles.content}>
+      {/* Scrollable rather than a fixed centred box. The keyboard shrinks the
+          app shell on web, and centred content that grows taller than its box
+          overflows equally at both ends — so the title was clipped off the top
+          with no way to reach it. flexGrow keeps it centred while there's room
+          and lets it scroll once there isn't. */}
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentInner}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={typography.display}>Comment on{'\n'}t'appelle ?</Text>
         <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.sm }]}>
           Pour personnaliser ton expérience.
@@ -38,7 +48,7 @@ export default function NameScreen({ navigation, route }: any) {
           returnKeyType="done"
           onSubmitEditing={() => navigation.navigate('Goal', { name: name.trim() })}
         />
-      </View>
+      </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: bottomInset }]}>
         <StepDots total={3} activeIndex={1} />
@@ -58,7 +68,8 @@ export default function NameScreen({ navigation, route }: any) {
 function createStyles(colors: ThemeColors, typography: Typography) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
-    content: { flex: 1, paddingHorizontal: spacing.xl, justifyContent: 'center' },
+    content: { flex: 1 },
+    contentInner: { flexGrow: 1, paddingHorizontal: spacing.xl, justifyContent: 'center', paddingVertical: spacing.lg },
     input: {
       marginTop: spacing.xl,
       backgroundColor: colors.surface,

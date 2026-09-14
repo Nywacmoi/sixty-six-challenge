@@ -32,7 +32,15 @@ const BODY_DELAY_MS = 260;
 // a grid of nothing measures nothing.
 const MIN_DAY_FOR_GRID = 1;
 
-export function LaunchScreen({ duration = 1400 }: { duration?: number }) {
+export function LaunchScreen({
+  duration = 1400,
+  frozen = false,
+}: {
+  duration?: number;
+  /** Rendered as the dissolving cover over the app: same screen, already in
+   *  its finished state, so nothing replays on the way out. */
+  frozen?: boolean;
+}) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const { loading, currentDay, habits } = useApp();
@@ -42,16 +50,18 @@ export function LaunchScreen({ duration = 1400 }: { duration?: number }) {
   const activeCount = habits.filter((h) => !h.archived).length;
   const day = Math.max(currentDay, activeCount > 0 ? 1 : 0);
 
-  const markOpacity = useRef(new Animated.Value(0)).current;
-  const markScale = useRef(new Animated.Value(0.94)).current;
-  const bodyOpacity = useRef(new Animated.Value(0)).current;
-  const bodyTranslate = useRef(new Animated.Value(10)).current;
+  const markOpacity = useRef(new Animated.Value(frozen ? 1 : 0)).current;
+  const markScale = useRef(new Animated.Value(1)).current;
+  const bodyOpacity = useRef(new Animated.Value(frozen ? 1 : 0)).current;
+  const bodyTranslate = useRef(new Animated.Value(frozen ? 0 : 10)).current;
 
   const personal = !loading && day >= MIN_DAY_FOR_GRID;
 
   useEffect(() => {
+    if (frozen) return;
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 
+    markScale.setValue(0.94);
     Animated.parallel([
       Animated.timing(markOpacity, { toValue: 1, duration: 420, easing: Easing.out(Easing.ease), useNativeDriver: true }),
       Animated.timing(markScale, { toValue: 1, duration: 420, easing: Easing.out(Easing.ease), useNativeDriver: true }),
@@ -91,7 +101,12 @@ export function LaunchScreen({ duration = 1400 }: { duration?: number }) {
 
       {personal && (
         <View style={styles.gridWrap}>
-          <DayGrid values={dayValues} currentDay={day} width={screenWidth - spacing.lg * 2} />
+          <DayGrid
+            values={dayValues}
+            currentDay={day}
+            width={screenWidth - spacing.lg * 2}
+            animate={!frozen}
+          />
         </View>
       )}
     </View>
