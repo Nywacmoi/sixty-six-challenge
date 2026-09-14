@@ -30,12 +30,12 @@ export function ProgressPhotoInsight({
 
   const [advice, setAdvice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setAdvice(null);
-    setFailed(false);
+    setError(null);
     (async () => {
       const cached = await storage.getAiCache<string>(cacheKey);
       if (!cancelled && cached && cached.date === todayKey()) setAdvice(cached.value);
@@ -45,11 +45,26 @@ export function ProgressPhotoInsight({
     };
   }, [cacheKey, photoUri]);
 
-  if (!photoUri) return null;
+  // Before there's a photo this used to render nothing at all, which made the
+  // whole feature invisible: the photo resets every day, so most days you'd
+  // open the habit, see an empty photo box and no reason to believe an AI
+  // reading existed. Saying so costs one muted line and doesn't send anything.
+  if (!photoUri) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <Ionicons name="sparkles-outline" size={16} color={colors.textTertiary} />
+          <Text style={[typography.small, { color: colors.textTertiary, flex: 1 }]}>
+            Ajoute ta photo du jour pour un conseil de l'IA sur ta progression.
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   const runAnalysis = async () => {
     setLoading(true);
-    setFailed(false);
+    setError(null);
     try {
       const { base64, mimeType } = await uriToBase64(photoUri);
       const result = await analyzeProgressPhoto({ imageBase64: base64, mimeType, goal, level });
@@ -57,10 +72,17 @@ export function ProgressPhotoInsight({
         setAdvice(result);
         await storage.setAiCache(cacheKey, todayKey(), result);
       } else {
-        setFailed(true);
+        setError("Échec — réessayer l'analyse IA");
       }
-    } catch {
-      setFailed(true);
+    } catch (e: any) {
+      // The Cloud Function refuses anonymous callers. Saying "échec, réessaye"
+      // there sends people into a retry loop that can never succeed — the
+      // account is the whole missing ingredient, so name it.
+      setError(
+        e?.code === 'functions/unauthenticated'
+          ? 'Crée un compte pour analyser ta photo'
+          : "Échec — réessayer l'analyse IA"
+      );
     } finally {
       setLoading(false);
     }
@@ -82,7 +104,7 @@ export function ProgressPhotoInsight({
               <Ionicons name="sparkles-outline" size={16} color={colors.accent} />
             )}
             <Text style={[typography.bodyBold, { color: colors.accent, flex: 1 }]}>
-              {loading ? 'Analyse de la photo…' : failed ? "Échec — réessayer l'analyse IA" : "Demander un conseil à l'IA"}
+              {loading ? 'Analyse de la photo…' : (error ?? "Demander un conseil à l'IA")}
             </Text>
           </Pressable>
           <Text style={[typography.small, { color: colors.textTertiary, marginTop: 4 }]}>Analysée de façon sécurisée, jamais partagée.</Text>

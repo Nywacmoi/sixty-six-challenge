@@ -21,12 +21,12 @@ export function JawlinePhotoInsight({ habitId, photoUri }: { habitId: string; ph
 
   const [result, setResult] = useState<JawlinePhotoResult | null>(null);
   const [loading, setLoading] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setResult(null);
-    setFailed(false);
+    setError(null);
     (async () => {
       const cached = await storage.getAiCache<JawlinePhotoResult>(cacheKey);
       if (!cancelled && cached && cached.date === todayKey()) setResult(cached.value);
@@ -36,11 +36,24 @@ export function JawlinePhotoInsight({ habitId, photoUri }: { habitId: string; ph
     };
   }, [cacheKey, photoUri]);
 
-  if (!photoUri) return null;
+  // See ProgressPhotoInsight: rendering nothing before the photo hid the
+  // feature entirely on every fresh day.
+  if (!photoUri) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <Ionicons name="sparkles-outline" size={16} color={colors.textTertiary} />
+          <Text style={[typography.small, { color: colors.textTertiary, flex: 1 }]}>
+            Ajoute ta photo du jour pour un score de l'IA sur ta mâchoire.
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   const runAnalysis = async () => {
     setLoading(true);
-    setFailed(false);
+    setError(null);
     try {
       const { base64, mimeType } = await uriToBase64(photoUri);
       const analysis = await analyzeJawlinePhoto({ imageBase64: base64, mimeType });
@@ -48,10 +61,14 @@ export function JawlinePhotoInsight({ habitId, photoUri }: { habitId: string; ph
         setResult(analysis);
         await storage.setAiCache(cacheKey, todayKey(), analysis);
       } else {
-        setFailed(true);
+        setError("Échec — réessayer l'analyse IA");
       }
-    } catch {
-      setFailed(true);
+    } catch (e: any) {
+      setError(
+        e?.code === 'functions/unauthenticated'
+          ? 'Crée un compte pour analyser ta photo'
+          : "Échec — réessayer l'analyse IA"
+      );
     } finally {
       setLoading(false);
     }
@@ -84,7 +101,7 @@ export function JawlinePhotoInsight({ habitId, photoUri }: { habitId: string; ph
               <Ionicons name="sparkles-outline" size={16} color={colors.accent} />
             )}
             <Text style={[typography.bodyBold, { color: colors.accent, flex: 1 }]}>
-              {loading ? 'Analyse de la photo…' : failed ? "Échec — réessayer l'analyse IA" : "Demander un score à l'IA"}
+              {loading ? 'Analyse de la photo…' : (error ?? "Demander un score à l'IA")}
             </Text>
           </Pressable>
           <Text style={[typography.small, { color: colors.textTertiary, marginTop: 4 }]}>
