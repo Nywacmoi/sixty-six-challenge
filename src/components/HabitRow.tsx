@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -27,6 +27,24 @@ export function HabitRow({
   const styles = createStyles(colors, typography);
   const [showXpFloat, setShowXpFloat] = useState(false);
   const xpAnim = useRef(new Animated.Value(0)).current;
+  const tintAnim = useRef(new Animated.Value(completed ? 1 : 0)).current;
+  const checkScale = useRef(new Animated.Value(1)).current;
+
+  // The row's colour fades in and the checkbox gives a little pop, so
+  // ticking something registers as an event rather than an instant repaint.
+  useEffect(() => {
+    Animated.timing(tintAnim, {
+      toValue: completed ? 1 : 0,
+      duration: 260,
+      useNativeDriver: true,
+    }).start();
+    if (completed) {
+      Animated.sequence([
+        Animated.spring(checkScale, { toValue: 1.2, useNativeDriver: true, speed: 50, bounciness: 14 }),
+        Animated.spring(checkScale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 8 }),
+      ]).start();
+    }
+  }, [completed, tintAnim, checkScale]);
 
   const handleToggle = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -50,12 +68,10 @@ export function HabitRow({
             SwipeableRow keeps a red "delete" panel permanently mounted
             behind every row, and a see-through background lets it bleed
             through. */}
-        {completed && (
-          <View
-            pointerEvents="none"
-            style={[styles.tint, { backgroundColor: habit.color + '1F', borderColor: habit.color + '55' }]}
-          />
-        )}
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.tint, { backgroundColor: habit.color + '1F', borderColor: habit.color + '55', opacity: tintAnim }]}
+        />
         <View style={[styles.colorBar, { backgroundColor: habit.color }]} />
         <View style={[styles.iconWrap, { backgroundColor: habit.color + (completed ? '2E' : '26') }]}>
           <Ionicons name={habit.icon as any} size={20} color={habit.color} />
@@ -92,16 +108,18 @@ export function HabitRow({
               +{XP_PER_COMPLETION} XP
             </Animated.Text>
           )}
-          <Pressable
-            onPress={handleToggle}
-            hitSlop={10}
-            style={[styles.checkbox, completed && { backgroundColor: habit.color, borderColor: habit.color }]}
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: completed }}
-            accessibilityLabel={`${habit.name} — ${completed ? 'fait aujourd\'hui' : 'pas encore fait'}`}
-          >
-            {completed && <Ionicons name="checkmark" size={18} color={colors.background} />}
-          </Pressable>
+          <Animated.View style={{ transform: [{ scale: checkScale }] }}>
+            <Pressable
+              onPress={handleToggle}
+              hitSlop={10}
+              style={[styles.checkbox, completed && { backgroundColor: habit.color, borderColor: habit.color }]}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: completed }}
+              accessibilityLabel={`${habit.name} — ${completed ? 'fait aujourd\'hui' : 'pas encore fait'}`}
+            >
+              {completed && <Ionicons name="checkmark" size={18} color={colors.background} />}
+            </Pressable>
+          </Animated.View>
         </View>
       </Pressable>
     </SwipeableRow>
@@ -114,12 +132,10 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
+      // Deliberately a plain square: SwipeableRow owns the rounded corners
+      // and the outline. See the note on its `container` style.
       padding: spacing.md,
       gap: spacing.md,
-      overflow: 'hidden',
     },
     colorBar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3 },
     tint: {
@@ -128,7 +144,10 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       left: 0,
       right: 0,
       bottom: 0,
-      borderRadius: radius.md,
+      // One less than the container's radius: inside a 1px border the clip
+      // curve tightens by exactly that much, so the tinted outline lands on
+      // the visible edge instead of a pixel outside it.
+      borderRadius: radius.md - 1,
       borderWidth: 1,
     },
     iconWrap: {

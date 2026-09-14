@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { fonts, spacing, radius, ThemeColors } from '../theme/theme';
@@ -60,7 +60,32 @@ export function TodayDashboard({
   }, [done]);
 
   const score = totalCount > 0 ? doneCount / totalCount : 0;
-  const color = progressColor(score);
+
+  // The ring, the percentage and the colour all read off one animated value
+  // so they can never drift out of sync. It starts at zero and fills on
+  // mount — opening the screen replays the day's progress rather than
+  // snapping straight to the final number, which is the whole point of
+  // having a focal point. Ticking a habit re-runs it from wherever it was.
+  const anim = useRef(new Animated.Value(0)).current;
+  const [displayed, setDisplayed] = useState(0);
+
+  useEffect(() => {
+    const id = anim.addListener(({ value }) => setDisplayed(value));
+    return () => anim.removeListener(id);
+  }, [anim]);
+
+  useEffect(() => {
+    // Timing, not spring: a spring overshoots, and a ring that flashes
+    // "104%" before settling looks broken rather than lively.
+    Animated.timing(anim, {
+      toValue: score,
+      duration: 750,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [score, anim]);
+
+  const color = progressColor(displayed);
   const status = progressStatusLabel(doneCount, totalCount);
   const urgent = !done && remaining.hours < 2;
 
@@ -68,8 +93,8 @@ export function TodayDashboard({
     <View style={styles.wrap}>
       <View style={styles.hero}>
         <ProgressGlow color={color} size={GLOW_SIZE} />
-        <RingProgress progress={score} size={RING_SIZE} strokeWidth={7} color={color}>
-          <Text style={styles.pct}>{Math.round(score * 100)}%</Text>
+        <RingProgress progress={displayed} size={RING_SIZE} strokeWidth={7} color={color}>
+          <Text style={styles.pct}>{Math.round(displayed * 100)}%</Text>
           <Text style={styles.pctSub}>
             {doneCount} sur {totalCount} habitude{totalCount > 1 ? 's' : ''}
           </Text>

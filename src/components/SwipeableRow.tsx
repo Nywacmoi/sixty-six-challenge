@@ -125,10 +125,17 @@ export function SwipeableRow({ children, onDelete }: { children: React.ReactNode
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
+    // The rounded shape and the hairline outline both live here rather than
+    // on the row inside. Stacking two rounded rectangles of identical size
+    // (this clip and the row's own radius) left a hairline of the red delete
+    // panel showing through the antialiased right edge, so the row is now a
+    // plain square that this container rounds and outlines.
     container: {
       position: 'relative',
       width: '100%',
       borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
       overflow: 'hidden',
     },
     slider: {
