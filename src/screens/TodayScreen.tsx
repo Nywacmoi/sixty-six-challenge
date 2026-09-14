@@ -110,7 +110,8 @@ export default function TodayScreen({ navigation }: any) {
               <ShareDayCta day={Math.max(currentDay, 1)} onPress={() => navigation.navigate('WeeklyRecap')} />
             </View>
           )}
-          <View style={{ padding: spacing.lg }}>
+          <Text style={styles.sectionLabel}>TES HABITUDES</Text>
+          <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, gap: spacing.sm }}>
             {activeHabits.map((item) => (
               <HabitRow
                 key={item.id}
@@ -150,6 +151,15 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       backgroundColor: colors.accent,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    sectionLabel: {
+      fontFamily: typography.small.fontFamily,
+      fontSize: 9.5,
+      letterSpacing: 1.6,
+      color: colors.textTertiary,
+      marginTop: spacing.lg,
+      marginBottom: spacing.sm + 2,
+      marginHorizontal: spacing.lg,
     },
     empty: {
       flex: 1,

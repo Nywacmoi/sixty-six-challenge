@@ -43,15 +43,31 @@ export function HabitRow({
   return (
     <SwipeableRow onDelete={onDelete}>
       <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && { opacity: 0.8 }]}>
-        <View style={[styles.iconWrap, { backgroundColor: habit.color + '26' }]}>
+        {/* A ticked habit takes on its own colour instead of staying
+            identical to an untouched one — checking something off should
+            visibly change the list, not just fill a circle. The tint is a
+            layer over the opaque row rather than a translucent background:
+            SwipeableRow keeps a red "delete" panel permanently mounted
+            behind every row, and a see-through background lets it bleed
+            through. */}
+        {completed && (
+          <View
+            pointerEvents="none"
+            style={[styles.tint, { backgroundColor: habit.color + '1F', borderColor: habit.color + '55' }]}
+          />
+        )}
+        <View style={[styles.colorBar, { backgroundColor: habit.color }]} />
+        <View style={[styles.iconWrap, { backgroundColor: habit.color + (completed ? '2E' : '26') }]}>
           <Ionicons name={habit.icon as any} size={20} color={habit.color} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={typography.bodyBold}>{habit.name}</Text>
+          <Text style={[typography.bodyBold, completed && { color: colors.textSecondary }]}>{habit.name}</Text>
           {streak > 0 ? (
             <View style={styles.streakRow}>
-              <Ionicons name="flame" size={13} color={colors.accent} />
-              <Text style={styles.streakText}>{streak} jour{streak > 1 ? 's' : ''}</Text>
+              <Ionicons name="flame" size={13} color={completed ? habit.color : colors.accent} />
+              <Text style={[styles.streakText, completed && { color: habit.color }]}>
+                {streak} jour{streak > 1 ? 's' : ''}
+              </Text>
             </View>
           ) : (
             <Text style={styles.streakTextMuted}>Pas encore de série</Text>
@@ -79,7 +95,7 @@ export function HabitRow({
           <Pressable
             onPress={handleToggle}
             hitSlop={10}
-            style={[styles.checkbox, completed && styles.checkboxDone]}
+            style={[styles.checkbox, completed && { backgroundColor: habit.color, borderColor: habit.color }]}
             accessibilityRole="checkbox"
             accessibilityState={{ checked: completed }}
             accessibilityLabel={`${habit.name} — ${completed ? 'fait aujourd\'hui' : 'pas encore fait'}`}
@@ -99,8 +115,21 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       alignItems: 'center',
       backgroundColor: colors.surface,
       borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
       padding: spacing.md,
       gap: spacing.md,
+      overflow: 'hidden',
+    },
+    colorBar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3 },
+    tint: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      borderRadius: radius.md,
+      borderWidth: 1,
     },
     iconWrap: {
       width: 42,
@@ -120,10 +149,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       borderColor: colors.border,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    checkboxDone: {
-      backgroundColor: colors.accent,
-      borderColor: colors.accent,
     },
     xpFloat: {
       position: 'absolute',
