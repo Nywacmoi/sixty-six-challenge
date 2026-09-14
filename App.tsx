@@ -25,7 +25,7 @@ import { isCheckInDue } from './src/utils/checkIn';
 // Long enough for the grid to sweep in and land, and not a millisecond more.
 // The previous 2500 was a hold on an app that had already finished loading —
 // a tax paid on every open, several times a day, for ninety-nine days.
-const LAUNCH_DURATION = 1400;
+const LAUNCH_DURATION = 1750;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

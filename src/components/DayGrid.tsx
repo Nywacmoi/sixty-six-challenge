@@ -42,6 +42,7 @@ export function DayGrid({
   missedColor,
   todayBorderColor,
   animate = true,
+  progress,
   width: fixedWidth,
 }: {
   /** How much of each day was completed, 0 to 1. Index 0 is day 1. */
@@ -62,6 +63,11 @@ export function DayGrid({
   /** Off for the share card: react-native-view-shot would otherwise capture
    *  the grid mid-wave and export a half-drawn image. */
   animate?: boolean;
+  /** Drives the wave from outside instead of running its own. The launch
+   *  screen passes the value that also drives its counter and its glow, so the
+   *  three read as one movement rather than three animations that happen to
+   *  overlap. */
+  progress?: Animated.Value;
   /** Skips measurement when the caller already knows the width. Measuring is
    *  fine inside a scroll view, but a grid whose own height comes from its
    *  cells can't be measured in a container that has no other height: the box
@@ -72,8 +78,9 @@ export function DayGrid({
   const { colors } = useTheme();
   const [measured, setMeasured] = useState(0);
   const width = fixedWidth ?? measured;
-  const wave = useRef(new Animated.Value(animate ? 0 : 1)).current;
-  const hasPlayed = useRef(!animate);
+  const own = useRef(new Animated.Value(animate ? 0 : 1)).current;
+  const wave = progress ?? own;
+  const hasPlayed = useRef(!animate || progress != null);
 
   const onLayout = (e: LayoutChangeEvent) => setMeasured(e.nativeEvent.layout.width);
   // Measured rather than computed from percentages: percentage widths and gaps
@@ -95,14 +102,14 @@ export function DayGrid({
   useEffect(() => {
     if (width <= 0 || hasPlayed.current) return;
     hasPlayed.current = true;
-    running.current = Animated.timing(wave, {
+    running.current = Animated.timing(own, {
       toValue: 1,
       duration: WAVE_MS,
       easing: Easing.out(Easing.quad),
       useNativeDriver: true,
     });
     running.current.start();
-  }, [width, wave]);
+  }, [width, own]);
 
   const total = values.length || TOTAL_DAYS;
 

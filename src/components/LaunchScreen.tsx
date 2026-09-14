@@ -25,6 +25,13 @@ import { progressColor } from '../utils/progressColor';
 // the mark's own fade-in, so nobody sees the switch — and the earlier timer
 // bought nothing while forcing the layout to change shape at 340ms.
 const BODY_DELAY_MS = 260;
+// The grid's own wave takes about this long, and the counter is tuned to land
+// on the real number just before the last filled cell settles — so the figure
+// stops climbing at the moment the block finishes.
+const SEQUENCE_MS = 1150;
+const COUNT_LANDS_AT = 0.72;
+// Below this a run is an attempt; past it, it's worth putting at stake.
+const STREAK_WORTH_NAMING = 3;
 // From the very first day, as soon as there's at least one habit to track.
 // An empty grid was the argument for holding it back, but that argument cut
 // the wrong way: day 1 is precisely when seeing ninety-nine empty days ahead
@@ -43,12 +50,21 @@ export function LaunchScreen({
 }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { loading, currentDay, habits } = useApp();
+  const { loading, currentDay, habits, todayProgress, getStreak } = useApp();
   const { width: screenWidth } = useWindowDimensions();
   const dayValues = useDayValues();
 
-  const activeCount = habits.filter((h) => !h.archived).length;
-  const day = Math.max(currentDay, activeCount > 0 ? 1 : 0);
+  const activeHabits = habits.filter((h) => !h.archived);
+  const day = Math.max(currentDay, activeHabits.length > 0 ? 1 : 0);
+  const streak = activeHabits.reduce((max, h) => Math.max(max, getStreak(h.id)), 0);
+  const dayDone = todayProgress >= 1;
+
+  // One value drives the whole opening: the grid laying itself down, the
+  // number climbing to meet it, and the colour blooming behind both. Three
+  // separate animations that merely overlap read as three animations; one
+  // timeline with several instruments reads as a single movement.
+  const sequence = useRef(new Animated.Value(frozen ? 1 : 0)).current;
+  const [counted, setCounted] = useState(frozen ? 1 : 0);
 
   const markOpacity = useRef(new Animated.Value(frozen ? 1 : 0)).current;
   const markScale = useRef(new Animated.Value(1)).current;
@@ -58,8 +74,24 @@ export function LaunchScreen({
   const personal = !loading && day >= MIN_DAY_FOR_GRID;
 
   useEffect(() => {
+    const id = sequence.addListener(({ value }) => setCounted(value));
+    return () => sequence.removeListener(id);
+  }, [sequence]);
+
+  useEffect(() => {
     if (frozen) return;
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+
+    Animated.timing(sequence, {
+      toValue: 1,
+      duration: SEQUENCE_MS,
+      delay: BODY_DELAY_MS,
+      easing: Easing.out(Easing.cubic),
+      // The grid reads this value through interpolations on transform and
+      // opacity, which the native driver can carry; the counter reads it
+      // through a listener, which it cannot. The listener wins.
+      useNativeDriver: false,
+    }).start();
 
     markScale.setValue(0.94);
     Animated.parallel([
@@ -74,7 +106,12 @@ export function LaunchScreen({
 
   return (
     <View style={styles.container}>
-      <AmbientBackdrop color={accent} />
+      <Animated.View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, { opacity: sequence.interpolate({ inputRange: [0, 0.5], outputRange: [0, 1], extrapolate: 'clamp' }) }]}
+      >
+        <AmbientBackdrop color={accent} />
+      </Animated.View>
 
       <Animated.Image
         source={require('../../assets/logo.png')}
@@ -92,7 +129,19 @@ export function LaunchScreen({
         {personal ? (
           <>
             <Text style={styles.kicker}>JOUR</Text>
-            <Text style={styles.day}>{day}</Text>
+            <Text style={styles.day}>
+              {Math.round(Math.min(counted / COUNT_LANDS_AT, 1) * day)}
+            </Text>
+            {/* What's at stake, stated as a fact rather than a nudge. The run
+                you've built, and the hole still open in today — the gap between
+                the two is the whole reason to stay in the app. */}
+            {streak >= STREAK_WORTH_NAMING && !dayDone ? (
+              <Text style={styles.stake}>
+                {streak} jours d’affilée · aujourd’hui n’est pas encore fait
+              </Text>
+            ) : dayDone ? (
+              <Text style={styles.stake}>journée validée</Text>
+            ) : null}
           </>
         ) : (
           <Text style={styles.tagline}>99 jours pour construire ta discipline</Text>
@@ -106,6 +155,7 @@ export function LaunchScreen({
             currentDay={day}
             width={screenWidth - spacing.lg * 2}
             animate={!frozen}
+            progress={frozen ? undefined : sequence}
           />
         </View>
       )}
@@ -142,6 +192,13 @@ function createStyles(colors: ThemeColors) {
       marginTop: 6,
     },
     tagline: { fontFamily: fonts.semiBold, fontSize: 13, letterSpacing: 0.3, color: colors.textSecondary },
+    stake: {
+      fontFamily: fonts.medium,
+      fontSize: 12,
+      color: colors.textTertiary,
+      marginTop: spacing.sm + 2,
+      textAlign: 'center',
+    },
     gridWrap: { alignSelf: 'stretch', marginTop: spacing.xxl },
   });
 }
