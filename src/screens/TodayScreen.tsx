@@ -15,6 +15,8 @@ import { StaggeredEntrance } from '../components/StaggeredEntrance';
 import { ShareDayCta } from '../components/ShareDayCta';
 import { InsightBanner } from '../components/InsightBanner';
 import { PerfectDayCelebration } from '../components/PerfectDayCelebration';
+import { AmbientBackdrop } from '../components/AmbientBackdrop';
+import { progressColor } from '../utils/progressColor';
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 
@@ -74,6 +76,9 @@ export default function TodayScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      {/* Behind everything: the day's colour drifting slowly. It sits under the
+          scroll view rather than inside it so it stays put while content moves. */}
+      <AmbientBackdrop color={progressColor(todayProgress)} intensity={1} />
       {activeHabits.length === 0 ? (
         <>
           {header}

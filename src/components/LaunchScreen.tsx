@@ -5,7 +5,7 @@ import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { fonts, spacing, TOTAL_DAYS, ThemeColors } from '../theme/theme';
 import { DayGrid } from './DayGrid';
-import { ProgressGlow } from './ProgressGlow';
+import { AmbientBackdrop } from './AmbientBackdrop';
 import { useDayValues } from '../hooks/useDayValues';
 import { progressColor } from '../utils/progressColor';
 
@@ -80,7 +80,7 @@ export function LaunchScreen({ duration = 1400 }: { duration?: number }) {
 
   return (
     <View style={styles.container}>
-      {revealed && <ProgressGlow color={accent} size={460} style={styles.glow} />}
+      {revealed && <AmbientBackdrop color={accent} />}
 
       <Animated.Image
         source={require('../../assets/logo.png')}
@@ -123,7 +123,6 @@ export function LaunchScreen({ duration = 1400 }: { duration?: number }) {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     container: { flex: 1, alignItems: 'center', backgroundColor: colors.background, paddingHorizontal: spacing.lg },
-    glow: { top: '10%', alignSelf: 'center' },
     // Mark-only logo (no wordmark baked in).
     mark: { marginTop: '18%', width: 104, height: 104 * (428 / 1107) },
     body: { alignItems: 'center', marginTop: spacing.xxl },
