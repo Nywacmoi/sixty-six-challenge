@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
 import { Habit, HabitCompletion, Profile, MetricEntry, JournalEntry, RunActivity } from '../types';
 import { storage } from '../storage/storage';
@@ -58,6 +58,29 @@ type AppContextValue = {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
+// Photos are the only thing in this store with real weight, and on web the
+// store is a single localStorage bucket — roughly 5 MB shared with habits,
+// completions and streaks. Even hard-downscaled, a photo a day across 99 days
+// would fill it eventually, and the write that failed wouldn't just lose an
+// image: it would stop persisting the completion history saved alongside it.
+// So the number of stored photos is capped. Older days keep their check-in
+// and lose only the picture, which is the right thing to sacrifice.
+const MAX_STORED_PHOTOS = 30;
+
+function prunePhotos(list: HabitCompletion[]): HabitCompletion[] {
+  const withPhotos = list.filter((c) => c.photoUri);
+  if (withPhotos.length <= MAX_STORED_PHOTOS) return list;
+  const keep = new Set(
+    [...withPhotos]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, MAX_STORED_PHOTOS)
+      .map((c) => `${c.habitId}:${c.date}`)
+  );
+  return list.map((c) =>
+    c.photoUri && !keep.has(`${c.habitId}:${c.date}`) ? { ...c, photoUri: undefined } : c
+  );
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -87,6 +110,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     avatarExpression: null,
     foodPreference: null,
   });
+  // React does not promise to run a functional setState updater before the
+  // next statement — it only does so opportunistically, when that hook has no
+  // update already queued. Reading a value assigned inside the updater on the
+  // following line therefore works right up until two profile writes land back
+  // to back, which is exactly the case the pattern was introduced to handle.
+  // When it falls off that fast path the captured variable is still undefined,
+  // `undefined` gets persisted over the stored profile, and JSON.parse chokes
+  // on it at the next launch — the profile silently reads as "never set" and
+  // the app greets someone forty days in with the onboarding screen.
+  //
+  // So the newest profile lives here instead, updated synchronously by every
+  // write. Nothing reads state React hasn't committed yet.
+  const profileRef = useRef<Profile>(profile);
+
+  const commitProfile = useCallback(async (compute: (prev: Profile) => Profile | null) => {
+    const nextProfile = compute(profileRef.current);
+    if (!nextProfile) return null;
+    profileRef.current = nextProfile;
+    setProfile(nextProfile);
+    await storage.setProfile(nextProfile);
+    return nextProfile;
+  }, []);
+
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
   const [newlyUnlocked, setNewlyUnlocked] = useState<NewlyUnlocked>(null);
   const [toast, setToast] = useState<ToastState>(null);
@@ -109,8 +155,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // look (whatever the seed randomizes when no wardrobe item overrides
       // it) shouldn't reshuffle every time the app reloads.
       let resolvedProfile = p;
-      if (!p.avatarSeed) {
-        resolvedProfile = { ...p, avatarSeed: Math.random().toString(36).slice(2, 12) };
+      // A profile that reads as factory-fresh while habits already exist means
+      // the profile key was lost, not that this is a new person. Sending them
+      // back through onboarding on top of that would be the wrong conclusion
+      // twice over, so trust the habits.
+      if (!resolvedProfile.onboardingCompleted && h.length > 0) {
+        resolvedProfile = { ...resolvedProfile, onboardingCompleted: true };
+        await storage.setProfile(resolvedProfile);
+      }
+      if (!resolvedProfile.avatarSeed) {
+        resolvedProfile = { ...resolvedProfile, avatarSeed: Math.random().toString(36).slice(2, 12) };
         await storage.setProfile(resolvedProfile);
       }
       // One-time migration from the old emoji-based habit icons to Ionicons
@@ -124,6 +178,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
       setHabits(resolvedHabits);
       setCompletions(c);
+      profileRef.current = resolvedProfile;
       setProfile(resolvedProfile);
       setUnlockedAchievements(a);
       setMetrics(m);
@@ -250,15 +305,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const first = ACHIEVEMENTS.find((a) => a.id === toUnlock[0])!;
         setNewlyUnlocked({ id: first.id, title: first.title, icon: first.icon });
 
-        let nextProfile!: Profile;
-        setProfile((prev) => {
-          nextProfile = {
-            ...prev,
-            streakFreezes: Math.min(prev.streakFreezes + toUnlock.length, MAX_STREAK_FREEZES),
-          };
-          return nextProfile;
-        });
-        await storage.setProfile(nextProfile);
+        await commitProfile((prev) => ({
+          ...prev,
+          streakFreezes: Math.min(prev.streakFreezes + toUnlock.length, MAX_STREAK_FREEZES),
+        }));
       }
     },
     []
@@ -278,13 +328,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setHabits(next);
       await storage.setHabits(next);
 
-      let nextProfile: Profile | null = null;
-      setProfile((prev) => {
-        if (prev.challengeStartDate) return prev;
-        nextProfile = { ...prev, challengeStartDate: todayKey() };
-        return nextProfile;
-      });
-      if (nextProfile) await storage.setProfile(nextProfile);
+      await commitProfile((prev) =>
+        prev.challengeStartDate ? null : { ...prev, challengeStartDate: todayKey() }
+      );
     },
     [habits]
   );
@@ -303,13 +349,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setHabits(next);
       await storage.setHabits(next);
 
-      let nextProfile: Profile | null = null;
-      setProfile((prev) => {
-        if (prev.challengeStartDate) return prev;
-        nextProfile = { ...prev, challengeStartDate: todayKey() };
-        return nextProfile;
-      });
-      if (nextProfile) await storage.setProfile(nextProfile);
+      await commitProfile((prev) =>
+        prev.challengeStartDate ? null : { ...prev, challengeStartDate: todayKey() }
+      );
     },
     [habits]
   );
@@ -358,8 +400,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       } else {
         next = [...completions, { habitId, date: dateKey, completed: false, photoUri: uri }];
       }
+      next = prunePhotos(next);
       setCompletions(next);
-      await storage.setCompletions(next);
+      try {
+        await storage.setCompletions(next);
+      } catch {
+        // Out of room even after pruning. Drop the photo we were about to add
+        // rather than leave the whole completion history unsaved — a missing
+        // image is a nuisance, a lost streak is the point of the app.
+        const withoutNewPhoto = next.map((c) =>
+          c.habitId === habitId && c.date === dateKey ? { ...c, photoUri: undefined } : c
+        );
+        setCompletions(withoutNewPhoto);
+        await storage.setCompletions(withoutNewPhoto);
+      }
     },
     [completions]
   );
@@ -472,12 +526,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setCompletions(next);
       await storage.setCompletions(next);
 
-      let nextProfile!: Profile;
-      setProfile((prev) => {
-        nextProfile = { ...prev, streakFreezes: prev.streakFreezes - 1 };
-        return nextProfile;
-      });
-      await storage.setProfile(nextProfile);
+      await commitProfile((prev) => ({ ...prev, streakFreezes: prev.streakFreezes - 1 }));
       return true;
     },
     [canUseStreakFreeze, completions]
@@ -489,13 +538,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // addHabit's challengeStartDate immediately followed by this from
     // MorningCheckIn) would otherwise race: the second call could still see
     // the pre-update `profile` and silently overwrite the first change.
-    let next!: Profile;
-    setProfile((prev) => {
-      next = { ...prev, ...patch };
-      return next;
-    });
-    await storage.setProfile(next);
-  }, []);
+    await commitProfile((prev) => ({ ...prev, ...patch }));
+  }, [commitProfile]);
 
   const exportData = useCallback(() => storage.exportAll(), []);
 
@@ -512,6 +556,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     ]);
     setHabits(h);
     setCompletions(c);
+    profileRef.current = p;
     setProfile(p);
     setUnlockedAchievements(a);
     setMetrics(m);

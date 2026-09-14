@@ -26,7 +26,16 @@ async function readJson<T>(key: string, fallback: T): Promise<T> {
 }
 
 async function writeJson<T>(key: string, value: T): Promise<void> {
-  await AsyncStorage.setItem(key, JSON.stringify(value));
+  const serialized = JSON.stringify(value);
+  // JSON.stringify(undefined) returns undefined, which AsyncStorage stores as
+  // the literal string "undefined" — unparseable on the way back, so readJson
+  // quietly hands out its fallback and the key reads as "never set" forever.
+  // That silently wiped a real profile once. Fail loudly instead of writing
+  // something that can only be discovered as data loss days later.
+  if (serialized === undefined) {
+    throw new Error(`Refus d'écrire une valeur indéfinie dans "${key}"`);
+  }
+  await AsyncStorage.setItem(key, serialized);
 }
 
 const PROFILE_DEFAULTS: Profile = {
