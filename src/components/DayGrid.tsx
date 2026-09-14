@@ -42,6 +42,7 @@ export function DayGrid({
   missedColor,
   todayBorderColor,
   animate = true,
+  width: fixedWidth,
 }: {
   /** How much of each day was completed, 0 to 1. Index 0 is day 1. */
   values: number[];
@@ -61,13 +62,20 @@ export function DayGrid({
   /** Off for the share card: react-native-view-shot would otherwise capture
    *  the grid mid-wave and export a half-drawn image. */
   animate?: boolean;
+  /** Skips measurement when the caller already knows the width. Measuring is
+   *  fine inside a scroll view, but a grid whose own height comes from its
+   *  cells can't be measured in a container that has no other height: the box
+   *  starts zero-high, onLayout never reports a usable width, so no cells are
+   *  built, so the box stays zero-high. Passing the width breaks that loop. */
+  width?: number;
 }) {
   const { colors } = useTheme();
-  const [width, setWidth] = useState(0);
+  const [measured, setMeasured] = useState(0);
+  const width = fixedWidth ?? measured;
   const wave = useRef(new Animated.Value(animate ? 0 : 1)).current;
   const hasPlayed = useRef(!animate);
 
-  const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
+  const onLayout = (e: LayoutChangeEvent) => setMeasured(e.nativeEvent.layout.width);
   // Measured rather than computed from percentages: percentage widths and gaps
   // disagree just enough across native and web to leave a ragged right edge on
   // a grid this dense.
@@ -99,7 +107,10 @@ export function DayGrid({
   const total = values.length || TOTAL_DAYS;
 
   return (
-    <View onLayout={onLayout} style={[{ flexDirection: 'row', flexWrap: 'wrap', gap }, style]}>
+    <View
+      onLayout={fixedWidth == null ? onLayout : undefined}
+      style={[{ flexDirection: 'row', flexWrap: 'wrap', gap }, fixedWidth != null && { width: fixedWidth }, style]}
+    >
       {cell > 0 &&
         values.map((value, index) => {
           const day = index + 1;

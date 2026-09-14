@@ -21,7 +21,10 @@ import { MorningCheckIn } from './src/components/MorningCheckIn';
 import { StatusBarScrim } from './src/components/StatusBarScrim';
 import { todayKey } from './src/utils/date';
 
-const LAUNCH_DURATION = 2500;
+// Long enough for the grid to sweep in and land, and not a millisecond more.
+// The previous 2500 was a hold on an app that had already finished loading —
+// a tax paid on every open, several times a day, for ninety-nine days.
+const LAUNCH_DURATION = 1400;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
