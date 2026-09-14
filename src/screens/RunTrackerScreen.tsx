@@ -232,7 +232,7 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       alignItems: 'center',
       justifyContent: 'center',
       gap: spacing.sm,
-      backgroundColor: colors.danger,
+      backgroundColor: colors.accent,
       borderRadius: radius.pill,
       paddingVertical: spacing.md,
       marginBottom: spacing.lg,
