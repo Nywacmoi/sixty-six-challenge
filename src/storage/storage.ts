@@ -79,6 +79,15 @@ export const storage = {
   getJournal: () => readJson<JournalEntry[]>(KEYS.journal, []),
   setJournal: (v: JournalEntry[]) => writeJson(KEYS.journal, v),
 
+  // Generic one-entry-per-key cache for AI-generated content (today's meal
+  // idea, today's workout session — see src/firebase/aiSuggestions.ts) so a
+  // screen re-mount doesn't re-call the Cloud Function for something that
+  // only needs to change once a day. `key` already encodes what varies the
+  // answer (meal type + diet, or split + goal + level) so different
+  // contexts naturally get separate cache slots.
+  getAiCache: <T>(key: string) => readJson<{ date: string; value: T } | null>(`66c:aicache:${key}`, null),
+  setAiCache: <T>(key: string, date: string, value: T) => writeJson(`66c:aicache:${key}`, { date, value }),
+
   // Per-device "have I seen this group's latest message" markers — not
   // synced across devices on purpose, it's just a local read receipt for
   // the unread badge, not something worth round-tripping through Firestore.

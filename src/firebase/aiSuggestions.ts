@@ -1,0 +1,22 @@
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { app } from './config';
+
+const functions = getFunctions(app, 'europe-west1');
+
+// Both mirror generateJournalPrompt's contract from journal.ts: an empty
+// result ("" / []) means the Cloud Function gave up (API error, malformed
+// response) — the caller is expected to fall back to its own static pool
+// rather than treat that as an exception.
+export async function generateMealIdea(args: { mealType: string; diet: string }): Promise<string> {
+  const call = httpsCallable<{ mealType: string; diet: string }, { idea: string }>(functions, 'generateMealIdea');
+  const result = await call(args);
+  return result.data.idea;
+}
+
+export type AiExercise = { name: string; reps: string };
+
+export async function generateWorkoutSession(args: { splitLabel: string; goal?: string; level?: string }): Promise<AiExercise[]> {
+  const call = httpsCallable<typeof args, { exercises: AiExercise[] }>(functions, 'generateWorkoutSession');
+  const result = await call(args);
+  return Array.isArray(result.data.exercises) ? result.data.exercises : [];
+}

@@ -40,6 +40,8 @@ import { SavingsCounter } from '../components/SavingsCounter';
 import { StepsCard } from '../components/StepsCard';
 import { BudgetTracker } from '../components/BudgetTracker';
 import { JournalTracker } from '../components/JournalTracker';
+import { AiMealCard } from '../components/AiMealCard';
+import { AiWorkoutSession } from '../components/AiWorkoutSession';
 import { PrimaryButton } from '../components/PrimaryButton';
 import {
   isSportHabit,
@@ -487,32 +489,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
               })}
             </ScrollView>
             {activeSplit && splitExercises && (
-              <View style={styles.splitCard}>
-                <View style={[styles.exerciseRow, { paddingVertical: 0, marginBottom: 4 }]}>
-                  <View style={styles.bonusBadge}>
-                    <Text style={[typography.small, { color: colors.accent }]}>SÉANCE DU JOUR</Text>
-                  </View>
-                </View>
-                {splitExercises.map((ex) => (
-                  <View key={ex.name} style={styles.exerciseRow}>
-                    <ExerciseAnimation pattern={ex.pattern} size={44} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={typography.bodyBold}>{ex.name}</Text>
-                      <Text style={typography.caption}>{ex.reps}</Text>
-                      {ex.alt && <Text style={[typography.small, { marginTop: 4 }]}>{ex.alt}</Text>}
-                    </View>
-                    <Pressable
-                      onPress={() => openSearch(`${ex.name} technique musculation`)}
-                      hitSlop={8}
-                      style={styles.videoBtn}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Voir une vidéo de démonstration : ${ex.name}`}
-                    >
-                      <Ionicons name="logo-youtube" size={22} color={colors.danger} />
-                    </Pressable>
-                  </View>
-                ))}
-              </View>
+              <AiWorkoutSession
+                splitId={activeSplit.id}
+                splitLabel={activeSplit.label}
+                goal={SPORT_GOALS.find((g) => g.id === (profile.sportGoal as SportGoal))?.label}
+                level={selectedSchedule === 'personal' ? personalSchedule?.level : WEEKLY_SCHEDULES.find((s) => s.id === selectedSchedule)?.level}
+                fallbackExercises={splitExercises}
+              />
             )}
           </>
         )}
@@ -639,23 +622,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
               const options = activeMeal.ideas.filter((i) => i.diet.includes(diet));
               const pool = options.length > 0 ? options : activeMeal.ideas;
               const idea = pool[dailyIndex(pool.length, `${activeMeal.id}:${diet}`)];
-              return (
-                <View style={styles.splitCard}>
-                  <View style={styles.exerciseRow}>
-                    <Ionicons name="restaurant-outline" size={16} color={colors.textSecondary} />
-                    <Text style={[typography.body, { flex: 1 }]}>{idea.text}</Text>
-                    <Pressable
-                      onPress={() => openSearch(`${idea.text} recette facile`)}
-                      hitSlop={8}
-                      style={styles.videoBtn}
-                      accessibilityRole="button"
-                      accessibilityLabel="Voir une recette vidéo pour cette idée de repas"
-                    >
-                      <Ionicons name="logo-youtube" size={22} color={colors.danger} />
-                    </Pressable>
-                  </View>
-                </View>
-              );
+              return <AiMealCard mealType={activeMeal.id} diet={diet} fallbackText={idea.text} />;
             })()}
           </>
         )}
