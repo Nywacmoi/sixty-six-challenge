@@ -305,3 +305,83 @@ exports.analyzeProgressPhoto = onCall({ secrets: [anthropicApiKey], region: 'eur
     return { advice: '' };
   }
 });
+
+// Unlike analyzeProgressPhoto, this one DOES ask for a number — a jawline
+// score is exactly the kind of thing this app's own jawline module already
+// tracks manually (the "Tour de mâchoire" cm measurement), so a rough,
+// motivational 1-10 read is in scope here. It's still framed as a loose
+// progress-tracking cue, not a beauty verdict: the prompt asks for visible
+// jaw/muscle definition only, and every response — low score or high —
+// pairs with a forward-looking, encouraging tip, never a bare critique.
+exports.analyzeJawlinePhoto = onCall({ secrets: [anthropicApiKey], region: 'europe-west1', cors: true }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Connecte-toi pour analyser ta photo.');
+  }
+
+  const imageBase64 = typeof request.data?.imageBase64 === 'string' ? request.data.imageBase64 : '';
+  const mimeType = typeof request.data?.mimeType === 'string' ? request.data.mimeType : 'image/jpeg';
+
+  if (!imageBase64) {
+    throw new HttpsError('invalid-argument', 'Photo manquante.');
+  }
+  if (imageBase64.length > MAX_PHOTO_BASE64_CHARS) {
+    throw new HttpsError('invalid-argument', 'Photo trop lourde.');
+  }
+  if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(mimeType)) {
+    throw new HttpsError('invalid-argument', 'Format de photo non supporté.');
+  }
+
+  const client = new Anthropic({ apiKey: anthropicApiKey.value() });
+
+  try {
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 150,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mimeType, data: imageBase64 } },
+            {
+              type: 'text',
+              text: [
+                'Une personne suit un programme jawline/mewing dans l\'app "Défi 99" et vient d\'ajouter une photo de suivi (profil ou visage).',
+                "Évalue UNIQUEMENT la définition visible de la mâchoire/ligne mandibulaire sur une échelle de 1 à 10 — un repère approximatif et motivant pour suivre sa progression dans le temps, pas un jugement esthétique absolu.",
+                'Quel que soit le score, donne toujours un conseil constructif et tourné vers l\'avenir, jamais une critique sèche.',
+                'Réponds UNIQUEMENT avec un objet JSON, sans texte avant/après, sans balises markdown, au format exact {"score": <entier de 1 à 10>, "advice": "<une phrase de conseil/encouragement en français>"}.',
+                "Si l'image ne montre pas clairement un visage ou un profil, réponds exactement {\"score\": null, \"advice\": \"Photo bien reçue ! Prends plutôt une photo de ton profil pour évaluer ta mâchoire.\"}.",
+              ].join(' '),
+            },
+          ],
+        },
+      ],
+    });
+
+    const text = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('')
+      .trim();
+
+    const jsonText = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+
+    let score = null;
+    let advice = '';
+    try {
+      const parsed = JSON.parse(jsonText);
+      if (parsed && typeof parsed.advice === 'string') {
+        advice = parsed.advice.slice(0, 200);
+        if (typeof parsed.score === 'number' && parsed.score >= 1 && parsed.score <= 10) {
+          score = Math.round(parsed.score);
+        }
+      }
+    } catch (parseError) {
+      console.error('analyzeJawlinePhoto: could not parse JSON', text);
+    }
+
+    return { score, advice };
+  } catch (error) {
+    console.error('analyzeJawlinePhoto failed', error);
+    return { score: null, advice: '' };
+  }
+});

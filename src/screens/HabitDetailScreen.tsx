@@ -44,6 +44,7 @@ import { AiMealCard } from '../components/AiMealCard';
 import { AiWorkoutSession } from '../components/AiWorkoutSession';
 import { ProgressPhotoInsight } from '../components/ProgressPhotoInsight';
 import { AiJawlineSession } from '../components/AiJawlineSession';
+import { JawlinePhotoInsight } from '../components/JawlinePhotoInsight';
 import { PrimaryButton } from '../components/PrimaryButton';
 import {
   isSportHabit,
@@ -802,6 +803,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
             level={selectedSchedule === 'personal' ? personalSchedule?.level : WEEKLY_SCHEDULES.find((s) => s.id === selectedSchedule)?.level}
           />
         )}
+        {isJawlineHabit(habit.name, habit.icon) && <JawlinePhotoInsight habitId={habitId} photoUri={photoUri} />}
       </ScrollView>
       {toast && <Toast icon={toast.icon} message={toast.message} accentColor={colors.accent} onDismiss={clearToast} />}
     </SafeAreaView>

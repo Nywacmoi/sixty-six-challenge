@@ -39,3 +39,11 @@ export async function analyzeProgressPhoto(args: {
   const result = await call(args);
   return result.data.advice;
 }
+
+export type JawlinePhotoResult = { score: number | null; advice: string };
+
+export async function analyzeJawlinePhoto(args: { imageBase64: string; mimeType: string }): Promise<JawlinePhotoResult> {
+  const call = httpsCallable<typeof args, JawlinePhotoResult>(functions, 'analyzeJawlinePhoto');
+  const result = await call(args);
+  return { score: result.data.score ?? null, advice: result.data.advice ?? '' };
+}
