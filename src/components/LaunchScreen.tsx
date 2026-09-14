@@ -28,7 +28,7 @@ const BODY_DELAY_MS = 260;
 // The grid's own wave takes about this long, and the counter is tuned to land
 // on the real number just before the last filled cell settles — so the figure
 // stops climbing at the moment the block finishes.
-const SEQUENCE_MS = 1150;
+const SEQUENCE_MS = 900;
 const COUNT_LANDS_AT = 0.72;
 // Below this a run is an attempt; past it, it's worth putting at stake.
 const STREAK_WORTH_NAMING = 3;
