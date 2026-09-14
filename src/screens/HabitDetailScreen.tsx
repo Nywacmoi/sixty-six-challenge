@@ -708,15 +708,15 @@ export default function HabitDetailScreen({ route, navigation }: any) {
           <>
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Mes courses</Text>
             <Pressable
-              onPress={() => navigation.navigate('RunTracker', { habitId, habitColor: habit.color })}
-              style={[styles.trackRunBtn, { backgroundColor: habit.color }]}
+              onPress={() => navigation.navigate('RunTracker', { habitId })}
+              style={[styles.trackRunBtn, { backgroundColor: colors.accent }]}
               accessibilityRole="button"
               accessibilityLabel="Démarrer une course avec suivi GPS"
             >
               <Ionicons name="play" size={18} color="#fff" />
               <Text style={styles.trackRunBtnText}>Démarrer une course</Text>
             </Pressable>
-            <RunHistory habitId={habitId} color={habit.color} />
+            <RunHistory habitId={habitId} />
 
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Programme course à pied</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>

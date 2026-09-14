@@ -10,10 +10,11 @@ import { formatDayLabel, todayKey, addDays } from '../utils/date';
 
 const MAX_SHOWN = 5;
 
-export function RunHistory({ habitId, color }: { habitId: string; color: string }) {
+export function RunHistory({ habitId }: { habitId: string }) {
   const { getRunActivities } = useApp();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
+  const color = colors.accent;
 
   const runs = getRunActivities(habitId);
   if (runs.length === 0) return null;

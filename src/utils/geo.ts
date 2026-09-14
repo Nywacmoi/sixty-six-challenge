@@ -45,11 +45,87 @@ export function formatDuration(totalSec: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+export const TILE_SIZE = 256;
+const MAX_ZOOM = 17;
+const MIN_ZOOM = 2;
+
+// Standard slippy-map (Web Mercator) projection: the whole world is
+// 2^zoom tiles wide, each TILE_SIZE px. Returns *fractional* tile
+// coordinates so a position can be placed precisely inside a tile.
+export function lngToTileX(lng: number, zoom: number): number {
+  return ((lng + 180) / 360) * Math.pow(2, zoom);
+}
+
+export function latToTileY(lat: number, zoom: number): number {
+  const rad = (lat * Math.PI) / 180;
+  return ((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2) * Math.pow(2, zoom);
+}
+
+export type TileLayout = {
+  zoom: number;
+  tiles: { x: number; y: number; left: number; top: number }[];
+  points: { x: number; y: number }[];
+};
+
+// Picks the tightest zoom at which the whole route still fits in the
+// view, then lays out the covering tiles and projects the route into the
+// same pixel space so the trace lines up with the streets underneath.
+export function buildTileLayout(route: RunPoint[], width: number, height: number, padding = 16): TileLayout | null {
+  if (route.length === 0 || width <= 0 || height <= 0) return null;
+
+  const lats = route.map((p) => p.lat);
+  const lngs = route.map((p) => p.lng);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+
+  let zoom = MAX_ZOOM;
+  for (let z = MAX_ZOOM; z >= MIN_ZOOM; z--) {
+    const spanX = (lngToTileX(maxLng, z) - lngToTileX(minLng, z)) * TILE_SIZE;
+    // Tile Y grows southward, so max latitude gives the smaller Y.
+    const spanY = (latToTileY(minLat, z) - latToTileY(maxLat, z)) * TILE_SIZE;
+    if (spanX <= width - padding * 2 && spanY <= height - padding * 2) {
+      zoom = z;
+      break;
+    }
+    zoom = z;
+  }
+
+  const centerTileX = (lngToTileX(minLng, zoom) + lngToTileX(maxLng, zoom)) / 2;
+  const centerTileY = (latToTileY(minLat, zoom) + latToTileY(maxLat, zoom)) / 2;
+
+  // Pixel coordinates of the view's top-left corner in world-tile space.
+  const originX = centerTileX * TILE_SIZE - width / 2;
+  const originY = centerTileY * TILE_SIZE - height / 2;
+
+  const firstTileX = Math.floor(originX / TILE_SIZE);
+  const lastTileX = Math.floor((originX + width) / TILE_SIZE);
+  const firstTileY = Math.floor(originY / TILE_SIZE);
+  const lastTileY = Math.floor((originY + height) / TILE_SIZE);
+  const maxTileIndex = Math.pow(2, zoom) - 1;
+
+  const tiles: TileLayout['tiles'] = [];
+  for (let tx = firstTileX; tx <= lastTileX; tx++) {
+    for (let ty = firstTileY; ty <= lastTileY; ty++) {
+      if (tx < 0 || ty < 0 || tx > maxTileIndex || ty > maxTileIndex) continue;
+      tiles.push({ x: tx, y: ty, left: tx * TILE_SIZE - originX, top: ty * TILE_SIZE - originY });
+    }
+  }
+
+  const points = route.map((p) => ({
+    x: lngToTileX(p.lng, zoom) * TILE_SIZE - originX,
+    y: latToTileY(p.lat, zoom) * TILE_SIZE - originY,
+  }));
+
+  return { zoom, tiles, points };
+}
+
 // Projects lat/lng onto a flat local X/Y so the route can be drawn as a
 // plain SVG polyline — no basemap tiles, but the traced shape is the real
 // recorded path, just not overlaid on real streets/terrain. Equirectangular
 // approximation (scale longitude by cos(latitude)) is accurate enough at
-// the scale of a single run.
+// the scale of a single run. Used as the fallback when tiles are off.
 export function projectRoute(route: RunPoint[], width: number, height: number, padding = 8): { x: number; y: number }[] {
   if (route.length === 0) return [];
   const latRad = (route[0].lat * Math.PI) / 180;

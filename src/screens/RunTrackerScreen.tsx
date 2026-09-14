@@ -16,13 +16,13 @@ import { RunActivity, RunPoint } from '../types';
 type Phase = 'idle' | 'denied' | 'tracking' | 'summary';
 
 export default function RunTrackerScreen({ navigation, route }: any) {
-  const { habitId, habitColor } = route.params ?? {};
+  const { habitId } = route.params ?? {};
   const { saveRunActivity } = useApp();
   const { colors, typography } = useTheme();
   const { confirmAction } = useConfirm();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
-  const accent = habitColor ?? colors.accent;
+  const accent = colors.accent;
 
   const [phase, setPhase] = useState<Phase>('idle');
   const [points, setPoints] = useState<RunPoint[]>([]);
