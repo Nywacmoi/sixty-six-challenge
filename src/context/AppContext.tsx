@@ -585,7 +585,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
       const reminderMinutes = profile.reminderHour * 60 + profile.reminderMinute;
       if (nowMinutes < reminderMinutes) return;
-      showToast('alarm', "N'oublie pas de cocher tes habitudes aujourd'hui !");
+      showToast('alarm', "N'oublie pas de cocher tes habitudes aujourd'hui !");
       updateProfile({ lastReminderShownDate: todayKey() });
     };
 

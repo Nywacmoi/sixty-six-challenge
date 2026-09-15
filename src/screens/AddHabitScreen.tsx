@@ -110,7 +110,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
     );
     if (toAdd.length === 0) return;
     await addHabitsBulk(toAdd);
-    showToast('checkmark-circle', `${toAdd.length} habitude${toAdd.length > 1 ? 's' : ''} ajoutée${toAdd.length > 1 ? 's' : ''} !`);
+    showToast('checkmark-circle', `${toAdd.length} habitude${toAdd.length > 1 ? 's' : ''} ajoutée${toAdd.length > 1 ? 's' : ''} !`);
     navigation.goBack();
   };
 
@@ -139,10 +139,10 @@ export default function AddHabitScreen({ navigation, route }: any) {
     const message =
       skipped > 0
         ? `${toAdd.length} habitude${toAdd.length > 1 ? 's' : ''} ajoutée${toAdd.length > 1 ? 's' : ''} (${skipped} déjà existante${skipped > 1 ? 's' : ''})`
-        : `+${toAdd.length} habitude${toAdd.length > 1 ? 's' : ''} ajoutée${toAdd.length > 1 ? 's' : ''} !`;
+        : `+${toAdd.length} habitude${toAdd.length > 1 ? 's' : ''} ajoutée${toAdd.length > 1 ? 's' : ''} !`;
 
     setTimeout(() => {
-      showToast(template.emoji, `${template.title} : ${message}`);
+      showToast(template.emoji, `${template.title} : ${message}`);
       navigation.goBack();
     }, 450);
   };
@@ -199,7 +199,7 @@ export default function AddHabitScreen({ navigation, route }: any) {
           </View>
 
           <PrimaryButton
-            label={`Ajouter${checkedCommon.size > 0 ? ` (${checkedCommon.size})` : ''}`}
+            label={`Ajouter${checkedCommon.size > 0 ? ` (${checkedCommon.size})` : ''}`}
             onPress={handleAddChecked}
             disabled={checkedCommon.size === 0}
             style={{ marginTop: spacing.lg }}

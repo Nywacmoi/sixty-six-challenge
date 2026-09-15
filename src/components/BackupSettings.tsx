@@ -30,7 +30,7 @@ export function BackupSettings() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('save', 'Sauvegarde téléchargée !');
+    showToast('save', 'Sauvegarde téléchargée !');
   };
 
   const handlePickFile = () => {
@@ -46,14 +46,14 @@ export function BackupSettings() {
     reader.onload = () => {
       const json = String(reader.result ?? '');
       confirmAction(
-        'Restaurer cette sauvegarde ?',
+        'Restaurer cette sauvegarde ?',
         'Toutes tes données actuelles (habitudes, historique, progression) seront remplacées par celles du fichier.',
         'Restaurer',
         async () => {
           setBusy(true);
           try {
             await importData(json);
-            showToast('checkmark-circle', 'Sauvegarde restaurée !');
+            showToast('checkmark-circle', 'Sauvegarde restaurée !');
           } catch {
             notify('Fichier invalide', "Ce fichier ne semble pas être une sauvegarde valide de l'appli.");
           } finally {

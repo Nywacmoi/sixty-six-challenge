@@ -51,7 +51,7 @@ export const MEDITATION_SESSIONS: MeditationSession[] = [
     steps: [
       'Ferme les yeux et respire calmement',
       'Imagine un lieu où tu te sens pleinement en paix',
-      'Ajoute des détails : sons, odeurs, sensations',
+      'Ajoute des détails : sons, odeurs, sensations',
       'Reste dans cette image pendant quelques minutes',
     ],
   },

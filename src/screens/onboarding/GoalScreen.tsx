@@ -65,7 +65,7 @@ export default function GoalScreen({ navigation, route }: any) {
 
       <View style={[styles.footer, { paddingBottom: bottomInset }]}>
         <StepDots total={3} activeIndex={2} />
-        <PrimaryButton label="C'est parti !" onPress={finish} disabled={!goal} style={{ marginTop: spacing.lg }} />
+        <PrimaryButton label="C'est parti !" onPress={finish} disabled={!goal} style={{ marginTop: spacing.lg }} />
       </View>
     </SafeAreaView>
   );

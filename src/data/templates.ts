@@ -78,7 +78,7 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
           label: 'Semaine 1 — Reprise en douceur',
           focus: '3 séances de 20-30 min',
           actions: [
-            'Lundi / Mercredi / Vendredi : cardio léger (marche rapide, vélo, natation)',
+            'Lundi / Mercredi / Vendredi : cardio léger (marche rapide, vélo, natation)',
             'Vise 6 000 à 8 000 pas par jour',
             '5 min d’étirements après chaque séance',
           ],
@@ -107,7 +107,7 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
           actions: [
             'Garde le même volume que la semaine 3',
             'Une journée de récupération active (marche, étirements) minimum',
-            'Note tes progrès : distance, poids, sensations',
+            'Note tes progrès : distance, poids, sensations',
           ],
         },
       ],
@@ -140,7 +140,7 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
           focus: 'Approfondir l’écriture',
           actions: [
             '10 minutes de méditation',
-            'Journaling : 3 choses positives de la journée',
+            'Journaling : 3 choses positives de la journée',
             'Coupe les écrans 30 min avant le coucher',
           ],
         },
@@ -253,7 +253,7 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
           focus: 'Ancrer les nouveaux réflexes',
           actions: [
             'Prépare tes repas de la semaine à l’avance une fois',
-            'Note les changements : énergie, digestion, sommeil',
+            'Note les changements : énergie, digestion, sommeil',
           ],
         },
       ],

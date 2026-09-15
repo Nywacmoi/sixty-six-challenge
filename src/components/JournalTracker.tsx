@@ -14,10 +14,10 @@ import { AppIcon } from './AppIcon';
 // deployed yet), so a AI prompt never being reachable degrades to "still a
 // real prompt" rather than a broken screen.
 const LOCAL_FALLBACK_PROMPTS = [
-  "Qu'est-ce qui t'a fait sourire aujourd'hui ?",
-  "Quelle petite victoire as-tu eue aujourd'hui, même minime ?",
-  "Qu'est-ce que tu as appris sur toi-même récemment ?",
-  'De quoi es-tu reconnaissant·e en ce moment ?',
+  "Qu'est-ce qui t'a fait sourire aujourd'hui ?",
+  "Quelle petite victoire as-tu eue aujourd'hui, même minime ?",
+  "Qu'est-ce que tu as appris sur toi-même récemment ?",
+  'De quoi es-tu reconnaissant·e en ce moment ?',
 ];
 
 export function JournalTracker({ habit }: { habit: Habit }) {

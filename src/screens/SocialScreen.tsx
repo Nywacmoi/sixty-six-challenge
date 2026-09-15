@@ -134,7 +134,7 @@ function FriendsTab({ colors, typography, navigation }: { colors: ThemeColors; t
         <Pressable
           style={styles.feedCard}
           onLongPress={() =>
-            confirmAction('Retirer cet ami ?', `${item.username} ne sera plus dans ta liste.`, 'Retirer', () => removeFriend(item.uid))
+            confirmAction('Retirer cet ami ?', `${item.username} ne sera plus dans ta liste.`, 'Retirer', () => removeFriend(item.uid))
           }
         >
           <View style={{ flexDirection: 'row', gap: spacing.md, alignItems: 'center' }}>
@@ -318,7 +318,7 @@ function GroupsTab({ colors, typography, navigation }: { colors: ThemeColors; ty
       const group = await makeGroup(nameDraft.trim(), emoji, isPublic);
       setNameDraft('');
       notify(
-        'Groupe créé !',
+        'Groupe créé !',
         isPublic
           ? "Ton groupe est public — n'importe qui peut le trouver et le rejoindre. Le code marche aussi."
           : `Partage le code ${group.code} pour que d'autres te rejoignent.`

@@ -31,7 +31,7 @@ export default function ProgramScreen({ navigation, route }: any) {
       return;
     }
     await addHabitsBulk(toAdd);
-    showToast(template.emoji, `${template.title} ajoutée — suis le programme ci-dessus !`);
+    showToast(template.emoji, `${template.title} ajoutée — suis le programme ci-dessus !`);
     navigation.goBack();
   };
 

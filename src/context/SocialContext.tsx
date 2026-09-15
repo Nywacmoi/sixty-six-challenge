@@ -346,7 +346,7 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
       if (!uid) return;
       const found = await findUserByUsername(name);
       if (!found) throw new Error("Personne n'a ce pseudo.");
-      if (found.uid === uid) throw new Error("C'est toi !");
+      if (found.uid === uid) throw new Error("C'est toi !");
       await followUser(uid, found.uid);
       await refresh();
     },

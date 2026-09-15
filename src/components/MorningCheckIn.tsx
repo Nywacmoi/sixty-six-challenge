@@ -12,7 +12,7 @@ import { getHabitCategories } from '../utils/habitCategories';
 import { PrimaryButton } from './PrimaryButton';
 import { AppIcon } from './AppIcon';
 
-const GREETINGS = ['Salut {name}', 'Hey {name} !', 'Bonjour {name}', '{name}, prêt(e) pour aujourd\'hui ?'];
+const GREETINGS = ['Salut {name}', 'Hey {name} !', 'Bonjour {name}', '{name}, prêt(e) pour aujourd\'hui ?'];
 
 const MOODS = [
   { icon: 'bed', label: 'Fatigué' },
@@ -26,10 +26,10 @@ const MOODS = [
 // reads like an actual conversation instead of the same four sentences on
 // repeat every single morning.
 const MOOD_QUESTIONS = [
-  "Comment tu te sens aujourd'hui ?",
-  'Ça va comment, ce matin ?',
-  'Quelle énergie pour cette journée ?',
-  'Et toi, tu démarres comment ?',
+  "Comment tu te sens aujourd'hui ?",
+  'Ça va comment, ce matin ?',
+  'Quelle énergie pour cette journée ?',
+  'Et toi, tu démarres comment ?',
 ];
 
 const MOOD_REACTIONS: Record<string, string[]> = {
@@ -50,7 +50,7 @@ const MOOD_REACTIONS: Record<string, string[]> = {
   ],
   'En feu': [
     "J'adore cette énergie. Direction le prochain jour du défi.",
-    'Là on parle ! Autant en profiter à fond aujourd’hui.',
+    'Là on parle ! Autant en profiter à fond aujourd’hui.',
     'Cette énergie-là, faut la garder toute la journée.',
   ],
 };
@@ -63,10 +63,10 @@ const SLEEPS = [
 ];
 
 const SLEEP_QUESTIONS = [
-  'Et cette nuit, tu as bien dormi ?',
-  'Ta nuit, elle était comment ?',
-  'Côté sommeil, ça a donné quoi ?',
-  'Tu as récupéré cette nuit ?',
+  'Et cette nuit, tu as bien dormi ?',
+  'Ta nuit, elle était comment ?',
+  'Côté sommeil, ça a donné quoi ?',
+  'Tu as récupéré cette nuit ?',
 ];
 
 const SLEEP_REACTIONS: Record<string, string[]> = {
@@ -76,7 +76,7 @@ const SLEEP_REACTIONS: Record<string, string[]> = {
     'Ça se rattrape ce soir — une bonne nuit et il n’y paraîtra plus.',
   ],
   'Sommeil moyen': [
-    'Correct, on fait avec !',
+    'Correct, on fait avec !',
     'Ni top ni terrible — de quoi tenir la journée.',
     'Ça passe, on continue sur cette lancée.',
   ],
@@ -94,10 +94,10 @@ const SLEEP_REACTIONS: Record<string, string[]> = {
 
 // {day} is filled in with the current challenge day at render time.
 const ROUTINE_QUESTIONS = [
-  (day: number) => `Jour ${day} sur 99 — une routine à ajouter aujourd'hui ?`,
-  (day: number) => `On est au jour ${day}. Une nouvelle habitude à tenter ?`,
-  (day: number) => `Jour ${day} sur 99 — envie d’ajouter quelque chose à ta journée ?`,
-  (day: number) => `Jour ${day}/99 — un petit ajout à ta routine ?`,
+  (day: number) => `Jour ${day} sur 99 — une routine à ajouter aujourd'hui ?`,
+  (day: number) => `On est au jour ${day}. Une nouvelle habitude à tenter ?`,
+  (day: number) => `Jour ${day} sur 99 — envie d’ajouter quelque chose à ta journée ?`,
+  (day: number) => `Jour ${day}/99 — un petit ajout à ta routine ?`,
 ];
 
 // A few common habits not already on the list — offered as "want to add one

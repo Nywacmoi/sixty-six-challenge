@@ -80,7 +80,9 @@ export const storage = {
   getUnlockedAchievements: () => readJson<string[]>(KEYS.unlockedAchievements, []),
   setUnlockedAchievements: (v: string[]) => writeJson(KEYS.unlockedAchievements, v),
 
-  getThemeMode: () => readJson<'light' | 'dark'>(KEYS.themeMode, 'light'),
+  // `null` means "never chosen", which is not the same as "chose light":
+  // the app follows the phone's own setting until someone picks a side.
+  getThemeMode: () => readJson<'light' | 'dark' | null>(KEYS.themeMode, null),
   setThemeMode: (v: 'light' | 'dark') => writeJson(KEYS.themeMode, v),
 
   getMetrics: () => readJson<MetricEntry[]>(KEYS.metrics, []),

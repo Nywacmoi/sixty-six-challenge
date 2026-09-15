@@ -58,7 +58,7 @@ export function StepsCard({ habitName }: { habitName: string }) {
         <Text style={[typography.small, { color: colors.textTertiary }]}>/ {goal.toLocaleString('fr-FR')}</Text>
       </RingProgress>
       <Text style={[typography.caption, { marginTop: spacing.md, textAlign: 'center' }]}>
-        {remaining > 0 ? `Encore ${remaining.toLocaleString('fr-FR')} pas pour ton objectif.` : "Objectif atteint aujourd'hui !"}
+        {remaining > 0 ? `Encore ${remaining.toLocaleString('fr-FR')} pas pour ton objectif.` : "Objectif atteint aujourd'hui !"}
       </Text>
     </View>
   );

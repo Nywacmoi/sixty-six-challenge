@@ -116,7 +116,7 @@ export function AiWorkoutSession({
               hitSlop={8}
               style={styles.videoBtn}
               accessibilityRole="button"
-              accessibilityLabel={`Voir une vidéo de démonstration : ${ex.name}`}
+              accessibilityLabel={`Voir une vidéo de démonstration : ${ex.name}`}
             >
               <Ionicons name="logo-youtube" size={22} color={colors.danger} />
             </Pressable>

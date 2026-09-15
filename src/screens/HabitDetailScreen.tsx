@@ -167,7 +167,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   };
 
   const confirmDelete = () => {
-    confirmAction('Supprimer l\'habitude', `Supprimer "${habit.name}" et tout son historique ?`, 'Supprimer', async () => {
+    confirmAction('Supprimer l\'habitude', `Supprimer "${habit.name}" et tout son historique ?`, 'Supprimer', async () => {
       await removeHabit(habitId);
       navigation.goBack();
     });
@@ -186,7 +186,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
   const handleUseFreeze = async () => {
     const ok = await useStreakFreeze(habitId);
     if (ok) {
-      showToast('snow', 'Streak freeze utilisé, ta série est sauvée !');
+      showToast('snow', 'Streak freeze utilisé, ta série est sauvée !');
     }
   };
 
@@ -381,7 +381,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
               metricKey="weight"
               unit="kg"
               goal={profile.goalWeightKg}
-              extraInfo={bmi ? `IMC : ${bmi.toFixed(1)}` : profile.heightCm ? undefined : 'Renseigne ta taille pour voir ton IMC'}
+              extraInfo={bmi ? `IMC : ${bmi.toFixed(1)}` : profile.heightCm ? undefined : 'Renseigne ta taille pour voir ton IMC'}
             />
 
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Planning hebdomadaire</Text>
@@ -619,7 +619,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
                     hitSlop={8}
                     style={styles.videoBtn}
                     accessibilityRole="button"
-                    accessibilityLabel={`Voir une vidéo sur : ${t.name}`}
+                    accessibilityLabel={`Voir une vidéo sur : ${t.name}`}
                   >
                     <Ionicons name="logo-youtube" size={22} color={colors.danger} />
                   </Pressable>
@@ -826,7 +826,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
         {isMoneySavingHabit(habit.name, habit.icon) && (
           <>
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Argent économisé</Text>
-            <SavingsCounter habit={habit} days={getStreak(habitId)} unit="euros" question="Combien ça te coûtait par jour ?" />
+            <SavingsCounter habit={habit} days={getStreak(habitId)} unit="euros" question="Combien ça te coûtait par jour ?" />
           </>
         )}
 
@@ -837,7 +837,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
               habit={habit}
               days={getStreak(habitId)}
               unit="minutes"
-              question="Combien de temps par jour tu y passais ?"
+              question="Combien de temps par jour tu y passais ?"
             />
           </>
         )}

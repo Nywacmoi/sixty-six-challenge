@@ -43,7 +43,7 @@ export function AccountSettings() {
         <Pressable
           style={styles.row}
           onPress={() =>
-            confirmAction('Se déconnecter ?', 'Tu pourras te reconnecter avec ton email à tout moment.', 'Se déconnecter', logOut)
+            confirmAction('Se déconnecter ?', 'Tu pourras te reconnecter avec ton email à tout moment.', 'Se déconnecter', logOut)
           }
         >
           <Ionicons name="log-out-outline" size={20} color={colors.danger} />

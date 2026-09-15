@@ -65,6 +65,22 @@ export function TodayDashboard({
   const styles = createStyles(colors);
   const [remaining, setRemaining] = useState(getRemaining());
 
+  // Day one used to open on five zeros — 0%, 0 sur 4, 0 SÉRIE, 0 RECORD,
+  // 0/100 XP — and pushed the first habit row to 623px on an 812px screen,
+  // under the tab bar. The one thing the app wants from you was off-screen,
+  // below a wall of counters that were measuring nothing yet. They stay
+  // hidden until there is something to count.
+  //
+  // Frozen at mount, not recomputed: revealing the strip the instant the
+  // first habit is ticked would push the list down under the finger that
+  // just tapped it, and the next tap would land on the wrong row. The
+  // reveal waits for the next time the screen is opened. Safe to freeze —
+  // RootNavigator renders nothing until the store has loaded, so these
+  // props are never the momentary zeros of an empty state.
+  const [nothingToCount] = useState(
+    () => bestStreak === 0 && currentStreak === 0 && levelInfo.level === 1 && levelInfo.xpIntoLevel === 0
+  );
+
   useEffect(() => {
     if (done) return;
     const interval = setInterval(() => setRemaining(getRemaining()), 1000);
@@ -136,28 +152,32 @@ export function TodayDashboard({
 
       {motivation && <Text style={styles.motivation}>{motivation}</Text>}
 
-      <StatStrip
-        style={{ marginHorizontal: spacing.lg, marginTop: spacing.lg }}
-        items={[
-          { value: currentStreak, label: 'SÉRIE' },
-          { value: bestStreak, label: 'RECORD' },
-          { value: levelInfo.level, label: 'NIVEAU' },
-        ]}
-      />
+      {!nothingToCount && (
+        <>
+          <StatStrip
+            style={{ marginHorizontal: spacing.lg, marginTop: spacing.lg }}
+            items={[
+              { value: currentStreak, label: 'SÉRIE' },
+              { value: bestStreak, label: 'RECORD' },
+              { value: levelInfo.level, label: 'NIVEAU' },
+            ]}
+          />
 
-      <View style={styles.xpLine}>
-        <View style={styles.xpTop}>
-          <Text style={styles.xpNext}>NIVEAU {levelInfo.level + 1}</Text>
-          <Text style={styles.xpValue}>
-            {levelInfo.xpIntoLevel} / {levelInfo.xpForNextLevel} XP
-          </Text>
-        </View>
-        <View style={styles.xpTrack}>
-          <View style={[styles.xpFill, { width: `${Math.round(levelInfo.progress * 100)}%` }]} />
-        </View>
-      </View>
+          <View style={styles.xpLine}>
+            <View style={styles.xpTop}>
+              <Text style={styles.xpNext}>NIVEAU {levelInfo.level + 1}</Text>
+              <Text style={styles.xpValue}>
+                {levelInfo.xpIntoLevel} / {levelInfo.xpForNextLevel} XP
+              </Text>
+            </View>
+            <View style={styles.xpTrack}>
+              <View style={[styles.xpFill, { width: `${Math.round(levelInfo.progress * 100)}%` }]} />
+            </View>
+          </View>
+        </>
+      )}
 
-      {streakFreezes > 0 && (
+      {!nothingToCount && streakFreezes > 0 && (
         <View style={styles.shieldRow}>
           <Ionicons name="shield-checkmark-outline" size={12} color={colors.textTertiary} />
           <Text style={styles.shieldText}>

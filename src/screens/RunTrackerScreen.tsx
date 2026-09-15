@@ -133,7 +133,7 @@ export default function RunTrackerScreen({ navigation, route }: any) {
 
   const requestClose = () => {
     if (phase === 'tracking') {
-      confirmAction('Abandonner la course ?', 'Le trajet en cours ne sera pas enregistré.', 'Abandonner', () => {
+      confirmAction('Abandonner la course ?', 'Le trajet en cours ne sera pas enregistré.', 'Abandonner', () => {
         clearNoSignalTimer();
         subscriptionRef.current?.remove();
         navigation.goBack();
