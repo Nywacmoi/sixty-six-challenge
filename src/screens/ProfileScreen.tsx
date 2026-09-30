@@ -11,6 +11,7 @@ import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { StatStrip } from '../components/StatStrip';
 import { SectionLabel } from '../components/SectionLabel';
+import { SkillsSection } from '../components/SkillsSection';
 import { BackupSettings } from '../components/BackupSettings';
 import { AccountSettings } from '../components/AccountSettings';
 import { AvatarDisplay } from '../components/AvatarDisplay';
@@ -151,6 +152,10 @@ export default function ProfileScreen() {
             { value: profile.streakFreezes, label: 'BOUCLIERS' },
           ]}
         />
+
+        <SectionLabel style={styles.sectionLabel}>COMPÉTENCES</SectionLabel>
+        <Text style={styles.sectionSub}>Chaque check-in entraîne une compétence</Text>
+        <SkillsSection />
 
         <SectionLabel style={styles.sectionLabel}>GARDE-ROBE</SectionLabel>
         <Text style={styles.sectionSub}>Débloque des tenues en avançant dans ton défi</Text>

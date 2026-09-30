@@ -17,6 +17,7 @@ import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { ConfirmProvider } from './src/context/ConfirmContext';
 import { SocialProvider } from './src/context/SocialContext';
 import { useCloudBackup } from './src/hooks/useCloudBackup';
+import { useSkillLevelUps } from './src/hooks/useSkills';
 import RootNavigator from './src/navigation/RootNavigator';
 import { LaunchScreen } from './src/components/LaunchScreen';
 import { MorningCheckIn } from './src/components/MorningCheckIn';
@@ -41,6 +42,7 @@ function AppShell() {
   const { mode, colors } = useTheme();
   const { loading, profile } = useApp();
   useCloudBackup();
+  useSkillLevelUps();
   const [fontsLoaded] = useFonts({
     Anton_400Regular,
     Poppins_400Regular,
