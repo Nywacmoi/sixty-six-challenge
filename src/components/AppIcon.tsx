@@ -10,7 +10,7 @@ import Svg, { Path, Circle } from 'react-native-svg';
 // Ionicons that thousands of apps share. This is where "well made" and "unlike
 // anything else" part company: a premium app draws its own.
 //
-// Construction rules, so the set stays one family instead of thirty-seven
+// Construction rules, so the set stays one family instead of a pile of
 // drawings: a 24-unit box with everything inside 3–21, a single stroke weight,
 // round caps and joins, and geometry built from circles, straight lines and
 // 45° diagonals. Detail is cut until the shape still reads at 18px, because
@@ -222,6 +222,29 @@ const GLYPHS: Record<string, Glyph> = {
   },
   'bar-chart': {
     paths: ['M3.5 20.5h17', 'M6.8 20.5v-6.2', 'M12 20.5V6.4', 'M17.2 20.5v-9.4'],
+  },
+  // Esthétique. A pump bottle for the skincare habits — a hand mirror was
+  // tried first and read as a map pin at 18px, next door to `search`.
+  skincare: {
+    paths: [
+      'M7.6 10.6h8.8a1.6 1.6 0 0 1 1.6 1.6v6.8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-6.8a1.6 1.6 0 0 1 1.6-1.6Z',
+      'M10 10.6V7.6h4v3',
+      'M12 7.6V4.2h3.6',
+      'M9.4 15.4h5.2',
+    ],
+  },
+  // The skill's own mark: a cut stone. Polish, value, the glow-up — and a
+  // shape nothing else in the set is close to.
+  diamond: {
+    paths: ['M6.6 4.4h10.8l3.8 5.2L12 20.4 2.8 9.6Z', 'M2.8 9.6h18.4', 'M9.2 4.4 12 9.6l2.8-5.2'],
+  },
+  // Barbe, cheveux.
+  cut: {
+    rings: [
+      [6.8, 17.4, 2.8],
+      [17.2, 17.4, 2.8],
+    ],
+    paths: ['M8.8 15.4 18.4 4', 'M15.2 15.4 5.6 4'],
   },
 
   // --- The module chips. ---

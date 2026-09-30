@@ -87,6 +87,20 @@ export function isJournalingHabit(name: string, icon: string) {
   return JOURNALING_ICONS.includes(icon) || /journal|écriture|ecriture|écrire|ecrire/i.test(name);
 }
 
+// Soin de soi et apparence: skincare, posture, barbe, cheveux, dents. No
+// module of its own (yet) — it exists so the skill tree has something to
+// measure beyond the jawline. Deliberately no bare "style" or "tenue": both
+// turn up in unrelated habit names ("style de vie", "tenue du journal").
+const AESTHETIC_ICONS = ['skincare', 'diamond', 'cut'];
+export function isAestheticHabit(name: string, icon: string) {
+  return (
+    AESTHETIC_ICONS.includes(icon) ||
+    /skin|peau|visage|crème|creme|spf|solaire|sérum|serum|nettoyant|gommage|posture|se tenir droit|dos droit|barbe|cheveux|coiffure|dents|fil dentaire|ongles|parfum|glow|looksmax|s'habiller|s’habiller/i.test(
+      name
+    )
+  );
+}
+
 const CATEGORY_CHECKS: Array<[string, (name: string, icon: string) => boolean]> = [
   ['sport', isSportHabit],
   ['steps', isStepsHabit],
@@ -102,6 +116,7 @@ const CATEGORY_CHECKS: Array<[string, (name: string, icon: string) => boolean]> 
   ['sleep', isSleepHabit],
   ['budget', isBudgetHabit],
   ['journaling', isJournalingHabit],
+  ['aesthetic', isAestheticHabit],
 ];
 
 // Every theme a habit belongs to — used to suggest new habits that fit

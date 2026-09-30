@@ -1,5 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
+import { useApp } from '../context/AppContext';
+import { useConfirm } from '../context/ConfirmContext';
+import { COMMON_HABITS } from '../data/commonHabits';
+import { SkillId, skillsForHabit } from '../utils/skills';
 import { useTheme } from '../context/ThemeContext';
 import { fonts, radius, spacing, ThemeColors } from '../theme/theme';
 import { useSkills } from '../hooks/useSkills';
@@ -17,6 +21,14 @@ export function SkillsSection() {
   const styles = createStyles(colors);
   const skills = useSkills();
   const { width } = useWindowDimensions();
+  const { habits, addHabit } = useApp();
+  const { confirmAction } = useConfirm();
+
+  // A skill nothing trains is the clearest thing the app can suggest: the
+  // first catalogue habit that would train it, one tap from being added.
+  const existing = new Set(habits.map((h) => h.name.trim().toLowerCase()));
+  const suggestionFor = (id: SkillId) =>
+    COMMON_HABITS.find((h) => !existing.has(h.name.trim().toLowerCase()) && skillsForHabit(h).includes(id));
 
   return (
     <View>
@@ -41,14 +53,41 @@ export function SkillsSection() {
               </View>
               {/* Sources on the left, allowed to truncate; the distance to the
                   next level on the right, never cut — it's the actionable part. */}
-              <View style={styles.bottom}>
-                <Text style={[styles.fed, { flex: 1 }]} numberOfLines={1}>
-                  {s.fedBy.length > 0 ? capitalize(s.fedBy.join(', ')) : 'Aucune habitude ne l’entraîne encore'}
-                </Text>
-                <Text style={styles.next}>
-                  {s.toNext} → niv. {s.level + 1}
-                </Text>
-              </View>
+              {s.fedBy.length > 0 ? (
+                <View style={styles.bottom}>
+                  <Text style={[styles.fed, { flex: 1 }]} numberOfLines={1}>
+                    {capitalize(s.fedBy.join(', '))}
+                  </Text>
+                  <Text style={styles.next}>
+                    {s.toNext} → niv. {s.level + 1}
+                  </Text>
+                </View>
+              ) : (
+                (() => {
+                  const idea = suggestionFor(s.id);
+                  if (!idea) return <Text style={[styles.fed, styles.bottom]}>Aucune habitude ne l’entraîne encore</Text>;
+                  return (
+                    <Pressable
+                      style={styles.bottom}
+                      accessibilityRole="button"
+                      onPress={() =>
+                        confirmAction(
+                          `Ajouter «\u202f${idea.name}\u202f»\u202f?`,
+                          `Cette habitude entraînera ${s.label}.`,
+                          'Ajouter',
+                          () => addHabit(idea.name, idea.icon, idea.color),
+                          false
+                        )
+                      }
+                    >
+                      <Text style={[styles.fed, { flex: 1 }]} numberOfLines={1}>
+                        Essaie : {idea.name}
+                      </Text>
+                      <Text style={[styles.next, { color: s.color }]}>+ Ajouter</Text>
+                    </Pressable>
+                  );
+                })()
+              )}
             </View>
           </View>
         ))}

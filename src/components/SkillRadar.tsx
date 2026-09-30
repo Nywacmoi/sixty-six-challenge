@@ -5,8 +5,8 @@ import { useTheme } from '../context/ThemeContext';
 import { fonts } from '../theme/theme';
 import { Skill } from '../utils/skills';
 
-// Five skills as one shape. A list of five levels says which numbers are
-// bigger; a pentagon says what kind of person the check-ins are building —
+// The skills as one shape. A list of levels says which numbers are
+// bigger; the shape says what kind of person the check-ins are building —
 // lopsided toward Corps, round and balanced, or barely a dot on day 3. Like
 // the 99-grid, it's an image of the challenge that belongs to one person.
 //
@@ -25,19 +25,21 @@ export function SkillRadar({ skills, width }: { skills: Skill[]; width: number }
     Animated.timing(grow, { toValue: 1, duration: 700, easing: Easing.out(Easing.back(1.4)), useNativeDriver: true }).start();
   }, [grow]);
 
-  // Sized so the side labels, which sit furthest out horizontally, still
-  // fit inside `width`: cos(18°) ≈ 0.951 is where the two side vertices land.
-  const labelR = (width / 2 - LABEL_W / 2) / 0.951;
+  // Sized from the actual vertex angles, so the labels furthest out still fit
+  // inside `width` whatever the number of skills — it was five, now six, and
+  // the fit used to be two constants that only held for a pentagon.
+  const n = skills.length;
+  const angle = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / n;
+  const angles = skills.map((_, i) => angle(i));
+  const widest = Math.max(...angles.map((a) => Math.abs(Math.cos(a))));
+  const lowest = Math.max(...angles.map((a) => Math.sin(a)));
+  const labelR = (width / 2 - LABEL_W / 2) / widest;
   const R = labelR - 28;
   const cx = width / 2;
   const cy = labelR + 18;
-  const height = cy + labelR * 0.809 + 40;
+  const height = cy + labelR * lowest + 40;
 
-  const n = skills.length;
-  const at = (i: number, r: number) => {
-    const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
-    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
-  };
+  const at = (i: number, r: number) => ({ x: cx + r * Math.cos(angle(i)), y: cy + r * Math.sin(angle(i)) });
   const ring = (f: number) => skills.map((_, i) => at(i, R * f)).map((p) => `${p.x},${p.y}`).join(' ');
   const value = (s: Skill) => Math.max(MIN_VALUE, Math.min(1, (s.level - 1 + s.progress) / 9));
   const shape = skills.map((s, i) => at(i, R * value(s)));
@@ -56,7 +58,16 @@ export function SkillRadar({ skills, width }: { skills: Skill[]; width: number }
 
       {/* Grows out of the centre once, the way the grid lays itself down. */}
       <Animated.View
-        style={[StyleSheet.absoluteFill, { opacity: grow.interpolate({ inputRange: [0, 0.3], outputRange: [0, 1], extrapolate: 'clamp' }), transform: [{ scale: grow }] }]}
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            opacity: grow.interpolate({ inputRange: [0, 0.3], outputRange: [0, 1], extrapolate: 'clamp' }),
+            // From the radar's centre, which isn't the box's: the labels
+            // under the shape make the box taller below than above.
+            transformOrigin: `${cx}px ${cy}px`,
+            transform: [{ scale: grow }],
+          },
+        ]}
       >
         <Svg width={width} height={height}>
           <Polygon

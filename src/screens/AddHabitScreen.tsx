@@ -54,6 +54,9 @@ const ICON_NAMES: Record<string, string> = {
   body: 'Silhouette',
   calendar: 'Calendrier',
   'bar-chart': 'Graphique',
+  skincare: 'Soin',
+  diamond: 'Diamant',
+  cut: 'Ciseaux',
 };
 
 const COLORS = ['#005FFE', '#3ECF5B', '#FF5A2E', '#FFC542', '#B15AFF', '#FF4D8D', '#2EC4B6'];

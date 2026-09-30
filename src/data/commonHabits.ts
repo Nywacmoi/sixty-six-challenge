@@ -35,6 +35,11 @@ export const COMMON_HABITS: CommonHabit[] = [
   { name: "Réduire l'alcool", icon: 'wine', color: '#FF4D8D' },
   { name: 'Moins de réseaux sociaux', icon: 'airplane', color: '#FFC542' },
   { name: 'Yoga', icon: 'flower', color: '#3ECF5B' },
+  // The Esthétique skill needed something to train it besides the jawline
+  // template — soin de soi is a habit like any other.
+  { name: 'Routine skincare', icon: 'skincare', color: '#FF4D8D' },
+  { name: 'Se tenir droit', icon: 'body', color: '#FF4D8D' },
+  { name: 'Soin barbe / cheveux', icon: 'cut', color: '#FF4D8D' },
   // Cut in the original trim for being too vague to act on — back in now
   // that it has a real module (BudgetTracker: dépense du jour, moyenne,
   // prévision de fin de mois vs objectif).

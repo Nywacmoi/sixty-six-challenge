@@ -2,11 +2,11 @@ import { Habit, HabitCompletion } from '../types';
 import { getHabitCategories } from './habitCategories';
 import { toSafeDateKey } from './date';
 
-// The skill tree: five stats that grow with what you actually do.
+// The skill tree: six stats that grow with what you actually do.
 //
 // XP already existed, but it was one number — a level that said "you've
 // ticked a lot" and nothing about what kind of person the ticking is
-// building. Five skills turn the same check-ins into a character: someone
+// building. Six skills turn the same check-ins into a character: someone
 // who runs and reads looks different from someone who meditates and sleeps.
 //
 // Everything here is derived from habits and completions that are already
@@ -14,7 +14,7 @@ import { toSafeDateKey } from './date';
 // (a day-75 user sees seventy-five days of history in it, not an empty
 // chart), can't drift from the data, and comes back intact with a restore.
 
-export type SkillId = 'discipline' | 'corps' | 'vitalite' | 'mental' | 'savoir';
+export type SkillId = 'discipline' | 'corps' | 'esthetique' | 'vitalite' | 'mental' | 'savoir';
 
 export type SkillDef = { id: SkillId; label: string; icon: string; color: string };
 
@@ -23,6 +23,9 @@ export type SkillDef = { id: SkillId; label: string; icon: string; color: string
 export const SKILLS: SkillDef[] = [
   { id: 'discipline', label: 'Discipline', icon: 'locate', color: '#FFC542' },
   { id: 'corps', label: 'Corps', icon: 'barbell', color: '#FF5A2E' },
+  // Next to Corps on purpose: the two sides of the body — what it can do,
+  // and how it looks and is looked after.
+  { id: 'esthetique', label: 'Esthétique', icon: 'diamond', color: '#FF4D8D' },
   { id: 'vitalite', label: 'Vitalité', icon: 'water', color: '#2EC4B6' },
   { id: 'mental', label: 'Mental', icon: 'leaf', color: '#B15AFF' },
   { id: 'savoir', label: 'Savoir', icon: 'book', color: '#4E9BFF' },
@@ -33,7 +36,10 @@ const CATEGORY_SKILL: Record<string, SkillId> = {
   sport: 'corps',
   steps: 'corps',
   running: 'corps',
-  jawline: 'corps',
+  // Mewing and jaw exercises train how the face looks, not what the body
+  // can do — they sat in Corps only until there was somewhere better.
+  jawline: 'esthetique',
+  aesthetic: 'esthetique',
   nutrition: 'vitalite',
   sleep: 'vitalite',
   meditation: 'mental',
@@ -112,7 +118,7 @@ export type Skill = SkillDef & {
 
 export function computeSkills(habits: Habit[], completions: HabitCompletion[]): Skill[] {
   const byHabit = new Map(habits.map((h) => [h.id, skillsForHabit(h)]));
-  const points: Record<SkillId, number> = { discipline: 0, corps: 0, vitalite: 0, mental: 0, savoir: 0 };
+  const points: Record<SkillId, number> = { discipline: 0, corps: 0, esthetique: 0, vitalite: 0, mental: 0, savoir: 0 };
 
   const doneByDate = new Map<string, Set<string>>();
   for (const c of completions) {
