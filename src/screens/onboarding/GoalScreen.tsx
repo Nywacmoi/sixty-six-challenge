@@ -8,14 +8,8 @@ import { spacing, radius, ThemeColors, Typography } from '../../theme/theme';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { StepDots } from '../../components/StepDots';
 import { AppIcon } from '../../components/AppIcon';
+import { GOALS } from '../../data/goals';
 
-const GOALS = [
-  { id: 'sport', icon: 'walk', label: 'Être plus sportif' },
-  { id: 'discipline', icon: 'bulb', label: 'Plus de discipline' },
-  { id: 'wellbeing', icon: 'leaf', label: 'Bien-être & mental' },
-  { id: 'productivity', icon: 'locate', label: 'Productivité' },
-  { id: 'all', icon: 'sparkles', label: 'Un peu de tout' },
-];
 
 export default function GoalScreen({ navigation, route }: any) {
   const { updateProfile } = useApp();

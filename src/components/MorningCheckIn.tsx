@@ -8,6 +8,7 @@ import { fonts, radius, spacing, ThemeColors, Typography } from '../theme/theme'
 import { useTopInset } from '../hooks/useTopInset';
 import { todayKey, dailyIndex } from '../utils/date';
 import { COMMON_HABITS } from '../data/commonHabits';
+import { starterRoutine } from '../data/goals';
 import { getHabitCategories } from '../utils/habitCategories';
 import { PrimaryButton } from './PrimaryButton';
 import { AppIcon } from './AppIcon';
@@ -264,7 +265,11 @@ export function MorningCheckIn() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [mood, setMood] = useState<string | null>(null);
   const [sleep, setSleep] = useState<string | null>(null);
-  const [checked, setChecked] = useState<Set<string>>(new Set());
+  // Someone with no habits yet has just answered the onboarding question —
+  // the check-in is the very next screen. Their routine comes pre-ticked, so
+  // starting is one tap; anything they don't want, they untick.
+  const starter = habits.some((h) => !h.archived) ? null : starterRoutine(profile.goal);
+  const [checked, setChecked] = useState<Set<string>>(() => new Set(starter?.habits.map((h) => h.name) ?? []));
   const fadeIn = useRef(new Animated.Value(0)).current;
   const progress = useRef(new Animated.Value(0)).current;
   const blockIn = useRef(new Animated.Value(0)).current;
@@ -294,7 +299,7 @@ export function MorningCheckIn() {
   const notAdded = COMMON_HABITS.filter((h) => !existingNames.has(h.name.trim().toLowerCase()));
   const related = notAdded.filter((h) => getHabitCategories(h.name, h.icon).some((c) => userCategories.has(c)));
   const unrelated = notAdded.filter((h) => !related.includes(h));
-  const suggestions = [...related, ...unrelated].slice(0, SUGGESTION_COUNT);
+  const suggestions = starter ? starter.habits : [...related, ...unrelated].slice(0, SUGGESTION_COUNT);
 
   const greetingTemplate = GREETINGS[Math.max(0, currentDay) % GREETINGS.length];
   const greeting = greetingTemplate.replace('{name}', firstName);
@@ -313,7 +318,7 @@ export function MorningCheckIn() {
       ? moodQuestion
       : step === 'sleep'
         ? `${moodReaction} ${sleepQuestion}`
-        : `${sleepReaction} ${routineQuestion}`;
+        : `${sleepReaction} ${starter ? starter.lead : routineQuestion}`;
   const revealedText = useTypewriter(currentBotText);
 
   const finish = async () => {

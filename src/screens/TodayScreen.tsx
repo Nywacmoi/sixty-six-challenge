@@ -15,6 +15,8 @@ import { StaggeredEntrance } from '../components/StaggeredEntrance';
 import { ShareDayCta } from '../components/ShareDayCta';
 import { InsightBanner } from '../components/InsightBanner';
 import { ChallengeComplete } from '../components/ChallengeComplete';
+import { StarterRoutine } from '../components/StarterRoutine';
+import { starterRoutine } from '../data/goals';
 import { useConfirm } from '../context/ConfirmContext';
 import { useDayValues } from '../hooks/useDayValues';
 import { PerfectDayCelebration } from '../components/PerfectDayCelebration';
@@ -26,8 +28,11 @@ import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { AppIcon } from '../components/AppIcon';
 
 export default function TodayScreen({ navigation }: any) {
-  const { loading, habits, currentDay, challengeFinished, challengeNumber, startNewChallenge, todayProgress, isCompleted, getStreak, getLongestStreak, profile, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast, levelInfo } = useApp();
+  const { loading, habits, currentDay, challengeFinished, challengeNumber, startNewChallenge, addHabitsBulk, todayProgress, isCompleted, getStreak, getLongestStreak, profile, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast, levelInfo } = useApp();
   const { confirmAction } = useConfirm();
+  // Only reachable with zero habits, so this is always "the routine the
+  // onboarding answer points to", never a suggestion on top of existing ones.
+  const starter = starterRoutine(profile.goal);
   const dayValues = useDayValues();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
@@ -96,6 +101,13 @@ export default function TodayScreen({ navigation }: any) {
       {activeHabits.length === 0 ? (
         <>
           {header}
+          {starter ? (
+            <StarterRoutine
+              routine={starter}
+              onAccept={() => addHabitsBulk(starter.habits)}
+              onChooseOwn={() => navigation.navigate('AddHabit')}
+            />
+          ) : (
           <View style={styles.empty}>
             <AppIcon name="flame-outline" size={48} color={colors.textTertiary} />
             <Text style={[typography.h2, { marginTop: spacing.md, textAlign: 'center' }]}>Construis de la discipline, pas des habitudes</Text>
@@ -107,6 +119,7 @@ export default function TodayScreen({ navigation }: any) {
               <Text style={[typography.bodyBold, { color: colors.accent }]}>Ou découvrir des modèles de routine</Text>
             </Pressable>
           </View>
+          )}
         </>
       ) : (
         // Everything — header included — scrolls together as one page instead
