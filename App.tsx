@@ -16,6 +16,7 @@ import { AppProvider, useApp } from './src/context/AppContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { ConfirmProvider } from './src/context/ConfirmContext';
 import { SocialProvider } from './src/context/SocialContext';
+import { useCloudBackup } from './src/hooks/useCloudBackup';
 import RootNavigator from './src/navigation/RootNavigator';
 import { LaunchScreen } from './src/components/LaunchScreen';
 import { MorningCheckIn } from './src/components/MorningCheckIn';
@@ -39,6 +40,7 @@ Notifications.setNotificationHandler({
 function AppShell() {
   const { mode, colors } = useTheme();
   const { loading, profile } = useApp();
+  useCloudBackup();
   const [fontsLoaded] = useFonts({
     Anton_400Regular,
     Poppins_400Regular,

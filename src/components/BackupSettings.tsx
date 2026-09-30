@@ -5,12 +5,60 @@ import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { useConfirm } from '../context/ConfirmContext';
 import { radius, spacing, ThemeColors, Typography } from '../theme/theme';
+import { useSocial } from '../context/SocialContext';
+import {
+  BackupStatus,
+  overwriteCloudWithThisPhone,
+  restoreCloudBackup,
+  useBackupStatus,
+} from '../firebase/backup';
+
+function ago(at: number): string {
+  const min = Math.round((Date.now() - at) / 60_000);
+  if (min < 1) return 'à l’instant';
+  if (min < 60) return `il y a ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `il y a ${h} h`;
+  return `le ${new Date(at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`;
+}
+
+const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? 's' : ''}`;
+
+// What the automatic backup is doing, in one line. The card used to say
+// "Tes données restent uniquement sur cet appareil" — true at the time, and
+// the reason this exists.
+function statusLine(status: BackupStatus, hasAccount: boolean): string {
+  switch (status.state) {
+    case 'off':
+      return 'Sauvegarde automatique : connexion en cours…';
+    case 'saving':
+      return 'Sauvegarde en cours…';
+    case 'saved':
+      return (
+        `Sauvegardé automatiquement ${ago(status.at)}. ` +
+        (hasAccount
+          ? 'Récupérable sur n’importe quel téléphone en te connectant.'
+          : 'Crée un compte pour pouvoir le récupérer sur un autre téléphone.')
+      );
+    case 'conflict':
+      return (
+        `Ton compte a déjà une sauvegarde (${plural(status.cloud.habits, 'habitude')}, ` +
+        `${plural(status.cloud.checkIns, 'check-in')}). Rien n’est écrasé tant que tu n’as pas choisi.`
+      );
+    case 'denied':
+      return 'Sauvegarde automatique indisponible pour le moment (accès refusé par le serveur).';
+    case 'error':
+      return `Sauvegarde automatique en pause. ${status.message}`;
+  }
+}
 
 export function BackupSettings() {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const { exportData, importData, showToast } = useApp();
   const { confirmAction, notify } = useConfirm();
+  const { hasAccount } = useSocial();
+  const status = useBackupStatus();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -67,8 +115,41 @@ export function BackupSettings() {
 
   return (
     <View style={styles.card}>
+      <View style={styles.statusRow}>
+        <Ionicons
+          name={status.state === 'saved' ? 'cloud-done-outline' : status.state === 'conflict' ? 'alert-circle-outline' : 'cloud-outline'}
+          size={18}
+          color={status.state === 'saved' ? colors.success : colors.textSecondary}
+        />
+        <Text style={[typography.caption, { flex: 1 }]}>{statusLine(status, hasAccount)}</Text>
+      </View>
+
+      {status.state === 'conflict' && (
+        <>
+          <Pressable style={styles.row} onPress={() => restoreCloudBackup()} disabled={busy}>
+            <Ionicons name="cloud-download-outline" size={20} color={colors.accent} />
+            <Text style={[typography.bodyBold, { color: colors.accent }]}>Restaurer la sauvegarde du compte</Text>
+          </Pressable>
+          <Pressable
+            style={styles.row}
+            disabled={busy}
+            onPress={() =>
+              confirmAction(
+                'Remplacer la sauvegarde\u202f?',
+                `La sauvegarde du compte (${plural(status.cloud.habits, 'habitude')}, ${plural(status.cloud.checkIns, 'check-in')}) sera remplacée par les données de ce téléphone. C’est définitif.`,
+                'Remplacer',
+                () => overwriteCloudWithThisPhone()
+              )
+            }
+          >
+            <Ionicons name="phone-portrait-outline" size={20} color={colors.danger} />
+            <Text style={[typography.bodyBold, { color: colors.danger }]}>Garder ce téléphone</Text>
+          </Pressable>
+        </>
+      )}
+
       <Text style={typography.caption}>
-        Tes données restent uniquement sur cet appareil. Exporte une sauvegarde régulièrement pour ne rien perdre si tu changes de téléphone ou vides le cache.
+        Les photos restent sur ce téléphone. Pour les garder aussi, exporte un fichier de temps en temps.
       </Text>
       <Pressable style={styles.row} onPress={handleExport} disabled={busy}>
         <Ionicons name="download-outline" size={20} color={colors.accent} />
@@ -105,5 +186,6 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       gap: spacing.md,
     },
     row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    statusRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   });
 }

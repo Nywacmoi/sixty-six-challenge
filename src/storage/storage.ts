@@ -123,7 +123,8 @@ export const storage = {
       readJson<Partial<Profile>>(KEYS.profile, {}),
       readJson<string[]>(KEYS.unlockedAchievements, []),
       readJson<MetricEntry[]>(KEYS.metrics, []),
-      readJson<'light' | 'dark'>(KEYS.themeMode, 'light'),
+      // null = never chosen; importAll skips it, so a restore keeps following the system.
+      readJson<'light' | 'dark' | null>(KEYS.themeMode, null),
       readJson<JournalEntry[]>(KEYS.journal, []),
       readJson<RunActivity[]>(KEYS.runs, []),
     ]);
