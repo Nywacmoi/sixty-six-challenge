@@ -121,6 +121,13 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const latest = html.match(/_expo\/static\/js\/web\/index-[a-f0-9]+\.js/)?.[0];
       const current = document.querySelector('script[src*="_expo/static/js/web/"]')?.getAttribute('src');
       if (latest && current && !current.includes(latest)) {
+        // At most one update-reload a minute. With the service worker, a
+        // navigation that fails over to the cached page and a check that
+        // reaches the network a moment later can disagree on a flapping
+        // connection — without this, that disagreement is a reload loop.
+        const last = Number(sessionStorage.getItem('defi99:update-reload') ?? 0);
+        if (Date.now() - last < 60_000) return;
+        sessionStorage.setItem('defi99:update-reload', String(Date.now()));
         window.location.reload();
       }
     } catch {
@@ -131,6 +138,39 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') checkForUpdate();
   });
+
+  // Offline support and instant opens — the rules live in public/sw.js.
+  // Not in development: a worker caching Metro's bundles would fight hot
+  // reload and serve yesterday's code on localhost.
+  if (!__DEV__ && 'serviceWorker' in navigator) {
+    // The deployed base path ("/sixty-six-challenge/"), read off the bundle's
+    // own URL rather than hardcoded, so the worker registers wherever the
+    // export is served from.
+    const bundleSrc = document.querySelector('script[src*="/_expo/static/js/web/"]')?.getAttribute('src') ?? '';
+    const base = bundleSrc.includes('/_expo/') ? bundleSrc.split('/_expo/')[0] + '/' : '/';
+
+    const register = () => {
+      navigator.serviceWorker
+        .register(`${base}sw.js`, { scope: base })
+        .then(() => navigator.serviceWorker.ready)
+        .then((reg) => {
+          // Everything this first session already loaded, fetched before the
+          // worker was in control. Handing the list over is what makes the
+          // very first install work offline, not just the second open.
+          const urls = performance
+            .getEntriesByType('resource')
+            .map((e) => e.name)
+            .filter((u) => u.startsWith(window.location.origin + base));
+          reg.active?.postMessage({ type: 'warm', urls });
+        })
+        .catch(() => {
+          // No worker (private browsing, storage blocked): the app still
+          // runs exactly as it did before one existed.
+        });
+    };
+    if (document.readyState === 'complete') register();
+    else window.addEventListener('load', register);
+  }
 }
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);

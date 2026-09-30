@@ -4,12 +4,12 @@
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />
-    <!-- Belt-and-suspenders against iOS Safari standalone serving a stale
-         cached copy of this page after a new deploy (index.ts also runs a
-         JS-level check-and-reload against the bundle hash). -->
-    <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta httpEquiv="Pragma" content="no-cache" />
-    <meta httpEquiv="Expires" content="0" />
+    <!-- Stale copies after a deploy are handled by checkForUpdate in
+         index.ts, and the service worker (public/sw.js) always asks the
+         network for this page first. Three cache-busting <meta> tags used to
+         sit here, written `httpEquiv` — the React spelling. In plain HTML the
+         attribute is `http-equiv`, so browsers never read them. -->
+    <link rel="manifest" href="/sixty-six-challenge/manifest.webmanifest" />
     <title>%WEB_TITLE%</title>
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
