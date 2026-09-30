@@ -62,6 +62,10 @@ export type Profile = {
   avatarFacialHair: string | null;
   avatarExpression: string | null;
   foodPreference: 'omnivore' | 'vegetarien' | 'vegan' | null;
+  // Start dates of every challenge that ran its full 99 days, oldest first.
+  // Kept as dates rather than a bare counter so a finished grid can be
+  // rebuilt later from the completion history, which is never deleted.
+  challengeHistory: string[];
 };
 
 export type MetricEntry = {

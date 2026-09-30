@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState,
 import { Platform } from 'react-native';
 import { Habit, HabitCompletion, Profile, MetricEntry, JournalEntry, RunActivity } from '../types';
 import { storage } from '../storage/storage';
-import { todayKey, daysBetween, addDays } from '../utils/date';
+import { todayKey, daysBetween, addDays, toSafeDateKey } from '../utils/date';
 import { ACHIEVEMENTS } from '../data/achievements';
 import { TOTAL_DAYS } from '../theme/theme';
 import { getLevelInfo, LevelInfo, XP_PER_COMPLETION, XP_PER_ACHIEVEMENT, MAX_STREAK_FREEZES } from '../utils/gamification';
@@ -20,6 +20,17 @@ type AppContextValue = {
   profile: Profile;
   unlockedAchievements: string[];
   currentDay: number;
+  /** True from the day after day 99. `currentDay` stops at 99 — it indexes
+   *  a 99-cell grid — so on its own it can't tell "the last day" from "three
+   *  weeks after the last day", and the app used to say JOUR 99 SUR 99 ·
+   *  reviens demain to someone who had finished long ago. */
+  challengeFinished: boolean;
+  /** 1 for the first challenge, 2 once one has been finished and another
+   *  started, and so on. */
+  challengeNumber: number;
+  /** Closes the current challenge (recording it if it ran its full length)
+   *  and starts day 1 today. Habits, streaks and history are untouched. */
+  startNewChallenge: () => Promise<void>;
   todayProgress: number;
   totalXP: number;
   levelInfo: LevelInfo;
@@ -109,6 +120,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     avatarFacialHair: null,
     avatarExpression: null,
     foodPreference: null,
+    challengeHistory: [],
   });
   // React does not promise to run a functional setState updater before the
   // next statement — it only does so opportunistically, when that hook has no
@@ -188,11 +200,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  const currentDay = useMemo(() => {
+  // Uncapped: day 120 is 120 here. `currentDay` below is the same number held
+  // at 99, because it indexes the grid; this one is what knows the challenge
+  // is over.
+  const daysElapsed = useMemo(() => {
     if (!profile.challengeStartDate) return 0;
-    const diff = daysBetween(profile.challengeStartDate, todayKey());
-    return Math.min(TOTAL_DAYS, diff + 1);
+    return daysBetween(toSafeDateKey(profile.challengeStartDate), todayKey()) + 1;
   }, [profile.challengeStartDate]);
+
+  const currentDay = Math.min(TOTAL_DAYS, daysElapsed);
+  const challengeFinished = daysElapsed > TOTAL_DAYS;
+  const challengeNumber = (profile.challengeHistory?.length ?? 0) + 1;
 
   const isCompleted = useCallback(
     (habitId: string, dateKey: string = todayKey()) => {
@@ -532,6 +550,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [canUseStreakFreeze, completions]
   );
 
+  const startNewChallenge = useCallback(async () => {
+    await commitProfile((prev) => {
+      const start = prev.challengeStartDate ? toSafeDateKey(prev.challengeStartDate) : null;
+      // Only a challenge that actually reached day 99 goes in the history. A
+      // restart from Profil halfway through is starting over, not finishing.
+      const finished = start != null && daysBetween(start, todayKey()) + 1 > TOTAL_DAYS;
+      return {
+        ...prev,
+        challengeHistory: finished ? [...(prev.challengeHistory ?? []), start] : prev.challengeHistory ?? [],
+        challengeStartDate: todayKey(),
+      };
+    });
+  }, [commitProfile]);
+
   const updateProfile = useCallback(async (patch: Partial<Profile>) => {
     // Reads the latest profile via the functional updater rather than the
     // closure's `profile` — two profile writes fired back-to-back (e.g.
@@ -639,6 +671,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     profile,
     unlockedAchievements,
     currentDay,
+    challengeFinished,
+    challengeNumber,
+    startNewChallenge,
     todayProgress,
     totalXP,
     levelInfo,

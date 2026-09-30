@@ -14,6 +14,9 @@ import { SectionLabel } from '../components/SectionLabel';
 import { StaggeredEntrance } from '../components/StaggeredEntrance';
 import { ShareDayCta } from '../components/ShareDayCta';
 import { InsightBanner } from '../components/InsightBanner';
+import { ChallengeComplete } from '../components/ChallengeComplete';
+import { useConfirm } from '../context/ConfirmContext';
+import { useDayValues } from '../hooks/useDayValues';
 import { PerfectDayCelebration } from '../components/PerfectDayCelebration';
 import { AmbientBackdrop } from '../components/AmbientBackdrop';
 import { progressColor } from '../utils/progressColor';
@@ -23,7 +26,9 @@ import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { AppIcon } from '../components/AppIcon';
 
 export default function TodayScreen({ navigation }: any) {
-  const { loading, habits, currentDay, todayProgress, isCompleted, getStreak, getLongestStreak, profile, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast, levelInfo } = useApp();
+  const { loading, habits, currentDay, challengeFinished, challengeNumber, startNewChallenge, todayProgress, isCompleted, getStreak, getLongestStreak, profile, toggleCompletion, removeHabit, newlyUnlocked, clearNewlyUnlocked, toast, clearToast, levelInfo } = useApp();
+  const { confirmAction } = useConfirm();
+  const dayValues = useDayValues();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const activeHabits = habits.filter((h) => !h.archived);
@@ -65,7 +70,11 @@ export default function TodayScreen({ navigation }: any) {
   const header = (
     <View style={[styles.header, { paddingTop: topInset + spacing.sm }]}>
       <View>
-        <Text style={typography.kicker}>JOUR {Math.max(currentDay, activeHabits.length ? 1 : 0)} SUR {TOTAL_DAYS}</Text>
+        <Text style={typography.kicker}>
+          {challengeFinished
+            ? 'DÉFI TERMINÉ'
+            : `${challengeNumber > 1 ? `DÉFI ${challengeNumber} · ` : ''}JOUR ${Math.max(currentDay, activeHabits.length ? 1 : 0)} SUR ${TOTAL_DAYS}`}
+        </Text>
         <Text style={typography.display}>Aujourd'hui</Text>
       </View>
       <Pressable
@@ -107,6 +116,24 @@ export default function TodayScreen({ navigation }: any) {
         // tall (e.g. on a perfect day).
         <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxl + tabBarClearance }}>
           {header}
+          {challengeFinished ? (
+            <ChallengeComplete
+              dayValues={dayValues}
+              rate={dayValues.reduce((sum, v) => sum + v, 0) / dayValues.length}
+              bestStreak={bestStreak}
+              nextChallenge={challengeNumber + 1}
+              play={!covered}
+              onShare={() => navigation.navigate('WeeklyRecap')}
+              onStartNext={() =>
+                confirmAction(
+                  `Commencer le défi ${challengeNumber + 1} ?`,
+                  'Un nouveau jour 1 commence aujourd’hui, avec une grille vierge. Tes habitudes, tes séries et tout ton historique restent.',
+                  'C’est parti',
+                  startNewChallenge
+                )
+              }
+            />
+          ) : (
           <TodayDashboard
             doneCount={activeHabits.filter((h) => isCompleted(h.id)).length}
             totalCount={activeHabits.length}
@@ -117,8 +144,10 @@ export default function TodayScreen({ navigation }: any) {
             levelInfo={levelInfo}
             play={!covered}
           />
-          {insightText && <InsightBanner text={insightText} />}
-          {todayProgress >= 1 && (
+          )}
+          {/* Both would repeat what the finish card already says. */}
+          {!challengeFinished && insightText && <InsightBanner text={insightText} />}
+          {!challengeFinished && todayProgress >= 1 && (
             <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.md }}>
               <ShareDayCta day={Math.max(currentDay, 1)} onPress={() => navigation.navigate('WeeklyRecap')} />
             </View>

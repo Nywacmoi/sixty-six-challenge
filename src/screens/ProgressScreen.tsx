@@ -33,15 +33,16 @@ export default function ProgressScreen({ navigation }: any) {
   const topInset = useTopInset();
   const tabBarClearance = useTabBarClearance();
 
-  // The maximum number of check-ins that could exist so far, if every active
-  // habit had been checked every day since the challenge started — the same
-  // approximation WeeklyRecapScreen uses for its own (7-day) rate, just over
-  // the whole challenge instead of one week. Gives an honest "how am I
-  // doing" number, which nothing on this screen showed before.
-  const maxPossibleCompletions = activeHabits.length * Math.max(currentDay, 1);
-  const completionRate = maxPossibleCompletions > 0 ? getTotalCompletions() / maxPossibleCompletions : 0;
-
   const dayValues = useDayValues();
+
+  // The average of the grid itself: each day's share of habits done, over the
+  // days lived so far. It used to be every check-in ever made divided by
+  // habits × currentDay — but currentDay stops at 99 while check-ins don't,
+  // so a finished challenge read 121%, and check-ins from before a restart
+  // or from archived habits inflated it too. Measured this way it can't leave
+  // 0–100%, and it always agrees with the block of squares right above it.
+  const daysLived = dayValues.slice(0, Math.max(currentDay, 1));
+  const completionRate = daysLived.reduce((sum, v) => sum + v, 0) / daysLived.length;
 
   // Same single animated value behind the number and the colour as
   // on Aujourd'hui, so the two screens move the same way. 99 days is a slow

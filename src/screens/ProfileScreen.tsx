@@ -28,7 +28,7 @@ const REMINDER_TIMES = [
 ];
 
 export default function ProfileScreen() {
-  const { profile, updateProfile, currentDay, getTotalCompletions, habits, levelInfo } = useApp();
+  const { profile, updateProfile, currentDay, getTotalCompletions, habits, levelInfo, startNewChallenge } = useApp();
   const { confirmAction } = useConfirm();
   const { colors, typography, mode, toggleTheme } = useTheme();
   const styles = createStyles(colors, typography);
@@ -55,10 +55,9 @@ export default function ProfileScreen() {
       'Redémarrer le défi',
       'Ceci réinitialise ton jour 1. Tes habitudes et ton historique restent intacts.',
       'Redémarrer',
-      async () => {
-        const { todayKey } = await import('../utils/date');
-        await updateProfile({ challengeStartDate: todayKey() });
-      }
+      // Same action as the finish card, so a challenge that did reach day 99
+      // is recorded as finished whichever door it's closed from.
+      startNewChallenge
     );
   };
 

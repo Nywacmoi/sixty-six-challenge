@@ -62,6 +62,7 @@ const PROFILE_DEFAULTS: Profile = {
   avatarFacialHair: null,
   avatarExpression: null,
   foodPreference: null,
+  challengeHistory: [],
 };
 
 export const storage = {

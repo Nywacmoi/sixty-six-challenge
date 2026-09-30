@@ -50,7 +50,7 @@ export function LaunchScreen({
 }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { loading, currentDay, habits, todayProgress, getStreak } = useApp();
+  const { loading, currentDay, challengeFinished, challengeNumber, habits, todayProgress, getStreak } = useApp();
   const { width: screenWidth } = useWindowDimensions();
   const dayValues = useDayValues();
 
@@ -128,7 +128,12 @@ export function LaunchScreen({
       >
         {personal ? (
           <>
-            <Text style={styles.kicker}>JOUR</Text>
+            {/* Past day 99 the count still lands on 99 over a full green grid —
+                the finished challenge replayed in a second — but it's named as
+                an ending rather than as a day that never ends. */}
+            <Text style={styles.kicker}>
+              {challengeFinished ? 'DÉFI TERMINÉ' : challengeNumber > 1 ? `DÉFI ${challengeNumber} · JOUR` : 'JOUR'}
+            </Text>
             <Text style={styles.day}>
               {Math.round(Math.min(counted / COUNT_LANDS_AT, 1) * day)}
             </Text>
