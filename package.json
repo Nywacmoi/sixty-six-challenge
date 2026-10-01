@@ -4,8 +4,6 @@
   "main": "index.ts",
   "dependencies": {
     "@bacons/apple-targets": "^5.0.0",
-    "@expo-google-fonts/anton": "^0.4.2",
-    "@expo-google-fonts/poppins": "^0.4.1",
     "@expo-google-fonts/space-grotesk": "^0.4.1",
     "@expo-google-fonts/space-mono": "^0.4.2",
     "@expo/metro-runtime": "~57.0.15",

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Animated, Easing, StyleSheet, Platform, useWindowDimensions } from 'react-native';
+import { View, Text, Image, Animated, Easing, StyleSheet, Platform, useWindowDimensions } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
@@ -38,6 +38,11 @@ const STREAK_WORTH_NAMING = 3;
 // means something. Someone with no habits at all still gets the tagline —
 // a grid of nothing measures nothing.
 const MIN_DAY_FOR_GRID = 1;
+const MARK_W = 104;
+const MARK_H = MARK_W * (428 / 1107);
+// The lift is the first thing that moves, and the body starts arriving
+// before it lands, so the mark seems to make room rather than move away.
+const LIFT_MS = 560;
 
 export function LaunchScreen({
   duration = 1400,
@@ -66,21 +71,59 @@ export function LaunchScreen({
   const sequence = useRef(new Animated.Value(frozen ? 1 : 0)).current;
   const [counted, setCounted] = useState(frozen ? 1 : 0);
 
-  const markOpacity = useRef(new Animated.Value(frozen ? 1 : 0)).current;
-  const markScale = useRef(new Animated.Value(1)).current;
+  // The mark doesn't fade in any more: it's already on screen. The iOS
+  // startup image and then the HTML splash (public/index.html) both show it
+  // dead centre from the tap on the icon, so this screen's first frame draws
+  // it in exactly that spot — centred by layout, not by numbers that only
+  // arrive after the first paint — and then lifts it into its place in the
+  // column while the day unfolds under it. One logo from icon to app,
+  // instead of a white flash, an empty screen and a logo fading in.
+  const lift = useRef(new Animated.Value(0)).current;
+  const [boxHeight, setBoxHeight] = useState<number | null>(null);
+  // The slot's position is only meaningful for the layout that produced it.
+  // Measured first under the tagline layout (store still loading, logo
+  // almost centred), then the grid arrives and the slot jumps up the screen:
+  // a lift aimed at the first reading stopped 24pt short of a target 265pt
+  // away. So each reading records which layout it belongs to.
+  const [slot, setSlot] = useState<{ y: number; personal: boolean } | null>(null);
   const bodyOpacity = useRef(new Animated.Value(frozen ? 1 : 0)).current;
   const bodyTranslate = useRef(new Animated.Value(frozen ? 0 : 10)).current;
 
   const personal = !loading && day >= MIN_DAY_FOR_GRID;
+  const remaining = Math.round((1 - todayProgress) * activeHabits.length);
 
   useEffect(() => {
     const id = sequence.addListener(({ value }) => setCounted(value));
     return () => sequence.removeListener(id);
   }, [sequence]);
 
+  // Everything waits for the store and for both measurements. Before the
+  // store answers, the column is the tagline variant; lifting the mark
+  // toward that layout and then re-aiming when the grid appears would be a
+  // visible correction. The store answers in tens of milliseconds, while the
+  // mark simply holds the splash's position.
+  const started = useRef(false);
+  const slotFits = slot != null && slot.personal === personal;
   useEffect(() => {
-    if (frozen) return;
+    if (frozen || boxHeight == null || !slotFits || loading) return;
+    const target = slot!.y - (boxHeight - MARK_H) / 2;
+
+    // Already under way and the column moved again (a line rewrapping once
+    // the font arrives): re-aim from wherever the mark is, briefly, instead
+    // of landing a few points off its place.
+    if (started.current) {
+      Animated.timing(lift, { toValue: target, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+      return;
+    }
+    started.current = true;
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+
+    Animated.timing(lift, {
+      toValue: target,
+      duration: LIFT_MS,
+      easing: Easing.bezier(0.2, 0.8, 0.2, 1),
+      useNativeDriver: true,
+    }).start();
 
     Animated.timing(sequence, {
       toValue: 1,
@@ -93,78 +136,111 @@ export function LaunchScreen({
       useNativeDriver: false,
     }).start();
 
-    markScale.setValue(0.94);
     Animated.parallel([
-      Animated.timing(markOpacity, { toValue: 1, duration: 420, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-      Animated.timing(markScale, { toValue: 1, duration: 420, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-      Animated.timing(bodyOpacity, { toValue: 1, duration: 380, delay: BODY_DELAY_MS, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-      Animated.timing(bodyTranslate, { toValue: 0, duration: 380, delay: BODY_DELAY_MS, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(bodyOpacity, {
+        toValue: 1,
+        duration: 380,
+        delay: BODY_DELAY_MS,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.timing(bodyTranslate, {
+        toValue: 0,
+        duration: 380,
+        delay: BODY_DELAY_MS,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
     ]).start();
-  }, []);
+  }, [frozen, loading, boxHeight, slot, slotFits, lift, sequence, bodyOpacity, bodyTranslate]);
 
   const accent = personal ? progressColor(Math.min(day / TOTAL_DAYS, 1)) : colors.accent;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onLayout={(e) => setBoxHeight(e.nativeEvent.layout.height)}>
       <Animated.View
         pointerEvents="none"
-        style={[StyleSheet.absoluteFill, { opacity: sequence.interpolate({ inputRange: [0, 0.5], outputRange: [0, 1], extrapolate: 'clamp' }) }]}
+        style={[
+          StyleSheet.absoluteFill,
+          { opacity: sequence.interpolate({ inputRange: [0, 0.5], outputRange: [0, 1], extrapolate: 'clamp' }) },
+        ]}
       >
         <AmbientBackdrop color={accent} />
       </Animated.View>
 
-      <Animated.Image
-        source={require('../../assets/logo.png')}
-        style={[styles.mark, { opacity: markOpacity, transform: [{ scale: markScale }] }]}
-        resizeMode="contain"
-        // Rendered off-white rather than in the brand blue: the rest of the
-        // screen shifts from blue to green with how far along you are, and a
-        // fixed electric blue mark fought that badly at the green end.
-        tintColor={colors.text}
-      />
+      {/* The column is measured, not the mark's slot inside it: on web,
+          onLayout is a ResizeObserver, which reports size changes and never
+          position changes. The slot keeps its size while the column
+          re-centres around it, so it was never re-measured; the column's own
+          height changes exactly when the slot moves (the grid arriving, a
+          line rewrapping when the font loads), and its top edge is the slot. */}
+      <View style={styles.column} onLayout={(e) => setSlot({ y: e.nativeEvent.layout.y, personal })}>
+        {/* The mark's place in the column. Live, it's an empty slot the lifted
+          mark lands on; frozen (the copy dissolving over the app), the mark
+          is simply drawn in it — the same pixels the live one ended on. */}
+        {frozen ? <Mark color={colors.text} /> : <View style={styles.mark} />}
 
-      <Animated.View
-        style={[styles.body, { opacity: bodyOpacity, transform: [{ translateY: bodyTranslate }] }]}
-      >
-        {personal ? (
-          <>
-            {/* Past day 99 the count still lands on 99 over a full green grid —
+        <Animated.View style={[styles.body, { opacity: bodyOpacity, transform: [{ translateY: bodyTranslate }] }]}>
+          {personal ? (
+            <>
+              {/* Past day 99 the count still lands on 99 over a full green grid —
                 the finished challenge replayed in a second — but it's named as
                 an ending rather than as a day that never ends. */}
-            <Text style={styles.kicker}>
-              {challengeFinished ? 'DÉFI TERMINÉ' : challengeNumber > 1 ? `DÉFI ${challengeNumber} · JOUR` : 'JOUR'}
-            </Text>
-            <Text style={styles.day}>
-              {Math.round(Math.min(counted / COUNT_LANDS_AT, 1) * day)}
-            </Text>
-            {/* What's at stake, stated as a fact rather than a nudge. The run
+              <Text style={styles.kicker}>
+                {challengeFinished ? 'DÉFI TERMINÉ' : challengeNumber > 1 ? `DÉFI ${challengeNumber} · JOUR` : 'JOUR'}
+              </Text>
+              <Text style={styles.day}>{Math.round(Math.min(counted / COUNT_LANDS_AT, 1) * day)}</Text>
+              {/* What's at stake, stated as a fact rather than a nudge. The run
                 you've built, and the hole still open in today — the gap between
                 the two is the whole reason to stay in the app. */}
-            {streak >= STREAK_WORTH_NAMING && !dayDone ? (
-              <Text style={styles.stake}>
-                {streak} jours d’affilée · aujourd’hui n’est pas encore fait
-              </Text>
-            ) : dayDone ? (
-              <Text style={styles.stake}>journée validée</Text>
-            ) : null}
-          </>
-        ) : (
-          <Text style={styles.tagline}>99 jours pour construire ta discipline</Text>
-        )}
-      </Animated.View>
+              {streak >= STREAK_WORTH_NAMING && !dayDone ? (
+                <Text style={styles.stake}>{streak} jours d’affilée · aujourd’hui n’est pas encore fait</Text>
+              ) : dayDone ? (
+                <Text style={styles.stake}>journée validée</Text>
+              ) : remaining > 0 ? (
+                // Was empty: below a three-day run the screen ended on the
+                // number. What's left today is true for everyone, every morning.
+                <Text style={styles.stake}>
+                  {remaining} habitude{remaining > 1 ? 's t’attendent' : ' t’attend'} aujourd’hui
+                </Text>
+              ) : null}
+            </>
+          ) : (
+            <Text style={styles.tagline}>99 jours pour construire ta discipline</Text>
+          )}
+        </Animated.View>
 
-      {personal && (
-        <View style={styles.gridWrap}>
-          <DayGrid
-            values={dayValues}
-            currentDay={day}
-            width={screenWidth - spacing.lg * 2}
-            animate={!frozen}
-            progress={frozen ? undefined : sequence}
-          />
+        {personal && (
+          <View style={styles.gridWrap}>
+            <DayGrid
+              values={dayValues}
+              currentDay={day}
+              width={screenWidth - spacing.lg * 2}
+              animate={!frozen}
+              progress={frozen ? undefined : sequence}
+            />
+          </View>
+        )}
+      </View>
+
+      {!frozen && (
+        <View style={styles.markLayer} pointerEvents="none">
+          <Animated.View style={{ transform: [{ translateY: lift }] }}>
+            <Mark color={colors.text} />
+          </Animated.View>
         </View>
       )}
     </View>
+  );
+}
+
+// Rendered off-white rather than in the brand blue: the rest of the screen
+// shifts from blue to green with how far along you are, and a fixed electric
+// blue mark fought that badly at the green end. Same size and colour as the
+// HTML splash and the iOS startup images — change one, change all three.
+function Mark({ color }: { color: string }) {
+  return (
+    <Image source={require('../../assets/logo.png')} style={{ width: MARK_W, height: MARK_H }} resizeMode="contain" tintColor={color} />
   );
 }
 
@@ -184,8 +260,14 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.background,
       paddingHorizontal: spacing.lg,
     },
+    // The slot, the day and the grid as one block, centred by the container
+    // exactly as they were when they were its direct children.
+    column: { alignSelf: 'stretch', alignItems: 'center' },
     // Mark-only logo (no wordmark baked in).
-    mark: { width: 104, height: 104 * (428 / 1107) },
+    mark: { width: MARK_W, height: MARK_H },
+    // Over the whole screen, centring its one child: the splash's position,
+    // reached through layout so it's right on the very first frame.
+    markLayer: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
     body: { alignItems: 'center', marginTop: spacing.xl },
     kicker: { fontFamily: fonts.bold, fontSize: 10, letterSpacing: 3, color: colors.textTertiary },
     day: {

@@ -10,7 +10,55 @@
          sit here, written `httpEquiv` — the React spelling. In plain HTML the
          attribute is `http-equiv`, so browsers never read them. -->
     <link rel="manifest" href="/sixty-six-challenge/manifest.webmanifest" />
+    <!-- iOS startup images. Without them a home-screen web app opens on a
+         blank screen while it loads, white by default, before anything of
+         ours can paint. These are the launch screen's first frame — logo
+         centred at 104pt, theme colours from src/theme/theme.ts — one per
+         iPhone size and theme, since iOS only uses an image that matches the
+         screen exactly. Generated, not drawn: change the logo, regenerate.
+         iOS reads them when the app is added to the home screen. -->
+    <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-1320x2868-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-1320x2868-light.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-1206x2622-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-1206x2622-light.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-1290x2796-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-1290x2796-light.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-1260x2736-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-1260x2736-light.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-1179x2556-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-1179x2556-light.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-1284x2778-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-1284x2778-light.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-1170x2532-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-1170x2532-light.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-1125x2436-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-1125x2436-light.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-1242x2688-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-1242x2688-light.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-828x1792-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-828x1792-light.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-1242x2208-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-1242x2208-light.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/sixty-six-challenge/splash/startup-750x1334-dark.png" />
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: light)" href="/sixty-six-challenge/splash/startup-750x1334-light.png" />
     <title>%WEB_TITLE%</title>
+    <!-- Decides the theme before the first paint, from the same stored choice
+         the app reads (src/storage/storage.ts: 66c:themeMode, JSON) and the
+         same fallback (the phone's setting). The splash below and the app's
+         first frame then share a background instead of flashing between
+         two. ThemeContext picks this attribute up for its own first render. -->
+    <script>
+      (function () {
+        var stored = null;
+        try {
+          stored = JSON.parse(localStorage.getItem('66c:themeMode'));
+        } catch (e) {}
+        var dark =
+          stored === 'dark' ||
+          (stored !== 'light' && !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      })();
+    </script>
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
       /* These styles make the body full-height */
@@ -47,8 +95,49 @@
         html,
         body,
         #root {
-          background-color: #0b0b0d;
+          background-color: #000000;
         }
+      }
+      html[data-theme='light'],
+      html[data-theme='light'] body,
+      html[data-theme='light'] #root {
+        background-color: #ffffff;
+      }
+      html[data-theme='dark'],
+      html[data-theme='dark'] body,
+      html[data-theme='dark'] #root {
+        background-color: #000000;
+      }
+
+      /* The logo, from the first paint. Until the JavaScript bundle has
+         loaded and run (3 MB — on a phone, the longest part of an open) the
+         screen used to be empty. This is the launch screen's mark, at the
+         launch screen's size, in its colour, dead centre: React's first
+         frame replaces it with the same mark at the same spot, which then
+         glides up to make room for the day. Same pixels on the iOS startup
+         image before this, so from the tap on the icon the logo never jumps.
+         Drawn as a mask so one image serves both themes. */
+      #launch-splash {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        width: 104px;
+        height: 40.21px;
+        transform: translate(-50%, -50%);
+        -webkit-mask: url('/sixty-six-challenge/splash/logo-v1.png') center / contain no-repeat;
+        mask: url('/sixty-six-challenge/splash/logo-v1.png') center / contain no-repeat;
+        background-color: #111114;
+      }
+      @media (prefers-color-scheme: dark) {
+        #launch-splash {
+          background-color: #f5f5f0;
+        }
+      }
+      html[data-theme='light'] #launch-splash {
+        background-color: #111114;
+      }
+      html[data-theme='dark'] #launch-splash {
+        background-color: #f5f5f0;
       }
       /* Belt-and-suspenders against a single oversized element (e.g. a
          Text that renders wider than its container) making the whole page
@@ -95,6 +184,6 @@
       You need to enable JavaScript to run this app.
     </noscript>
     <!-- The root element for your Expo app. -->
-    <div id="root"></div>
+    <div id="root"><div id="launch-splash" aria-hidden="true"></div></div>
   </body>
 </html>

@@ -29,8 +29,13 @@ const SCOPE = new URL(self.registration.scope).pathname; // "/sixty-six-challeng
 const BUNDLE = /_expo\/static\/js\/web\/index-[a-f0-9]+\.js/;
 
 const isShell = (url) => url.pathname === SCOPE || url.pathname === SCOPE + 'index.html';
+// /splash/ holds the launch logo and iOS startup images. Their names carry a
+// version instead of a hash (the HTML has to reference them by a fixed
+// path), so a new logo ships as logo-v2.png rather than overwriting v1.
 const isImmutable = (url) =>
-  url.pathname.startsWith(SCOPE + '_expo/static/') || url.pathname.startsWith(SCOPE + 'assets/');
+  url.pathname.startsWith(SCOPE + '_expo/static/') ||
+  url.pathname.startsWith(SCOPE + 'assets/') ||
+  url.pathname.startsWith(SCOPE + 'splash/');
 
 // Stores a page only once the bundle it points at is safely stored too, then
 // drops every other bundle — each deploy would otherwise leave 2.9 MB behind.

@@ -22,7 +22,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // is barely a shape. Following the phone instead means most people see the
   // version the app was drawn for without anyone imposing a choice on them.
   const system = useColorScheme();
-  const [chosen, setChosen] = useState<ThemeMode | null>(null);
+  // On web, the HTML shell has already resolved the theme synchronously
+  // (stored choice, else the phone) to paint its splash. Starting from that
+  // answer keeps the app's first frame on the same background; the store
+  // then replaces it with the real "chosen or not" a moment later.
+  const [chosen, setChosen] = useState<ThemeMode | null>(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return null;
+    const shell = document.documentElement.getAttribute('data-theme');
+    return shell === 'dark' || shell === 'light' ? shell : null;
+  });
 
   useEffect(() => {
     storage.getThemeMode().then(setChosen);

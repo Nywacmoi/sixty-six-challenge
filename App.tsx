@@ -3,15 +3,12 @@ import { Animated, Easing, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
-import { useFonts, Anton_400Regular } from '@expo-google-fonts/anton';
 import {
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-  Poppins_700Bold,
-  Poppins_800ExtraBold,
-} from '@expo-google-fonts/poppins';
-import { SpaceGrotesk_400Regular, SpaceGrotesk_500Medium, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
+  useFonts,
+  SpaceGrotesk_400Regular,
+  SpaceGrotesk_500Medium,
+  SpaceGrotesk_700Bold,
+} from '@expo-google-fonts/space-grotesk';
 import { AppProvider, useApp } from './src/context/AppContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { ConfirmProvider } from './src/context/ConfirmContext';
@@ -43,13 +40,11 @@ function AppShell() {
   const { loading, profile } = useApp();
   useCloudBackup();
   useSkillLevelUps();
+  // Space Grotesk only. Anton and six weights of Poppins were loaded here too
+  // — 918 KB fetched and registered on every open, waited on before the app
+  // could start, requested ahead of the one family the app actually draws
+  // in, and used nowhere since the switch to Space Grotesk.
   const [fontsLoaded] = useFonts({
-    Anton_400Regular,
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-    Poppins_700Bold,
-    Poppins_800ExtraBold,
     SpaceGrotesk_400Regular,
     SpaceGrotesk_500Medium,
     SpaceGrotesk_700Bold,
