@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Animated, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, Pressable, StyleSheet, Animated, Easing, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { fonts, radius, spacing, ThemeColors, Typography } from '../theme/theme';
@@ -12,14 +12,20 @@ import { starterRoutine } from '../data/goals';
 import { getHabitCategories } from '../utils/habitCategories';
 import { PrimaryButton } from './PrimaryButton';
 import { AppIcon } from './AppIcon';
+import { AmbientBackdrop } from './AmbientBackdrop';
 
-const GREETINGS = ['Salut {name}', 'Hey {name} !', 'Bonjour {name}', '{name}, prêt(e) pour aujourd\'hui ?'];
+// Every answer is a level on an energy scale and a colour on it, cold to
+// warm. The colour does three jobs: it tints the card, it becomes the glow
+// the whole screen shifts to once picked, and it fills that question's
+// segment in the progress bar — so by the last step the bar is a small
+// record of how the morning started.
+type Option = { icon: string; label: string; color: string; level: 1 | 2 | 3 | 4 };
 
-const MOODS = [
-  { icon: 'bed', label: 'Fatigué' },
-  { icon: 'neutral', label: 'Moyen' },
-  { icon: 'happy', label: 'Bien' },
-  { icon: 'flame', label: 'En feu' },
+const MOODS: Option[] = [
+  { icon: 'bed', label: 'Fatigué', color: '#6C8CFF', level: 1 },
+  { icon: 'neutral', label: 'Moyen', color: '#2EC4B6', level: 2 },
+  { icon: 'happy', label: 'Bien', color: '#3ECF5B', level: 3 },
+  { icon: 'flame', label: 'En feu', color: '#FF5A2E', level: 4 },
 ];
 
 // Several phrasings per question/reaction, picked once a day via dailyIndex
@@ -56,12 +62,23 @@ const MOOD_REACTIONS: Record<string, string[]> = {
   ],
 };
 
-const SLEEPS = [
-  { icon: 'sad', label: 'Mal dormi' },
-  { icon: 'neutral', label: 'Sommeil moyen' },
-  { icon: 'happy', label: 'Bien dormi' },
-  { icon: 'star', label: 'Nuit parfaite' },
+const SLEEPS: Option[] = [
+  { icon: 'sad', label: 'Mal dormi', color: '#B15AFF', level: 1 },
+  { icon: 'neutral', label: 'Sommeil moyen', color: '#6C8CFF', level: 2 },
+  { icon: 'happy', label: 'Bien dormi', color: '#2EC4B6', level: 3 },
+  { icon: 'star', label: 'Nuit parfaite', color: '#FFC542', level: 4 },
 ];
+
+const colorOf = (options: Option[], label: string | null) => options.find((o) => o.label === label)?.color ?? null;
+
+// Said by the clock, not picked from a pool: the old list included a
+// "prêt(e) pour aujourd'hui" line that stacked a second question on top of
+// the real one, and with no name given it greeted people as "Toi".
+function greetingFor(name: string | null) {
+  const hour = new Date().getHours();
+  const hello = hour >= 5 && hour < 12 ? 'Bonjour' : hour >= 12 && hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+  return name ? `${hello} ${name}` : hello;
+}
 
 const SLEEP_QUESTIONS = [
   'Et cette nuit, tu as bien dormi ?',
@@ -108,7 +125,7 @@ const SUGGESTION_COUNT = 4;
 type Step = 'mood' | 'sleep' | 'routine';
 const STEP_ORDER: Step[] = ['mood', 'sleep', 'routine'];
 
-type HistoryEntry = { bot: string; answer: string };
+type HistoryEntry = { bot: string; answer: string; color: string };
 
 // Reveals `text` a few characters at a time — the "AI is typing" feel from
 // the reference, reinterpreted with this app's own colors instead of a
@@ -131,14 +148,21 @@ function useTypewriter(text: string) {
   return shown;
 }
 
-// Big icon-card options instead of small pill chips — the reference gives
-// each choice real visual weight (large icon, generous card) rather than a
-// row of compact buttons, and staggers them in one at a time instead of
-// popping in together.
-function OptionCard({ icon, label, onPress, index }: { icon: string; label: string; onPress: () => void; index: number }) {
+// Big cards rather than chips, each carrying its colour and its place on the
+// scale: four short bars along the bottom, filled up to the option's level,
+// so the four cards read as one gauge from flat to full. Content sits on
+// the left edge like the rest of the app's rows; the centred icon-in-a-
+// circle version looked like a settings grid.
+//
+// A picked card fills with its colour for the instant before the step
+// changes, so the choice registers as something that happened rather than
+// as the screen simply moving on.
+function OptionCard({ option, onPress, index }: { option: Option; onPress: () => void; index: number }) {
   const { colors } = useTheme();
   const enter = useRef(new Animated.Value(0)).current;
   const press = useRef(new Animated.Value(1)).current;
+  const [picked, setPicked] = useState(false);
+  const { icon, label, color, level } = option;
 
   useEffect(() => {
     Animated.timing(enter, { toValue: 1, duration: 340, delay: index * 70, useNativeDriver: true }).start();
@@ -156,42 +180,78 @@ function OptionCard({ icon, label, onPress, index }: { icon: string; label: stri
       }}
     >
       <Pressable
-        onPress={onPress}
+        onPress={() => {
+          setPicked(true);
+          Haptics.selectionAsync().catch(() => {});
+          onPress();
+        }}
         onPressIn={() => Animated.spring(press, { toValue: 0.95, useNativeDriver: true, friction: 7, tension: 200 }).start()}
         onPressOut={() => Animated.spring(press, { toValue: 1, useNativeDriver: true, friction: 5, tension: 150 }).start()}
+        accessibilityRole="button"
+        accessibilityLabel={label}
         style={{
-          alignItems: 'center',
-          gap: spacing.sm,
-          paddingVertical: spacing.lg,
-          paddingHorizontal: spacing.sm,
+          paddingTop: spacing.md + 2,
+          paddingBottom: spacing.md,
+          paddingHorizontal: spacing.md,
           borderRadius: radius.lg,
           borderWidth: 1.5,
-          borderColor: colors.border,
-          backgroundColor: colors.surface,
+          borderColor: picked ? color : color + '38',
+          backgroundColor: picked ? color + '2A' : colors.surface,
         }}
       >
-        <View
-          style={{
-            width: 52,
-            height: 52,
-            borderRadius: radius.pill,
-            backgroundColor: colors.accent + '14',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <AppIcon name={icon} size={26} color={colors.accent} />
+        <AppIcon name={icon} size={30} color={color} />
+        <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: colors.text, marginTop: spacing.md }}>{label}</Text>
+        <View style={{ flexDirection: 'row', gap: 3, marginTop: spacing.sm + 2 }}>
+          {[1, 2, 3, 4].map((n) => (
+            <View
+              key={n}
+              style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: n <= level ? color : colors.surfaceElevated }}
+            />
+          ))}
         </View>
-        <Text style={{ fontFamily: fonts.semiBold, fontSize: 14, color: colors.text }}>{label}</Text>
       </Pressable>
     </Animated.View>
+  );
+}
+
+// The screen's glow, in the colour of the latest answer. A change of colour
+// cross-fades a new layer in over the old one rather than recolouring in
+// place, which would snap; at most two layers are alive at any time.
+function MoodGlow({ color }: { color: string }) {
+  const [layers, setLayers] = useState([{ id: 0, color }]);
+  const fade = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const top = layers[layers.length - 1];
+    if (color === top.color) return;
+    const next = { id: top.id + 1, color };
+    fade.setValue(0);
+    setLayers([top, next]);
+    Animated.timing(fade, { toValue: 1, duration: 700, easing: Easing.out(Easing.ease), useNativeDriver: true }).start(({ finished }) => {
+      if (finished) setLayers([next]);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [color]);
+
+  return (
+    <>
+      {layers.map((layer, i) => (
+        <Animated.View
+          key={layer.id}
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { opacity: layers.length > 1 && i === layers.length - 1 ? fade : 1 }]}
+        >
+          <AmbientBackdrop color={layer.color} />
+        </Animated.View>
+      ))}
+    </>
   );
 }
 
 // Each past exchange gets its own small entrance instead of snapping into
 // place — mirrors OptionCard's staggered-in treatment so the whole flow
 // shares one motion language instead of mixing animated and static blocks.
-function HistoryItem({ bot, answer, styles, colors }: HistoryEntry & { styles: ReturnType<typeof createStyles>; colors: ThemeColors }) {
+function HistoryItem({ bot, answer, color, styles, colors }: HistoryEntry & { styles: ReturnType<typeof createStyles>; colors: ThemeColors }) {
   const enter = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(enter, { toValue: 1, duration: 260, useNativeDriver: true }).start();
@@ -208,8 +268,8 @@ function HistoryItem({ bot, answer, styles, colors }: HistoryEntry & { styles: R
     >
       <Text style={[styles.historyBot, { color: colors.textTertiary }]}>{bot}</Text>
       <View style={styles.answerRow}>
-        <View style={[styles.answerChip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
-          <Text style={[styles.answerChipText, { color: colors.text }]}>{answer}</Text>
+        <View style={[styles.answerChip, { backgroundColor: color + '1F', borderColor: color + '66' }]}>
+          <Text style={[styles.answerChipText, { color }]}>{answer}</Text>
         </View>
       </View>
     </Animated.View>
@@ -240,12 +300,23 @@ function RoutineRow({
     <Animated.View
       style={{ opacity: enter, transform: [{ translateX: enter.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }] }}
     >
-      <Pressable onPress={onPress} style={styles.row}>
+      {/* Same round check as the habit rows on Aujourd'hui, and a ticked
+          suggestion takes on its habit's colour the way a ticked habit does
+          there — the square system checkboxes were the one thing on this
+          screen that came from somewhere else. */}
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: active }}
+        style={[styles.row, { borderColor: active ? habit.color : colors.border, backgroundColor: active ? habit.color + '1A' : colors.surface }]}
+      >
         <View style={[styles.iconWrap, { backgroundColor: habit.color + '26' }]}>
           <AppIcon name={habit.icon} size={18} color={habit.color} />
         </View>
-        <Text style={[typography.body, { flex: 1 }]}>{habit.name}</Text>
-        <Ionicons name={active ? 'checkbox' : 'square-outline'} size={22} color={active ? colors.accent : colors.textTertiary} />
+        <Text style={[active ? typography.bodyBold : typography.body, { flex: 1 }]}>{habit.name}</Text>
+        <View style={[styles.check, active && { backgroundColor: habit.color, borderColor: habit.color }]}>
+          {active && <Ionicons name="checkmark" size={16} color={colors.background} />}
+        </View>
       </Pressable>
     </Animated.View>
   );
@@ -253,7 +324,7 @@ function RoutineRow({
 
 export function MorningCheckIn() {
   const { profile, habits, currentDay, addHabitsBulk, updateProfile } = useApp();
-  const { colors, typography, mode } = useTheme();
+  const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
   const [step, setStep] = useState<Step>('mood');
@@ -271,7 +342,6 @@ export function MorningCheckIn() {
   const starter = habits.some((h) => !h.archived) ? null : starterRoutine(profile.goal);
   const [checked, setChecked] = useState<Set<string>>(() => new Set(starter?.habits.map((h) => h.name) ?? []));
   const fadeIn = useRef(new Animated.Value(0)).current;
-  const progress = useRef(new Animated.Value(0)).current;
   const blockIn = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef<ScrollView>(null);
 
@@ -280,11 +350,6 @@ export function MorningCheckIn() {
   }, []);
 
   useEffect(() => {
-    Animated.timing(progress, {
-      toValue: (STEP_ORDER.indexOf(step) + 1) / STEP_ORDER.length,
-      duration: 350,
-      useNativeDriver: false,
-    }).start();
     blockIn.setValue(0);
     Animated.timing(blockIn, { toValue: 1, duration: 320, useNativeDriver: true }).start();
   }, [step]);
@@ -301,8 +366,19 @@ export function MorningCheckIn() {
   const unrelated = notAdded.filter((h) => !related.includes(h));
   const suggestions = starter ? starter.habits : [...related, ...unrelated].slice(0, SUGGESTION_COUNT);
 
-  const greetingTemplate = GREETINGS[Math.max(0, currentDay) % GREETINGS.length];
-  const greeting = greetingTemplate.replace('{name}', firstName);
+  const named = profile.name?.trim() && profile.name.trim() !== 'Toi' ? firstName : null;
+  const greeting = greetingFor(named);
+  const dateLine = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+  const moodColor = colorOf(MOODS, mood);
+  const sleepColor = colorOf(SLEEPS, sleep);
+  const glowColor = sleepColor ?? moodColor ?? colors.accent;
+  // Answered questions are filled in their answer's colour, the current one
+  // is marked, the rest wait.
+  const segments = STEP_ORDER.map((s, i) => {
+    const answered = i === 0 ? moodColor : i === 1 ? sleepColor : null;
+    if (answered && STEP_ORDER.indexOf(step) > i) return answered;
+    return s === step ? colors.text + '59' : colors.surfaceElevated;
+  });
 
   const moodQuestion = MOOD_QUESTIONS[dailyIndex(MOOD_QUESTIONS.length, 'checkin:mood-q')];
   const sleepQuestion = SLEEP_QUESTIONS[dailyIndex(SLEEP_QUESTIONS.length, 'checkin:sleep-q')];
@@ -339,14 +415,14 @@ export function MorningCheckIn() {
 
   const pickMood = (label: string) => {
     transition('sleep', () => {
-      setHistory((h) => [...h, { bot: moodQuestion, answer: label }]);
+      setHistory((h) => [...h, { bot: moodQuestion, answer: label, color: colorOf(MOODS, label) ?? colors.accent }]);
       setMood(label);
     });
   };
 
   const pickSleep = (label: string) => {
     transition('routine', () => {
-      setHistory((h) => [...h, { bot: `${moodReaction} ${sleepQuestion}`, answer: label }]);
+      setHistory((h) => [...h, { bot: `${moodReaction} ${sleepQuestion}`, answer: label, color: colorOf(SLEEPS, label) ?? colors.accent }]);
       setSleep(label);
     });
   };
@@ -381,14 +457,7 @@ export function MorningCheckIn() {
 
   return (
     <Animated.View style={[styles.overlay, { opacity: fadeIn }]}>
-      {mode === 'dark' && (
-        <LinearGradient
-          colors={['#000000', '#000000', colors.accent + '17']}
-          locations={[0, 0.5, 1]}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-      )}
+      <MoodGlow color={glowColor} />
       <View style={{ flex: 1, paddingTop: topInset + spacing.md, paddingHorizontal: spacing.lg }}>
         <View style={styles.topRow}>
           <Pressable
@@ -400,13 +469,10 @@ export function MorningCheckIn() {
           >
             <Ionicons name="chevron-back" size={20} color={colors.text} />
           </Pressable>
-          <View style={styles.progressTrack}>
-            <Animated.View
-              style={[
-                styles.progressFill,
-                { backgroundColor: colors.accent, width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
-              ]}
-            />
+          <View style={styles.segments}>
+            {segments.map((c, i) => (
+              <View key={STEP_ORDER[i]} style={[styles.segment, { backgroundColor: c }]} />
+            ))}
           </View>
         </View>
 
@@ -418,7 +484,7 @@ export function MorningCheckIn() {
           onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
         >
           {history.map((entry, i) => (
-            <HistoryItem key={i} bot={entry.bot} answer={entry.answer} styles={styles} colors={colors} />
+            <HistoryItem key={i} bot={entry.bot} answer={entry.answer} color={entry.color} styles={styles} colors={colors} />
           ))}
 
           <Animated.View
@@ -430,13 +496,21 @@ export function MorningCheckIn() {
               ],
             }}
           >
-            {step === 'mood' && <Text style={[styles.greeting, { color: colors.textSecondary }]}>{greeting}</Text>}
+            {step === 'mood' && (
+              <>
+                <Text style={styles.dateLine}>
+                  {dateLine}
+                  {currentDay >= 1 ? ` · JOUR ${currentDay}` : ''}
+                </Text>
+                <Text style={[styles.greeting, { color: colors.textSecondary }]}>{greeting}</Text>
+              </>
+            )}
             <Text style={[styles.question, { color: colors.text }]}>{revealedText}</Text>
 
             {step === 'mood' && (
               <View style={styles.moodRow}>
                 {MOODS.map((m, i) => (
-                  <OptionCard key={m.label} icon={m.icon} label={m.label} onPress={() => pickMood(m.label)} index={i} />
+                  <OptionCard key={m.label} option={m} onPress={() => pickMood(m.label)} index={i} />
                 ))}
               </View>
             )}
@@ -444,7 +518,7 @@ export function MorningCheckIn() {
             {step === 'sleep' && (
               <View style={styles.moodRow}>
                 {SLEEPS.map((s, i) => (
-                  <OptionCard key={s.label} icon={s.icon} label={s.label} onPress={() => pickSleep(s.label)} index={i} />
+                  <OptionCard key={s.label} option={s} onPress={() => pickSleep(s.label)} index={i} />
                 ))}
               </View>
             )}
@@ -502,21 +576,8 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    progressTrack: {
-      flex: 1,
-      height: 4,
-      borderRadius: radius.pill,
-      backgroundColor: colors.surfaceElevated,
-      overflow: 'hidden',
-    },
-    progressFill: {
-      height: '100%',
-      borderRadius: radius.pill,
-      shadowColor: colors.accent,
-      shadowOpacity: 0.7,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 0 },
-    },
+    segments: { flex: 1, flexDirection: 'row', gap: 6 },
+    segment: { flex: 1, height: 4, borderRadius: radius.pill },
     scrollContent: { flexGrow: 1, justifyContent: 'center', paddingBottom: spacing.xxl },
     historyBlock: { marginBottom: spacing.lg },
     historyBot: { fontFamily: typography.body.fontFamily, fontSize: 15, lineHeight: 20 },
@@ -528,11 +589,13 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       paddingHorizontal: spacing.md,
     },
     answerChipText: { fontFamily: typography.bodyBold.fontFamily, fontSize: 14 },
-    greeting: { fontFamily: typography.body.fontFamily, fontSize: 16, marginBottom: spacing.sm },
+    dateLine: { fontFamily: fonts.bold, fontSize: 11, letterSpacing: 1.8, color: colors.textTertiary, marginBottom: spacing.md },
+    greeting: { fontFamily: fonts.medium, fontSize: 17, marginBottom: spacing.xs },
     // Regular weight, not the app's bold display face — the reference's
     // questions read as light, almost conversational, and a heavy weight
-    // here fought that "someone typing to you" feel.
-    question: { fontFamily: fonts.regular, fontSize: 26, lineHeight: 32 },
+    // here fought that "someone typing to you" feel. Larger and tighter
+    // than before, so the question holds the screen on its own.
+    question: { fontFamily: fonts.regular, fontSize: 30, lineHeight: 36, letterSpacing: -0.6 },
     moodRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.xl },
     list: { marginTop: spacing.xl, gap: spacing.sm },
     row: {
@@ -541,7 +604,18 @@ function createStyles(colors: ThemeColors, typography: Typography) {
       gap: spacing.md,
       backgroundColor: colors.surface,
       borderRadius: radius.md,
+      borderWidth: 1.5,
+      borderColor: colors.border,
       padding: spacing.md,
+    },
+    check: {
+      width: 26,
+      height: 26,
+      borderRadius: radius.pill,
+      borderWidth: 2,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     iconWrap: { width: 36, height: 36, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   });
