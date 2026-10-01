@@ -445,3 +445,116 @@ exports.analyzeJawlinePhoto = onCall({ secrets: [anthropicApiKey], region: 'euro
     return { score: null, advice: '' };
   }
 });
+
+// Skin progress photo → structured scores, for the skincare module.
+//
+// Unlike its siblings this one runs on Claude Opus 5.5 with structured
+// outputs: the response is constrained to the schema below instead of being
+// asked nicely for JSON and parsed with a regex, so a malformed reply can't
+// silently turn into "no result". `fallbacks: "default"` re-runs the request
+// server-side on Anthropic's recommended model if a safety classifier
+// declines it — a face photo is benign, but a false positive shouldn't
+// surface as a broken feature.
+//
+// Numeric bounds aren't expressible in a structured-output schema, so the
+// 1–10 range is enforced here after parsing.
+const SKIN_SCHEMA = {
+  type: 'object',
+  properties: {
+    visible: { type: 'boolean', description: 'La peau du visage est clairement visible sur la photo.' },
+    score: { type: 'integer', description: 'Impression globale, de 1 à 10 (0 si visible est false).' },
+    eclat: { type: 'integer', description: 'Éclat / aspect reposé, de 1 à 10 (0 si visible est false).' },
+    uniformite: { type: 'integer', description: 'Homogénéité du teint (rougeurs, taches), de 1 à 10 (0 si visible est false).' },
+    nettete: { type: 'integer', description: 'Peau nette, peu d’imperfections visibles, de 1 à 10 (0 si visible est false).' },
+    focus: { type: 'string', description: 'Le point à travailler en priorité, 1 à 3 mots.' },
+    advice: { type: 'string', description: 'Une phrase de conseil concret et bienveillant, en français.' },
+  },
+  required: ['visible', 'score', 'eclat', 'uniformite', 'nettete', 'focus', 'advice'],
+  additionalProperties: false,
+};
+
+const SKIN_PROMPT = [
+  'Tu analyses une photo de suivi de peau pour l’app de suivi d’habitudes « Défi 99 ». La personne suit une routine skincare et veut voir sa peau évoluer au fil des semaines.',
+  'Évalue de 1 à 10, uniquement d’après ce qui est visible : éclat (peau lumineuse, aspect reposé), uniformité (teint homogène, peu de rougeurs ou de taches), netteté (peu d’imperfections visibles : boutons, points noirs), et un score global.',
+  'Ce sont des repères approximatifs pour suivre une progression dans le temps, pas un jugement de beauté. L’éclairage et l’angle changent beaucoup le rendu : reste prudent et cohérent.',
+  'Le conseil est une seule phrase concrète et bienveillante, tournée vers la routine (nettoyage, hydratation, protection solaire, sommeil, régularité) — jamais une critique de l’apparence.',
+  'Tu ne poses jamais de diagnostic et ne nommes aucune maladie. Si quelque chose semble justifier un avis médical (grain de beauté irrégulier, inflammation importante, lésion), le conseil recommande simplement de consulter un dermatologue.',
+  'Si la photo ne montre pas clairement la peau du visage, mets visible à false, tous les scores à 0, focus à « photo », et explique dans le conseil comment la reprendre : de face, en lumière naturelle, sans filtre.',
+].join(' ');
+
+const clampScore = (n) => (Number.isInteger(n) && n >= 1 && n <= 10 ? n : null);
+
+exports.analyzeSkinPhoto = onCall(
+  { secrets: [anthropicApiKey], region: 'europe-west1', cors: true, timeoutSeconds: 120 },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Connecte-toi pour analyser ta photo.');
+    }
+
+    const imageBase64 = typeof request.data?.imageBase64 === 'string' ? request.data.imageBase64 : '';
+    const mimeType = typeof request.data?.mimeType === 'string' ? request.data.mimeType : 'image/jpeg';
+    if (!imageBase64) throw new HttpsError('invalid-argument', 'Photo manquante.');
+    if (imageBase64.length > MAX_PHOTO_BASE64_CHARS) throw new HttpsError('invalid-argument', 'Photo trop lourde.');
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(mimeType)) {
+      throw new HttpsError('invalid-argument', 'Format de photo non supporté.');
+    }
+
+    const empty = { visible: false, score: null, eclat: null, uniformite: null, nettete: null, focus: '', advice: '' };
+    const client = new Anthropic({ apiKey: anthropicApiKey.value() });
+
+    try {
+      const message = await client.beta.messages.create({
+        model: 'claude-opus-5-5',
+        // Thinking can't be turned off on Opus 5.5 and counts against
+        // max_tokens, so this leaves room for it rather than truncating the
+        // JSON at a tight output cap.
+        max_tokens: 4000,
+        betas: ['server-side-fallback-2026-07-01'],
+        fallbacks: 'default',
+        output_config: { effort: 'medium', format: { type: 'json_schema', schema: SKIN_SCHEMA } },
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: mimeType, data: imageBase64 } },
+              { type: 'text', text: SKIN_PROMPT },
+            ],
+          },
+        ],
+      });
+
+      if (message.stop_reason === 'refusal' || message.stop_reason === 'max_tokens') {
+        console.error('analyzeSkinPhoto: unusable stop_reason', message.stop_reason, message.stop_details ?? null);
+        return empty;
+      }
+
+      const text = message.content
+        .filter((block) => block.type === 'text')
+        .map((block) => block.text)
+        .join('');
+      const parsed = JSON.parse(text);
+
+      if (!parsed.visible) {
+        return { ...empty, focus: 'photo', advice: String(parsed.advice ?? '').slice(0, 240) };
+      }
+      return {
+        visible: true,
+        score: clampScore(parsed.score),
+        eclat: clampScore(parsed.eclat),
+        uniformite: clampScore(parsed.uniformite),
+        nettete: clampScore(parsed.nettete),
+        focus: String(parsed.focus ?? '').slice(0, 40),
+        advice: String(parsed.advice ?? '').slice(0, 240),
+      };
+    } catch (error) {
+      if (error instanceof Anthropic.RateLimitError) {
+        console.error('analyzeSkinPhoto: rate limited', error.message);
+      } else if (error instanceof Anthropic.APIError) {
+        console.error(`analyzeSkinPhoto: API error ${error.status}`, error.message);
+      } else {
+        console.error('analyzeSkinPhoto failed', error);
+      }
+      return empty;
+    }
+  }
+);

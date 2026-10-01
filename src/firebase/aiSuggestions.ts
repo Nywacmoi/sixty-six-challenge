@@ -55,3 +55,27 @@ export async function analyzeJawlinePhoto(args: { imageBase64: string; mimeType:
   const result = await call(args);
   return { score: result.data.score ?? null, advice: result.data.advice ?? '' };
 }
+
+export type SkinPhotoResult = {
+  visible: boolean;
+  score: number | null;
+  eclat: number | null;
+  uniformite: number | null;
+  nettete: number | null;
+  focus: string;
+  advice: string;
+};
+
+export async function analyzeSkinPhoto(args: { imageBase64: string; mimeType: string }): Promise<SkinPhotoResult> {
+  const call = httpsCallable<typeof args, SkinPhotoResult>(functions, 'analyzeSkinPhoto');
+  const { data } = await call(args);
+  return {
+    visible: !!data.visible,
+    score: data.score ?? null,
+    eclat: data.eclat ?? null,
+    uniformite: data.uniformite ?? null,
+    nettete: data.nettete ?? null,
+    focus: data.focus ?? '',
+    advice: data.advice ?? '',
+  };
+}

@@ -47,6 +47,8 @@ import { AiWorkoutSession } from '../components/AiWorkoutSession';
 import { ProgressPhotoInsight } from '../components/ProgressPhotoInsight';
 import { AiJawlineSession } from '../components/AiJawlineSession';
 import { JawlinePhotoInsight } from '../components/JawlinePhotoInsight';
+import { SkinPhotoInsight } from '../components/SkinPhotoInsight';
+import { SkincareRoutine } from '../components/SkincareRoutine';
 import { downscaleImage } from '../utils/image';
 import { AmbientBackdrop } from '../components/AmbientBackdrop';
 import { DayGrid } from '../components/DayGrid';
@@ -60,6 +62,7 @@ import {
   isNutritionHabit,
   isReadingHabit,
   isJawlineHabit,
+  isSkincareHabit,
   isRunningHabit,
   isMoneySavingHabit,
   isScreenTimeHabit,
@@ -753,6 +756,13 @@ export default function HabitDetailScreen({ route, navigation }: any) {
           </>
         )}
 
+        {isSkincareHabit(habit.name, habit.icon) && (
+          <>
+            <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Ta routine</Text>
+            <SkincareRoutine habitId={habitId} color={habit.color} />
+          </>
+        )}
+
         {isRunningHabit(habit.name, habit.icon) && (
           <>
             <Text style={[typography.h2, { marginTop: spacing.xl, marginBottom: spacing.md }]}>Mes courses</Text>
@@ -888,6 +898,7 @@ export default function HabitDetailScreen({ route, navigation }: any) {
           />
         )}
         {isJawlineHabit(habit.name, habit.icon) && <JawlinePhotoInsight habitId={habitId} photoUri={photoUri} />}
+        {isSkincareHabit(habit.name, habit.icon) && <SkinPhotoInsight habitId={habitId} photoUri={photoUri} color={habit.color} />}
       </ScrollView>
       {toast && <Toast icon={toast.icon} message={toast.message} accentColor={colors.accent} onDismiss={clearToast} />}
     </SafeAreaView>

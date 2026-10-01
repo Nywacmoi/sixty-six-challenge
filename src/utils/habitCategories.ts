@@ -101,6 +101,14 @@ export function isAestheticHabit(name: string, icon: string) {
   );
 }
 
+// The skincare module's trigger — narrower than isAestheticHabit on purpose:
+// a posture or beard habit trains Esthétique but shouldn't open a skincare
+// routine. Not in CATEGORY_CHECKS: isAestheticHabit already places these
+// habits for the skill tree and the suggestions.
+export function isSkincareHabit(name: string, icon: string) {
+  return icon === 'skincare' || /skin|peau|visage|crème|creme|spf|solaire|sérum|serum|nettoyant|gommage|démaquill|demaquill/i.test(name);
+}
+
 const CATEGORY_CHECKS: Array<[string, (name: string, icon: string) => boolean]> = [
   ['sport', isSportHabit],
   ['steps', isStepsHabit],
