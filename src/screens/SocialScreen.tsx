@@ -9,7 +9,10 @@ import { fonts, radius, spacing, ThemeColors, Typography } from '../theme/theme'
 import { useTopInset } from '../hooks/useTopInset';
 import { useTabBarClearance } from '../hooks/useTabBarClearance';
 import { PrimaryButton } from '../components/PrimaryButton';
-import { SocialGroup, getProfile, PublicProfile, directThreadId } from '../firebase/social';
+import { SocialGroup, getProfile, PublicProfile, directThreadId, todayStateOf, sendGroupMessage } from '../firebase/social';
+import { useDailyFlag } from '../hooks/useDailyFlag';
+import { joinNames } from '../utils/joinNames';
+import { todayKey } from '../utils/date';
 import { scrollFocusedIntoView } from '../utils/scrollFocusedIntoView';
 import { AppIcon } from '../components/AppIcon';
 
@@ -131,38 +134,120 @@ function FriendsTab({ colors, typography, navigation }: { colors: ThemeColors; t
         </Text>
       }
       renderItem={({ item }) => (
-        <Pressable
-          style={styles.feedCard}
-          onLongPress={() =>
-            confirmAction('Retirer cet ami ?', `${item.username} ne sera plus dans ta liste.`, 'Retirer', () => removeFriend(item.uid))
+        <FriendRow
+          item={item}
+          styles={styles}
+          colors={colors}
+          typography={typography}
+          unread={!!uid && hasDmUnread(directThreadId(uid, item.uid))}
+          onRemove={() =>
+            confirmAction('Retirer cet ami\u202f?', `${item.username} ne sera plus dans ta liste.`, 'Retirer', () => removeFriend(item.uid))
           }
-        >
-          <View style={{ flexDirection: 'row', gap: spacing.md, alignItems: 'center' }}>
-            <Avatar name={item.username} color={item.avatarColor} />
-            <View style={{ flex: 1 }}>
-              <Text style={typography.bodyBold}>{item.username}</Text>
-              <Text style={typography.caption}>Jour {item.currentDay} · Niveau {item.level}</Text>
-            </View>
-            <View style={styles.streakBadge}>
-              <AppIcon name="flame" size={14} color={colors.accent} />
-              <Text style={[typography.bodyBold, { color: colors.accent }]}>{item.currentStreak}</Text>
-            </View>
-            <Pressable
-              onPress={() =>
-                navigation.navigate('DirectChat', { peerUid: item.uid, peerUsername: item.username, peerAvatarColor: item.avatarColor })
-              }
-              style={styles.msgBtn}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={`Envoyer un message à ${item.username}`}
-            >
-              {uid && hasDmUnread(directThreadId(uid, item.uid)) && <View style={styles.msgDot} />}
-              <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.accent} />
-            </Pressable>
-          </View>
-        </Pressable>
+          onMessage={() =>
+            navigation.navigate('DirectChat', { peerUid: item.uid, peerUsername: item.username, peerAvatarColor: item.avatarColor })
+          }
+        />
       )}
     />
+  );
+}
+
+const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? 's' : ''}`;
+
+// One friend: who they are, how today is going for them, and — when it
+// isn't done — a way to nudge. The relance is a direct message through the
+// existing messaging, so it needs no new permissions and lands where they
+// already look; once a day per friend, so it stays a nudge.
+function FriendRow({
+  item,
+  styles,
+  colors,
+  typography,
+  unread,
+  onRemove,
+  onMessage,
+}: {
+  item: PublicProfile;
+  styles: ReturnType<typeof createStyles>;
+  colors: ThemeColors;
+  typography: Typography;
+  unread: boolean;
+  onRemove: () => void;
+  onMessage: () => void;
+}) {
+  const { sendDirectMessage } = useSocial();
+  const [relanced, markRelanced] = useDailyFlag(`relance:${item.uid}`);
+  const [sending, setSending] = useState(false);
+  const { state, remaining } = todayStateOf(item, todayKey());
+
+  const statusText =
+    state === 'done'
+      ? 'Journée validée'
+      : state === 'partial'
+        ? `${item.today!.done}/${item.today!.total} aujourd’hui`
+        : 'Pas encore commencé';
+  const statusColor = state === 'done' ? colors.success : state === 'partial' ? colors.accent : colors.textTertiary;
+
+  const relance = async () => {
+    if (relanced || sending) return;
+    setSending(true);
+    try {
+      const rest = remaining ? `il te reste ${plural(remaining, 'habitude')} aujourd’hui` : 'ta journée t’attend';
+      await sendDirectMessage(item.uid, item.username, item.avatarColor, `Petite relance\u202f: ${rest}. On ne lâche rien.`);
+      await markRelanced();
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Pressable style={styles.feedCard} onLongPress={onRemove}>
+      <View style={{ flexDirection: 'row', gap: spacing.md, alignItems: 'center' }}>
+        <Avatar name={item.username} color={item.avatarColor} />
+        <View style={{ flex: 1 }}>
+          <Text style={typography.bodyBold} numberOfLines={1}>
+            {item.username}
+            <Text style={typography.caption}>  Jour {item.currentDay}</Text>
+          </Text>
+          {/* Today's status gets the line to itself: it's the point of the
+              row, and squeezed next to the day it ended up truncated. */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+            {state === 'done' && <Ionicons name="checkmark-circle" size={13} color={statusColor} />}
+            <Text style={[typography.caption, { color: statusColor, flex: 1 }]} numberOfLines={1}>
+              {statusText}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.streakBadge}>
+          <AppIcon name="flame" size={14} color={colors.accent} />
+          <Text style={[typography.bodyBold, { color: colors.accent }]}>{item.currentStreak}</Text>
+        </View>
+        <Pressable
+          onPress={onMessage}
+          style={styles.msgBtn}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`Envoyer un message à ${item.username}`}
+        >
+          {unread && <View style={styles.msgDot} />}
+          <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.accent} />
+        </Pressable>
+      </View>
+      {state !== 'done' && (
+        <Pressable
+          onPress={relance}
+          disabled={relanced || sending}
+          style={[styles.relanceBtn, relanced && { borderColor: colors.border }]}
+          accessibilityRole="button"
+          accessibilityLabel={relanced ? `${item.username} déjà relancé aujourd’hui` : `Relancer ${item.username}`}
+        >
+          <Ionicons name={relanced ? 'checkmark' : 'notifications-outline'} size={14} color={relanced ? colors.textTertiary : colors.accent} />
+          <Text style={[styles.relanceText, { color: relanced ? colors.textTertiary : colors.accent }]}>
+            {relanced ? 'Relancé aujourd’hui' : sending ? 'Envoi…' : 'Relancer'}
+          </Text>
+        </Pressable>
+      )}
+    </Pressable>
   );
 }
 
@@ -226,6 +311,26 @@ function GroupCard({
   const [members, setMembers] = useState<PublicProfile[] | null>(null);
   const [loading, setLoading] = useState(false);
   const unread = hasUnread(group.id);
+  const { uid, username } = useSocial();
+  const [groupRelanced, markGroupRelanced] = useDailyFlag(`relance-group:${group.id}`);
+  const today = todayKey();
+  const states = members?.map((m) => ({ m, ...todayStateOf(m, today) })) ?? [];
+  const doneCount = states.filter((x) => x.state === 'done').length;
+  const missing = states.filter((x) => x.state !== 'done' && x.m.uid !== uid).map((x) => x.m.username);
+
+  // Posted in the group's own chat, naming who hasn't validated yet — that's
+  // what a group for accountability is for — once a day per group.
+  const relanceGroup = async () => {
+    if (!uid || !username || groupRelanced || missing.length === 0) return;
+    const names = joinNames(missing);
+    await sendGroupMessage(
+      group.id,
+      uid,
+      username,
+      `Petite relance du groupe\u202f: ${doneCount} sur ${states.length} ont validé aujourd’hui. Il manque ${names}.`
+    );
+    await markGroupRelanced();
+  };
 
   const toggle = async () => {
     setExpanded((v) => !v);
@@ -271,11 +376,35 @@ function GroupCard({
       {expanded && (
         <View style={styles.membersRow}>
           {loading && <ActivityIndicator color={colors.accent} />}
-          {members?.map((m, i) => (
+          {members && (
+            <View style={styles.boardHead}>
+              <Text style={[typography.bodyBold, { flex: 1 }]}>
+                {doneCount}/{states.length} <Text style={typography.caption}>ont validé aujourd’hui</Text>
+              </Text>
+              {missing.length > 0 && (
+                <Pressable onPress={relanceGroup} disabled={groupRelanced} style={[styles.relanceBtn, { marginTop: 0 }, groupRelanced && { borderColor: colors.border }]}>
+                  <Ionicons name={groupRelanced ? 'checkmark' : 'notifications-outline'} size={14} color={groupRelanced ? colors.textTertiary : colors.accent} />
+                  <Text style={[styles.relanceText, { color: groupRelanced ? colors.textTertiary : colors.accent }]}>
+                    {groupRelanced ? 'Groupe relancé' : 'Relancer le groupe'}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          )}
+          {states.map(({ m, state }, i) => (
             <View key={m.uid} style={styles.memberRow}>
               <Text style={[typography.small, { width: 18 }]}>{i + 1}</Text>
               <Avatar name={m.username} color={m.avatarColor} size={28} />
               <Text style={[typography.body, { flex: 1, marginLeft: spacing.sm }]}>{m.username}</Text>
+              {state === 'done' ? (
+                <Ionicons name="checkmark-circle" size={16} color={colors.success} style={{ marginRight: spacing.sm }} />
+              ) : state === 'partial' ? (
+                <Text style={[typography.caption, { color: colors.accent, marginRight: spacing.sm }]}>
+                  {m.today!.done}/{m.today!.total}
+                </Text>
+              ) : (
+                <Text style={[typography.caption, { marginRight: spacing.sm }]}>—</Text>
+              )}
               <AppIcon name="flame" size={13} color={colors.accent} />
               <Text style={[typography.caption, { color: colors.accent }]}>{m.currentStreak}</Text>
             </View>
@@ -630,6 +759,20 @@ function createStyles(colors: ThemeColors, typography: Typography) {
     },
     membersRow: { marginTop: spacing.md, gap: spacing.sm },
     memberRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    boardHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
+    relanceBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      gap: 6,
+      marginTop: spacing.sm + 2,
+      paddingVertical: 6,
+      paddingHorizontal: spacing.sm + 4,
+      borderRadius: radius.pill,
+      borderWidth: 1,
+      borderColor: colors.accent + '66',
+    },
+    relanceText: { fontFamily: fonts.semiBold, fontSize: 13 },
     chatBtn: {
       flexDirection: 'row',
       alignItems: 'center',

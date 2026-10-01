@@ -16,6 +16,7 @@ import {
   subscribeToMyGroups,
   subscribeToMyDirectThreads,
   sendDirectMessage as sendDirectMessageApi,
+  syncMyToday,
   PublicProfile,
   SocialGroup,
   DirectThread,
@@ -31,6 +32,7 @@ import {
 } from '../firebase/account';
 import { useApp } from './AppContext';
 import { storage } from '../storage/storage';
+import { todayKey } from '../utils/date';
 
 type SocialContextValue = {
   ready: boolean;
@@ -74,7 +76,7 @@ type SocialContextValue = {
 const SocialContext = createContext<SocialContextValue | null>(null);
 
 export function SocialProvider({ children }: { children: React.ReactNode }) {
-  const { currentDay, getStreak, getLongestStreak, getTotalCompletions, habits, levelInfo, profile } = useApp();
+  const { currentDay, getStreak, getLongestStreak, getTotalCompletions, habits, levelInfo, profile, isCompleted } = useApp();
   const [ready, setReady] = useState(false);
   const [uid, setUid] = useState<string | null>(null);
   const [username, setUsernameState] = useState<string | null>(null);
@@ -320,6 +322,15 @@ export function SocialProvider({ children }: { children: React.ReactNode }) {
   const activeHabits = habits.filter((h) => !h.archived);
   const bestCurrentStreak = activeHabits.reduce((max, h) => Math.max(max, getStreak(h.id)), 0);
   const bestLongestStreak = activeHabits.reduce((max, h) => Math.max(max, getLongestStreak(h.id)), 0);
+
+  // Published on every tick, so a friend looking now sees now.
+  const todayDate = todayKey();
+  const todayDone = activeHabits.filter((h) => isCompleted(h.id)).length;
+  const todayTotal = activeHabits.length;
+  useEffect(() => {
+    if (!uid || !username) return;
+    syncMyToday(uid, { date: todayDate, done: todayDone, total: todayTotal }).catch(() => {});
+  }, [uid, username, todayDate, todayDone, todayTotal]);
 
   useEffect(() => {
     if (!uid || !username) return;

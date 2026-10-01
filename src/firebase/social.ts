@@ -28,7 +28,25 @@ export type PublicProfile = {
   longestStreak: number;
   totalCompletions: number;
   level: number;
+  /** Where today stands, as of the person's last tick. Absent for anyone on
+   *  a build from before it existed. */
+  today?: TodayStatus;
 };
+
+// Friends could see a streak and a level — the long view — but not whether
+// anyone had actually shown up today, which is the one thing accountability
+// runs on. A streak of 40 says nothing about whether day 41 is happening.
+export type TodayStatus = { date: string; done: number; total: number };
+export type TodayState = 'done' | 'partial' | 'none';
+
+/** Read against the viewer's own date: a status from yesterday means
+ *  nothing has been ticked today yet, whatever it said then. */
+export function todayStateOf(p: PublicProfile, todayDate: string): { state: TodayState; remaining: number | null } {
+  const t = p.today;
+  if (!t || t.date !== todayDate || t.total <= 0) return { state: 'none', remaining: t && t.date === todayDate ? t.total : null };
+  if (t.done >= t.total) return { state: 'done', remaining: 0 };
+  return { state: t.done > 0 ? 'partial' : 'none', remaining: t.total - t.done };
+}
 
 export type SocialGroup = {
   id: string;
@@ -142,6 +160,14 @@ export async function claimUsername(uid: string, rawUsername: string, avatarColo
     },
     { merge: true }
   );
+}
+
+// A write of its own rather than more fields on syncMyStats: the stats only
+// sync when a streak or a level moves, this has to follow every tick — and
+// if the security rules ever refuse the new field, the existing sync is
+// untouched and friends simply see no status.
+export async function syncMyToday(uid: string, today: TodayStatus) {
+  await setDoc(doc(db, 'users', uid), { today }, { merge: true });
 }
 
 export async function syncMyStats(
