@@ -13,6 +13,7 @@ import { SectionLabel } from '../components/SectionLabel';
 import { StaggeredEntrance } from '../components/StaggeredEntrance';
 import { JourneyPath } from '../components/JourneyPath';
 import { AvatarDisplay } from '../components/AvatarDisplay';
+import { TrendsSection } from '../components/TrendsSection';
 import { progressColor } from '../utils/progressColor';
 
 import { useDayValues } from '../hooks/useDayValues';
@@ -115,6 +116,13 @@ export default function ProgressScreen({ navigation }: any) {
           </View>
           <Ionicons name="chevron-forward" size={17} color={colors.textTertiary} />
         </Pressable>
+
+        {activeHabits.length > 0 && (
+          <>
+            <SectionLabel style={styles.sectionLabel}>TES TENDANCES</SectionLabel>
+            <TrendsSection />
+          </>
+        )}
 
         <SectionLabel style={styles.sectionLabel}>TES JALONS</SectionLabel>
         <View style={{ paddingHorizontal: spacing.lg }}>

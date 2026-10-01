@@ -53,6 +53,7 @@ const DARK_PALETTE: ThemeColors = {
   border: '#2A2A2E',
   accent: '#C9E265',
   accentDim: '#3A4014',
+  chart: '#C9E265',
   text: '#F5F5F0',
   textSecondary: '#9B9B9F',
   textTertiary: '#6B6B72',

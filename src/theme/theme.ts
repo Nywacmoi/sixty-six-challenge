@@ -5,6 +5,10 @@ export type ThemeColors = {
   border: string;
   accent: string;
   accentDim: string;
+  // Filled chart marks. The accent in light; in dark a step deeper than the
+  // accent, which is bright enough for text and icons but glares as a bar on
+  // near-black (OKLCH L 0.75, against a 0.48–0.67 band for fills).
+  chart: string;
   text: string;
   textSecondary: string;
   textTertiary: string;
@@ -20,6 +24,7 @@ export const lightColors: ThemeColors = {
   border: '#E3E3E8',
   accent: '#005FFE',
   accentDim: '#D6E4FF',
+  chart: '#005FFE',
   text: '#111114',
   textSecondary: '#6B6B72',
   textTertiary: '#A0A0A8',
@@ -37,6 +42,7 @@ export const darkColors: ThemeColors = {
   border: '#1C1C20',
   accent: '#58B7FF',
   accentDim: '#0D2B5C',
+  chart: '#3A97EC',
   text: '#F5F5F0',
   textSecondary: '#9B9B9F',
   textTertiary: '#5C5C60',

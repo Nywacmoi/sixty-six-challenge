@@ -6,10 +6,12 @@ import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { fonts, radius, spacing, ThemeColors, Typography } from '../theme/theme';
 import { useTopInset } from '../hooks/useTopInset';
+import { useTrends } from '../hooks/useTrends';
 import { todayKey, dailyIndex } from '../utils/date';
 import { COMMON_HABITS } from '../data/commonHabits';
 import { starterRoutine } from '../data/goals';
 import { getHabitCategories } from '../utils/habitCategories';
+import { checkInNudge } from '../utils/trends';
 import { PrimaryButton } from './PrimaryButton';
 import { AppIcon } from './AppIcon';
 import { AmbientBackdrop } from './AmbientBackdrop';
@@ -323,10 +325,11 @@ function RoutineRow({
 }
 
 export function MorningCheckIn() {
-  const { profile, habits, currentDay, addHabitsBulk, updateProfile } = useApp();
+  const { profile, habits, currentDay, addHabitsBulk, updateProfile, logMetric } = useApp();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography);
   const topInset = useTopInset();
+  const trends = useTrends();
   const [step, setStep] = useState<Step>('mood');
   // Answered questions stay on screen instead of being replaced — each past
   // exchange dims into scrollback (bot line + the person's own answer as a
@@ -389,12 +392,17 @@ export function MorningCheckIn() {
   const sleepReactionPool = SLEEP_REACTIONS[sleep ?? ''] ?? [''];
   const sleepReaction = sleepReactionPool[dailyIndex(sleepReactionPool.length, `checkin:sleep-r:${sleep ?? ''}`)];
 
+  // When the person's own history has something to say about this morning
+  // — a rough night, or the weekday they usually lose — it replaces the
+  // stock reaction: their number is worth more than a generic line.
+  const nudge = checkInNudge(trends, SLEEPS.find((s) => s.label === sleep)?.level ?? null, todayKey());
+
   const currentBotText =
     step === 'mood'
       ? moodQuestion
       : step === 'sleep'
         ? `${moodReaction} ${sleepQuestion}`
-        : `${sleepReaction} ${starter ? starter.lead : routineQuestion}`;
+        : `${nudge ?? sleepReaction} ${starter ? starter.lead : routineQuestion}`;
   const revealedText = useTypewriter(currentBotText);
 
   const finish = async () => {
@@ -413,7 +421,13 @@ export function MorningCheckIn() {
     });
   };
 
+  // Each answer is also kept as its level on the scale, one per morning —
+  // re-answering overwrites — so Progression can line it up against how
+  // the day went. Saved on the tap, not at the end: someone who answers
+  // and closes the app before the routine step still told us.
   const pickMood = (label: string) => {
+    const level = MOODS.find((m) => m.label === label)?.level;
+    if (level) logMetric('checkin:mood', level);
     transition('sleep', () => {
       setHistory((h) => [...h, { bot: moodQuestion, answer: label, color: colorOf(MOODS, label) ?? colors.accent }]);
       setMood(label);
@@ -421,6 +435,8 @@ export function MorningCheckIn() {
   };
 
   const pickSleep = (label: string) => {
+    const level = SLEEPS.find((s) => s.label === label)?.level;
+    if (level) logMetric('checkin:sleep', level);
     transition('routine', () => {
       setHistory((h) => [...h, { bot: `${moodReaction} ${sleepQuestion}`, answer: label, color: colorOf(SLEEPS, label) ?? colors.accent }]);
       setSleep(label);
